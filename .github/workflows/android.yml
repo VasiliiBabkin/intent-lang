@@ -30,7 +30,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      - run: python -m unittest discover -s tests -v
+      - name: Compile-check Python sources
+        run: python -m compileall -q intent.py android_codegen.py tests
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
       - run: python android_codegen.py examples/counter.intent --output build/generated-android
       - name: Build debug APK
         working-directory: build/generated-android

@@ -100,3 +100,17 @@ intent build android examples/workflow.intent --output build/generated-android
 ```
 
 Для Android необходимы Java, Android SDK и Gradle. Имя пакета в PyPI и лицензия проекта ещё не утверждены. До проверки CI установка из GitHub также считается экспериментальной.
+
+## Intent 0.6 (экспериментальная ветка)
+
+Установка в виртуальном окружении:
+
+```bash
+python -m pip install --upgrade "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/intent-0.6-quality"
+intent --version
+intent check workflow.intent
+intent test workflow.intent
+intent build web workflow.intent --output index.html
+```
+
+Новые проверки сравнивают последовательности состояний интерпретатора Python и сгенерированного JavaScript через Node.js. Это проверка совместимости на примере Workflow, а не доказательство эквивалентности всех возможных программ. Для запуска полного набора тестов требуется Node.js. Артефакты предназначены для проверки перед TestPyPI; публикация в реестр не выполняется автоматически.

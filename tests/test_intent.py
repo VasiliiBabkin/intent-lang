@@ -18,6 +18,15 @@ class IntentTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsupported expression"):
             parse('app "X"\nstate count = 0\naction unsafe: count = __import__("os").system("echo bad")')
 
+    def test_action_state_isolation(self):
+        program = parse('app "X"\nstate count = 0\naction inc: count = count + 1\ntest first: inc -> count == 1\ntest second: inc -> count == 1')
+        self.assertEqual(run(program), 2)
+
+    def test_arithmetic_invariant(self):
+        program = parse('app "X"\nstate count = 0\naction dec: count = count - 1\nrule count >= 0\ntest blocked: dec -> count == -1')
+        with self.assertRaisesRegex(AssertionError, "invariant"):
+            run(program)
+
     def test_reject_unknown_action(self):
         with self.assertRaisesRegex(ValueError, "Unknown action"):
             parse('app "X"\nstate ready = false\ntest check: missing -> ready == true')

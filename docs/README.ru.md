@@ -73,3 +73,30 @@ screen main:
 ## Статус переносимости
 
 Android-версия 0.3 проверена на устройстве. Веб-компилятор 0.4 экспериментальный: его генерация покрыта тестами, но одинаковое поведение в браузере и на Android необходимо дополнительно проверять сквозными тестами.
+
+
+## Установка CLI (экспериментальная версия 0.5)
+
+Пока пакет не опубликован в PyPI. Установить исходную ветку можно командой:
+
+```bash
+python -m pip install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/intent-0.5-cli-package"
+```
+
+Для изолированной установки CLI рекомендуется `pipx`, если он доступен:
+
+```bash
+pipx install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/intent-0.5-cli-package"
+```
+
+Команды после установки:
+
+```bash
+intent --version
+intent check examples/workflow.intent
+intent test examples/workflow.intent
+intent build web examples/workflow.intent --output build/web/index.html
+intent build android examples/workflow.intent --output build/generated-android
+```
+
+Для Android необходимы Java, Android SDK и Gradle. Имя пакета в PyPI и лицензия проекта ещё не утверждены. До проверки CI установка из GitHub также считается экспериментальной.

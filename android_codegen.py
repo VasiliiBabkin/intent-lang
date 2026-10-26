@@ -9,6 +9,28 @@ IDENT = r"[A-Za-z_][A-Za-z_0-9]*"
 def kotlin_string(s):
     return '"' + s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n') + '"'
 
+def kotlin_expression(source, states):
+    """Compile the same restricted expression subset to Kotlin."""
+    import ast
+    def walk(node):
+        if isinstance(node, ast.Constant) and type(node.value) is int:
+            return str(node.value)
+        if isinstance(node, ast.Constant) and type(node.value) is bool:
+            return str(node.value).lower()
+        if isinstance(node, ast.Name):
+            if node.id in ("true", "false"):
+                return node.id
+            if node.id not in states:
+                raise ValueError(f"Unknown state: {node.id}")
+            return node.id
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+            return "(-" + walk(node.operand) + ")"
+        if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub, ast.Mult)):
+            op = {ast.Add: "+", ast.Sub: "-", ast.Mult: "*"}[type(node.op)]
+            return "(" + walk(node.left) + " " + op + " " + walk(node.right) + ")"
+        raise ValueError(f"Unsupported Kotlin expression: {source}")
+    return walk(ast.parse(source, mode="eval").body)
+
 def ui_parse(source, program):
     screen = False
     widgets = []

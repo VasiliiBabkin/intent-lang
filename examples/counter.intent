@@ -1,0 +1,11 @@
+app "Intent Counter"
+state count = 0
+action increment: count = 1
+action reset: count = 0
+rule count >= 0
+test reset: increment, reset -> count == 0
+screen main:
+    text "Intent Counter"
+    value count
+    button "Set to one" -> increment
+    button "Reset" -> reset

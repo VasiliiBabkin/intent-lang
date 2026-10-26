@@ -1,0 +1,21 @@
+app "Workflow"
+state count = 0
+state completed = false
+action advance:
+    if count < 3:
+        count = count + 1
+    if count == 3:
+        completed = true
+action reset:
+    count = 0
+    completed = false
+rule count >= 0 and count <= 3
+rule completed == (count == 3)
+test finish: advance, advance, advance -> completed == true
+test reset: advance, reset -> count == 0
+screen main:
+    text "Workflow"
+    value count
+    value completed
+    button "Next" -> advance
+    button "Reset" -> reset

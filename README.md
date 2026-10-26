@@ -4,6 +4,10 @@ Experimental declarative programming language for application state, transitions
 
 **Documentation:** [Русский](docs/README.ru.md) · [English](docs/README.en.md)
 
+**License:** [Apache 2.0](LICENSE) · [Open-source policy (RU)](docs/OPEN_SOURCE.ru.md) · [Open-source policy (EN)](docs/OPEN_SOURCE.en.md)
+
+**Contributing:** [Guidelines](CONTRIBUTING.md) · [Code of Conduct](CODE_OF_CONDUCT.md)
+
 ## Quick start
 
 Requires Python 3.12+.
@@ -31,6 +35,6 @@ Each action computes a candidate state. All declared invariants must hold before
 
 ## Status
 
-**Experimental, not production-ready.** Android 0.3 has been manually tested on a device. Web 0.4 generation and its automated tests are under validation. Cross-backend behavioral equivalence has not yet been established by end-to-end tests.
+**Experimental, not production-ready.** Android 0.3 has been manually tested on a device. Web 0.4 generation and its automated tests are under validation. Python/JavaScript differential conformance tests cover selected scenarios, not all possible programs.
 
-Development branches: `feature/intent-0.3-ast` and `feature/intent-0.4-web-docs`.
+Development branch: `feature/intent-0.7-open-source`.

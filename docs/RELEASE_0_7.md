@@ -40,3 +40,31 @@ intent --version
 ```
 
 Before publishing, verify all CI matrix jobs, inspect the built artifacts, confirm the package name and license, configure TestPyPI Trusted Publishing, and test installation from TestPyPI in a clean environment. Do not commit publishing credentials.
+
+## TestPyPI: настройка / setup
+
+1. Дождитесь успешного запуска **Intent packaging and provenance audit** на ветке `feature/intent-0.7-testpypi-prep`. В GitHub Actions должен появиться артефакт `intent-07-audited-dist`.
+2. Проверьте доступность имени `intent-lang` в TestPyPI и PyPI. Имена могут быть заняты независимо; **доступность ещё не подтверждена**.
+3. Создайте GitHub Environment с именем **`testpypi`**. Рекомендуется включить required reviewers, чтобы публикация требовала ручного подтверждения.
+4. В TestPyPI создайте *pending trusted publisher* с параметрами:
+   - GitHub owner: `VasiliiBabkin`
+   - Repository: `intent-lang`
+   - Workflow: `intent07-testpypi.yml`
+   - Environment: `testpypi`
+5. Workflow с `workflow_dispatch` должен находиться в **default branch** GitHub, иначе кнопка ручного запуска может быть недоступна. Сначала слейте проверенные изменения через pull request. Не запускайте публикацию до подтверждения владельцем.
+6. В GitHub Actions вручную запустите **Publish Intent to TestPyPI (manual)**. Публикация использует OIDC Trusted Publishing; секрет API-токена не нужен.
+7. После публикации установите в новом окружении:
+
+```bash
+python3 -m venv /tmp/intent-testpypi
+/tmp/intent-testpypi/bin/python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ intent-lang==0.7.0a1
+/tmp/intent-testpypi/bin/intent --version
+```
+
+При использовании двух индексов возможна dependency confusion: для релизной проверки предпочтительнее `--index-url https://test.pypi.org/simple/` без дополнительного индекса, поскольку текущий пакет не объявляет runtime-зависимостей.
+
+**Публикация пока не выполнялась.** Нужна отдельная проверка прав на сторонний код, графику и название проекта. Автоматическая проверка архивов не доказывает юридическую чистоту всех файлов.
+
+## EN: publication gate
+
+The TestPyPI workflow is manual and uses GitHub OIDC Trusted Publishing, restricted to the `testpypi` environment. Configure a matching pending publisher on TestPyPI and review environment protection rules. GitHub manual dispatch requires the workflow to be present on the default branch. Publishing is a separate, explicitly authorized action after CI passes.

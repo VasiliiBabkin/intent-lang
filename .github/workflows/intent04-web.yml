@@ -1,0 +1,27 @@
+name: Intent 0.4 web validation
+on:
+  push:
+    branches:
+      - feature/intent-0.4-web-docs
+  workflow_dispatch:
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile-check Python
+        run: python -m compileall -q intent_core.py web_codegen.py tests
+      - name: Run Python tests
+        run: python -m unittest discover -s tests -v
+      - name: Generate standalone web app
+        run: python web_codegen.py examples/workflow.intent --output build/web/index.html
+      - name: Verify output exists
+        run: test -s build/web/index.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: intent-04-web
+          if-no-files-found: error
+          path: build/web/index.html

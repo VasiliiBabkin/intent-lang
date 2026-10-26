@@ -1,0 +1,8 @@
+app "Timer"
+state duration = 300
+state running = false
+action start: running = true
+action stop: running = false
+rule duration >= 0
+test start: start -> running == true
+test stop: start, stop -> running == false

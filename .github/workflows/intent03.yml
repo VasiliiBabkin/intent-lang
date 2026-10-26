@@ -1,0 +1,44 @@
+name: Intent 0.3 experimental validation
+on:
+  push:
+    branches:
+      - feature/intent-0.3-ast
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python syntax
+        run: python -m compileall -q intent.py intent_core.py android_codegen.py android_codegen_v03.py tests
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Generate Android
+        run: python android_codegen_v03.py examples/workflow.intent --output build/generated-android
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare Android SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || test "${PIPESTATUS[1]}" -eq 0
+          "$SDK/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Build APK
+        working-directory: build/generated-android
+        run: gradle --no-daemon :app:assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: intent-03-workflow-debug
+          if-no-files-found: error
+          path: build/generated-android/app/build/outputs/apk/debug/app-debug.apk

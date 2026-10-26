@@ -113,7 +113,8 @@ def run(program):
             target, val = program.actions[action]
             state[target] = val
             if not all(predicate(rule, state) for rule in program.rules):
-                raise AssertionError(f"{name}: invariant violated after {action}")\n            state = candidate
+                raise AssertionError(f"{name}: invariant violated after {action}")
+            state = candidate
         if not predicate(expected, state):
             raise AssertionError(f"{name}: assertion failed")
         print(f"PASS {name}")

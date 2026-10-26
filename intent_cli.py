@@ -5,7 +5,7 @@ from pathlib import Path
 
 from intent_core import parse, run
 
-VERSION = "0.6.0a1"
+VERSION = "0.7.0a1"
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="intent", description="Intent experimental compiler")
@@ -40,7 +40,7 @@ def main(argv=None):
             print(generate(source, output))
         return 0
     except (OSError, ValueError, AssertionError) as exc:
-        print(f"intent: {exc}", file=sys.stderr)
+        print(f"intent: {args.source}: {exc}", file=sys.stderr)
         return 1
 
 if __name__ == "__main__":

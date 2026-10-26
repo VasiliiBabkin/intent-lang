@@ -35,3 +35,19 @@ See [Russian guide](README.ru.md) and [example](../examples/workflow.intent).
 ## Current limitations
 
 No user-defined functions, collections, modules, IO, async, standard library or production-level diagnostics. The web backend is experimental; equivalence across runtimes still needs end-to-end verification.
+
+## Experimental pip installation (0.5)
+
+Not published to PyPI yet. Install from the development branch:
+
+```sh
+python -m pip install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/intent-0.5-cli-package"
+intent --version
+intent check examples/workflow.intent
+intent test examples/workflow.intent
+intent build web examples/workflow.intent
+```
+
+For an isolated CLI installation, use `pipx install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/intent-0.5-cli-package"`.
+
+The PyPI project name and project license are not finalized. Cross-platform packaging CI must pass before this build is considered validated.

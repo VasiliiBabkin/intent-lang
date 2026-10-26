@@ -8,7 +8,6 @@ version = "0.5.0a1"
 description = "Experimental declarative language for stateful applications"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "Proprietary"}
 authors = [{name = "Intent contributors"}]
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",

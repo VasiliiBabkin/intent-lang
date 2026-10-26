@@ -110,9 +110,10 @@ def run(program):
     for name, sequence, expected in program.tests:
         state = program.states.copy()
         for action in sequence:
-            target, val = program.actions[action]
-            state[target] = val
-            if not all(predicate(rule, state) for rule in program.rules):
+            target, expression_source = program.actions[action]
+            candidate = state.copy()
+            candidate[target] = expression(expression_source, state)
+            if not all(predicate(rule, candidate) for rule in program.rules):
                 raise AssertionError(f"{name}: invariant violated after {action}")
             state = candidate
         if not predicate(expected, state):

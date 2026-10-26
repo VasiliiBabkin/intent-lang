@@ -5,7 +5,7 @@ from pathlib import Path
 
 from intent_core import parse, run
 
-VERSION = "0.5.0a1"
+VERSION = "0.6.0a1"
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="intent", description="Intent experimental compiler")

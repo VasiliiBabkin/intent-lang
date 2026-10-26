@@ -10,6 +10,14 @@ class IntentTests(unittest.TestCase):
         program = parse(path.read_text(encoding="utf-8"))
         self.assertEqual(run(program), 2)
 
+    def test_arithmetic_counter(self):
+        program = parse('app "X"\nstate count = 0\naction inc: count = count + 1\ntest twice: inc, inc -> count == 2')
+        self.assertEqual(run(program), 1)
+
+    def test_reject_unsafe_expression(self):
+        with self.assertRaisesRegex(ValueError, "Unsupported expression"):
+            parse('app "X"\nstate count = 0\naction unsafe: count = __import__("os").system("echo bad")')
+
     def test_reject_unknown_action(self):
         with self.assertRaisesRegex(ValueError, "Unknown action"):
             parse('app "X"\nstate ready = false\ntest check: missing -> ready == true')

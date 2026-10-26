@@ -21,11 +21,10 @@ class DiagnosticTests(unittest.TestCase):
             return stderr.getvalue()
 
     def test_invalid_assignment(self):
-        self.assertIn("Line 3", self.check_error(
+        self.assertIn("Line 4", self.check_error(
             'app "Broken"\nstate count = 0\naction go:\n    missing = 1\n'
-        ).replace("Line 4", "Line 3") if False else self.check_error(
-            'app "Broken"\nstate count = 0\naction go:\n    missing = 1\n'
-        ).replace("Line 4", "Line 3"))  # replaced below
+        ))
+
     def test_missing_app(self):
         self.assertIn("Missing app", self.check_error("state count = 0\n"))
     def test_invalid_initial_rule(self):

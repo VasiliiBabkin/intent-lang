@@ -53,8 +53,14 @@ def generate(source, output):
     ]
     for key, val in program.states.items():
         lines.append(f"  var {key} by remember {{ mutableStateOf({str(val).lower()}) }}")
+    for key, expr in (program.derived or {}).items():
+        display_names = {name: name for name in program.states}
+        display_names.update({name: name for name in program.derived if name != key})
+        lines.append(f"  val {key} = {kt(expr, display_names)}")
     lines.append("  Column(modifier = Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {")
     names = {key:"next_"+key for key in program.states}
+    for key, expr in (program.derived or {}).items():
+        names[key] = kt(expr, names)
     def emit(stmts, pad):
         for stmt in stmts:
             if isinstance(stmt, Assign):

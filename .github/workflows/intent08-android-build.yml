@@ -1,0 +1,50 @@
+name: Intent 0.8 Android APK build
+on:
+  push:
+    branches: [feature/intent-0.8-diagnostics]
+    paths:
+      - 'android_codegen.py'
+      - 'android_codegen_v03.py'
+      - 'intent_core.py'
+      - 'examples/workflow.intent'
+      - '.github/workflows/intent08-android-build.yml'
+  pull_request:
+    paths:
+      - 'android_codegen.py'
+      - 'android_codegen_v03.py'
+      - 'intent_core.py'
+      - 'examples/workflow.intent'
+      - '.github/workflows/intent08-android-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android-debug-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Generate Android project from Intent
+        run: python android_codegen_v03.py examples/workflow.intent --output build/intent-android
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Compile Android debug APK
+        working-directory: build/intent-android
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: intent-08-workflow-debug-apk
+          path: build/intent-android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

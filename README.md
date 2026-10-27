@@ -1,5 +1,7 @@
 # Intent
 
+<p align="center"><img src="assets/branding/intent-logo-512.png" alt="Intent programming language logo" width="240"></p>
+
 Experimental declarative programming language for application state, transitions, invariants and executable tests.
 
 **Documentation:** [Русский](docs/README.ru.md) · [English](docs/README.en.md)

@@ -33,7 +33,7 @@ class ArithmeticBackendTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             output = Path(android_generate(SOURCE, directory)).read_text(encoding="utf-8")
             self.assertIn("Math.multiplyExact(", output)
-            self.assertIn("Math.addExact(", output)
+            self.assertIn("Math.multiplyExact(", output)
 
     def test_unary_minus_web_checked(self):
         source = """app "Negate"

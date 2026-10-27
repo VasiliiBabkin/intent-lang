@@ -142,7 +142,7 @@ def parse(source):
             node = expression(m[2], {}, number, m.start(2) + 1)
             states[m[1]] = evaluate(node, {})
             types[m[1]] = type(states[m[1]])
-        elif m := re.fullmatch(r"derive ([A-Za-z_]\\w*)\\s*=\\s*(.+)", line):
+        elif m := re.fullmatch(r"derive ([A-Za-z_]\w*)\s*=\s*(.+)", line):
             if actions or rules or tests or widgets:
                 raise ValueError(f"Line {number}: derives must precede actions")
             if m[1] in types:

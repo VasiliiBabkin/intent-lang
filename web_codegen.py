@@ -74,6 +74,9 @@ def generate(source):
         elif widget[0] == "value":
             key = html.escape(widget[1], quote=True)
             widgets.append(f'<p>{key}: <output data-state="{key}"></output></p>')
+        elif widget[0] == "input_int":
+            key = html.escape(widget[1], quote=True)
+            widgets.append(f'<label>{key}: <input type="number" step="1" min="-2147483648" max="2147483647" data-input="{key}"></label>')
         elif widget[0] == "show_text":
             key = html.escape(widget[1], quote=True)
             widgets.append(f'<p data-show="{key}" hidden>{html.escape(widget[2])}</p>')
@@ -103,6 +106,7 @@ def generate(source):
         *derived_lines,
         '  document.querySelectorAll("[data-state]").forEach(el => { el.textContent = String(derivedState[el.dataset.state]); });',
         '  document.querySelectorAll("[data-show]").forEach(el => { el.hidden = !derivedState[el.dataset.show]; });',
+        '  document.querySelectorAll("[data-input]").forEach(el => { if (document.activeElement !== el) el.value = String(state[el.dataset.input]); });',
         "}",
         'document.querySelectorAll("[data-action]").forEach(el => {',
         "  el.addEventListener('click', () => {",
@@ -111,6 +115,19 @@ def generate(source):
         "    state = action(state);",
         "    try { const saved = {}; for (const key of persistentKeys) saved[key] = state[key]; localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) { /* storage is optional */ }",
         "    render();",
+        "  });",
+        "});",
+        'document.querySelectorAll("[data-input]").forEach(el => {',
+        "  el.addEventListener('change', () => {",
+        "    const key = el.dataset.input;",
+        "    const raw = el.value.trim();",
+        "    const parsed = Number(raw);",
+        "    if (raw === '' || !Number.isInteger(parsed) || parsed < -2147483648 || parsed > 2147483647) { render(); el.value = String(state[key]); return; }",
+        "    const candidate = { ...state, [key]: parsed };",
+        "    const nextState = candidate;",
+        "    const accepted = " + rules + ";",
+        "    if (accepted) { state = candidate; try { const saved = {}; for (const name of persistentKeys) saved[name] = state[name]; if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) {} }",
+        "    el.value = String(state[key]); render();",
         "  });",
         "});",
         "render();",

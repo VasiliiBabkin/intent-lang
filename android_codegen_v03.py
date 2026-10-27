@@ -88,7 +88,10 @@ def generate(source, output):
             lines.append(f"    Text({quoted(widget[1]+': ')} + {widget[1]}.toString())")
         elif widget[0] == "input_int":
             key = widget[1]
-            lines.append(f"    OutlinedTextField(value = {key}.toString(), onValueChange = {{ raw ->")
+            lines.append(f"    var draft_{key} by remember {{ mutableStateOf({key}.toString()) }}")
+            lines.append(f"    LaunchedEffect({key}) {{ draft_{key} = {key}.toString() }}")
+            lines.append(f"    OutlinedTextField(value = draft_{key}, onValueChange = {{ raw ->")
+            lines.append(f"      draft_{key} = raw")
             lines.append("      val parsed = raw.toIntOrNull()")
             lines.append("      if (parsed != null) {")
             for state_key in program.states:

@@ -1,0 +1,41 @@
+name: Intent 0.9 Input Goal Android APK
+on:
+  push:
+    branches:
+      - feature/intent-0.9-security-integrated
+  workflow_dispatch:
+
+jobs:
+  input-goal-apk:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify Intent program and tests
+        run: |
+          python -m unittest discover -s tests -v
+          python intent_cli.py check examples/input_goal.intent
+          python intent_cli.py test examples/input_goal.intent
+      - name: Generate Android app from Intent 0.9 example
+        run: python android_codegen_v03.py examples/input_goal.intent --output build/input-goal-android
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Configure preinstalled Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          test -d "$ANDROID_SDK_ROOT/platforms/android-35" || ls "$ANDROID_SDK_ROOT/platforms"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Build debug APK
+        working-directory: build/input-goal-android
+        run: gradle --no-daemon assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: intent-09-input-goal-debug-apk
+          path: build/input-goal-android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

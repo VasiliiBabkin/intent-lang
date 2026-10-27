@@ -35,7 +35,7 @@ class AndroidBackendRegressionTests(unittest.TestCase):
             code = target.read_text(encoding="utf-8")
             self.assertIn("var next_count = count", code)
             self.assertIn("var next_finished = finished", code)
-            self.assertIn("next_count = (next_count + 1)", code)
+            self.assertIn("next_count = Math.addExact(next_count, 1)", code)
             self.assertIn("next_finished = true", code)
             self.assertIn("(next_count >= 0)", code)
             self.assertIn("count = next_count", code)

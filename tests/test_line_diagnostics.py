@@ -32,4 +32,4 @@ class LineDiagnosticTests(unittest.TestCase):
 
     def test_unknown_identifier_is_named(self):
         with self.assertRaisesRegex(ValueError, r"Line 4: Unknown identifier: missing"):
-            parse('app "X"\\nstate count = 0\\naction go:\\n    count = missing + 1\\n')
+            parse('app "X"\nstate count = 0\naction go:\n    count = missing + 1\n')

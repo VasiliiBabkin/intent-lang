@@ -22,6 +22,7 @@ class Program:
     rules: tuple
     tests: tuple
     widgets: tuple
+    derived: dict = None
 
 def parse_expr(source, types):
     source = re.sub(r"\b(true|false)\b", lambda m: m[1].title(), source)
@@ -89,7 +90,7 @@ def parse(source):
     lines = [(len(raw) - len(raw.lstrip(" ")), raw.strip(), i)
              for i, raw in enumerate(source.splitlines(), 1)
              if raw.strip() and not raw.lstrip().startswith("#")]
-    states, actions, rules, tests, widgets = {}, {}, [], [], []
+    states, actions, rules, tests, widgets, derived = {}, {}, [], [], [], {}
     types = {}
     name = None
     i = 0
@@ -123,7 +124,7 @@ def parse(source):
                 result.append(If(condition, tuple(yes), tuple(no)))
                 continue
             m = re.fullmatch(r"([A-Za-z_]\w*)\s*=\s*(.+)", line)
-            if not m or m[1] not in types: raise ValueError(f"Line {number}: invalid assignment")
+            if not m or m[1] not in states: raise ValueError(f"Line {number}: invalid assignment")
             node = expression(m[2], types, number, depth + m.start(2) + 1)
             if type_of(node, types) is not types[m[1]]: raise ValueError(f"Line {number}: type mismatch")
             result.append(Assign(m[1], node))
@@ -162,7 +163,7 @@ def parse(source):
                 _, item, n = lines[i]
                 if m := re.fullmatch(r'text "([^"]*)"', item): widgets.append(("text", m[1]))
                 elif m := re.fullmatch(r"value ([A-Za-z_]\w*)", item):
-                    if m[1] not in states: raise ValueError(f"Line {n}: unknown state")
+                    if m[1] not in types: raise ValueError(f"Line {n}: unknown state")
                     widgets.append(("value", m[1]))
                 elif m := re.fullmatch(r'button "([^"]*)" -> ([A-Za-z_]\w*)', item):
                     widgets.append(("button", m[1], m[2]))
@@ -176,8 +177,14 @@ def parse(source):
         if any(action not in actions for action in seq): raise ValueError("Unknown action")
     for widget in widgets:
         if widget[0] == "button" and widget[2] not in actions: raise ValueError("Unknown action")
-    if not all(evaluate(rule, states) for rule in rules): raise ValueError("Invalid initial state")
-    return Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets))
+    if not all(evaluate(rule, resolve(states, derived)) for rule in rules): raise ValueError("Invalid initial state")
+    return Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived)
+
+def resolve(state, derived):
+    values = state.copy()
+    for name, expr in (derived or {}).items():
+        values[name] = evaluate(expr, values)
+    return values
 
 def transition(program, state, action):
     if action not in program.actions: raise ValueError("Unknown action")
@@ -185,11 +192,11 @@ def transition(program, state, action):
     def execute(stmts):
         for stmt in stmts:
             if isinstance(stmt, Assign):
-                candidate[stmt.name] = evaluate(stmt.expr, candidate)
+                candidate[stmt.name] = evaluate(stmt.expr, resolve(candidate, program.derived))
             else:
-                execute(stmt.yes if evaluate(stmt.condition, candidate) else stmt.no)
+                execute(stmt.yes if evaluate(stmt.condition, resolve(candidate, program.derived)) else stmt.no)
     execute(program.actions[action])
-    if not all(evaluate(rule, candidate) for rule in program.rules):
+    if not all(evaluate(rule, resolve(candidate, program.derived)) for rule in program.rules):
         return state.copy(), False
     return candidate, True
 
@@ -199,5 +206,5 @@ def run(program):
         for action in actions:
             state, accepted = transition(program, state, action)
             if not accepted: raise AssertionError(f"{name}: invariant violated")
-        if not evaluate(expected, state): raise AssertionError(f"{name}: assertion failed")
+        if not evaluate(expected, resolve(state, program.derived)): raise AssertionError(f"{name}: assertion failed")
     return len(program.tests)

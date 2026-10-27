@@ -1,0 +1,20 @@
+# Intent 0.8: derived values are calculated, never assigned.
+app "Derived progress"
+state count = 0
+derive doubled = count * 2
+derive finished = doubled >= 6
+action next:
+    if not finished:
+        count = count + 1
+action reset:
+    count = 0
+rule count >= 0 and count <= 3
+test complete: next, next, next -> finished == true
+test restart: next, reset -> doubled == 0
+screen main:
+    text "Derived progress"
+    value count
+    value doubled
+    value finished
+    button "Next" -> next
+    button "Reset" -> reset

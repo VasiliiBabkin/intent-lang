@@ -17,7 +17,7 @@ class CliDiagnosticTests(unittest.TestCase):
             with contextlib.redirect_stderr(stderr):
                 result = main(["check", str(source)])
             self.assertEqual(result, 1)
-            self.assertIn(f"{source}:4:1: error: Unknown identifier: missing", stderr.getvalue())
+            self.assertIn(f"{source}:4:13: error: Unknown identifier: missing", stderr.getvalue())
 
     def test_non_source_errors_remain_readable(self):
         with tempfile.TemporaryDirectory() as directory:

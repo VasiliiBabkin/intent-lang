@@ -53,7 +53,7 @@ class DerivedTests(unittest.TestCase):
     def test_android_codegen(self):
         with tempfile.TemporaryDirectory() as directory:
             code = android_generate(SOURCE, Path(directory)).read_text(encoding="utf-8")
-            self.assertIn("val doubled = (count * 2)", code)
+            self.assertIn("val doubled = Math.multiplyExact(count, 2)", code)
             self.assertIn("val ready = (doubled >= 4)", code)
             self.assertIn("Text(\"doubled: \" + doubled.toString())", code)
 

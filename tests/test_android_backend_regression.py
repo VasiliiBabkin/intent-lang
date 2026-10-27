@@ -37,12 +37,12 @@ class AndroidBackendRegressionTests(unittest.TestCase):
             self.assertIn("var next_finished = finished", code)
             self.assertIn("next_count = (next_count + 1)", code)
             self.assertIn("next_finished = true", code)
-            self.assertIn("if ((next_count >= 0)", code)
+            self.assertIn("(next_count >= 0)", code)
             self.assertIn("count = next_count", code)
             self.assertIn("finished = next_finished", code)
             self.assertIn('Text("Advance")', code)
             self.assertIn('Text("Reset")', code)
-            self.assertLess(code.index("if ((next_count >= 0)"), code.index("count = next_count"))
+            self.assertLess(code.index("      if (((next_count >= 0)"), code.index("count = next_count"))
 
     def test_rejects_invalid_program_before_generation(self):
         source = SOURCE.replace("rule count >= 0 and count <= 2", "rule count < 0")

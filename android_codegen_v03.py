@@ -42,6 +42,7 @@ def generate(source, output):
         "import androidx.compose.runtime.*",
         "import androidx.compose.ui.Modifier",
         "import androidx.compose.ui.unit.dp",
+        "import androidx.compose.ui.platform.LocalContext",
         "class MainActivity : ComponentActivity() {",
         "  override fun onCreate(savedInstanceState: Bundle?) {",
         "    super.onCreate(savedInstanceState)",
@@ -50,8 +51,15 @@ def generate(source, output):
         "}",
         "@Composable fun IntentScreen() {",
     ]
+    if program.persistent:
+        lines.append("  val context = LocalContext.current")
+        lines.append("  val prefs = remember { context.getSharedPreferences(\"intent_state\", android.content.Context.MODE_PRIVATE) }")
     for key, val in program.states.items():
-        lines.append(f"  var {key} by remember {{ mutableStateOf({str(val).lower()}) }}")
+        initial = str(val).lower()
+        if key in program.persistent:
+            method = "getBoolean" if type(val) is bool else "getInt"
+            initial = f"prefs.{method}({quoted(key)}, {initial})"
+        lines.append(f"  var {key} by remember {{ mutableStateOf({initial}) }}")
     for key, expr in (program.derived or {}).items():
         display_names = {name: name for name in program.states}
         display_names.update({name: name for name in program.derived if name != key})
@@ -76,6 +84,8 @@ def generate(source, output):
             lines.append(f"    Text({quoted(widget[1])}, style = MaterialTheme.typography.headlineMedium)")
         elif widget[0] == "value":
             lines.append(f"    Text({quoted(widget[1]+': ')} + {widget[1]}.toString())")
+        elif widget[0] == "show_text":
+            lines.append(f"    if ({widget[1]}) {{ Text({quoted(widget[2])}) }}")
         else:
             _, label, action = widget
             lines.append("    Button(onClick = {")
@@ -84,6 +94,12 @@ def generate(source, output):
             guard = " && ".join(kt(rule,names) for rule in program.rules) or "true"
             lines.append("      if (" + guard + ") {")
             for key in program.states: lines.append(f"        {key} = next_{key}")
+            if program.persistent:
+                lines.append("        prefs.edit().apply {")
+                for key in program.persistent:
+                    method = "putBoolean" if type(program.states[key]) is bool else "putInt"
+                    lines.append(f"          {method}({quoted(key)}, next_{key})")
+                lines.append("        }.apply()")
             lines.append("      }")
             lines.append(f"    }}) {{ Text({quoted(label)}) }}")
     lines += ["  }","}"]

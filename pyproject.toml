@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "intent-lang"
+version = "0.7.0a1"
+description = "Experimental declarative language for stateful applications"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [{name = "Intent contributors"}]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.scripts]
+intent = "intent_cli:main"
+
+[tool.setuptools]
+py-modules = ["intent", "intent_core", "intent_cli", "android_codegen", "android_codegen_v03", "web_codegen"]

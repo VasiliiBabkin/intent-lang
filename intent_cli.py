@@ -42,7 +42,7 @@ def main(argv=None):
         return 0
     except (OSError, ValueError, AssertionError) as exc:
         message = str(exc)
-        match = re.match(r"Line (\\d+): (.*)", message)
+        match = re.match(r"Line (\d+): (.*)", message)
         if match:
             print(f"{args.source}:{match.group(1)}:1: error: {match.group(2)}", file=sys.stderr)
         else:

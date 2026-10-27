@@ -88,7 +88,7 @@ def generate(source):
         "<script>",
         f"const initialState = {initial};",
         "let state = { ...initialState };",
-        "function checkedInt(n) { if (!Number.isInteger(n) || n < -2147483648 || n > 2147483647) throw new RangeError(\'Intent integer overflow\'); return n; }",
+        "function checkedInt(n) { if (!Number.isInteger(n) || n < -2147483648 || n > 2147483647) throw new RangeError('Intent integer overflow'); return n; }",
         "const actions = {",
         *actions,
         "};",

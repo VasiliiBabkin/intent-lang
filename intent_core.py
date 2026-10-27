@@ -196,7 +196,7 @@ def parse(source):
                 elif m := re.fullmatch(r"value ([A-Za-z_]\w*)", item):
                     if m[1] not in types: raise ValueError(f"Line {n}: unknown state")
                     widgets.append(("value", m[1]))
-                elif m := re.fullmatch(r'show ([A-Za-z_]\\w*) : text "([^"]*)"', item):
+                elif m := re.fullmatch(r'show ([A-Za-z_]\w*) : text "([^"]*)"', item):
                     if m[1] not in types or types[m[1]] is not bool:
                         raise ValueError(f"Line {n}: show requires a boolean state or derive")
                     widgets.append(("show_text", m[1], m[2]))

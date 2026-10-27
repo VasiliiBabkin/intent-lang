@@ -4,6 +4,8 @@ Experimental declarative programming language for application state, transitions
 
 **Documentation:** [Русский](docs/README.ru.md) · [English](docs/README.en.md)
 
+**Install from PyPI after the public release:** `python -m pip install intent-lng==0.7.0a1` (CLI: `intent`). The earlier TestPyPI candidate uses the distribution name `intent-lang`.
+
 **License:** [Apache 2.0](LICENSE) · [Open-source policy (RU)](docs/OPEN_SOURCE.ru.md) · [Open-source policy (EN)](docs/OPEN_SOURCE.en.md)
 
 **Contributing:** [Guidelines](CONTRIBUTING.md) · [Code of Conduct](CODE_OF_CONDUCT.md)

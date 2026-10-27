@@ -48,7 +48,7 @@ def generate(source):
     run(program)
     if not program.widgets:
         raise ValueError("Missing screen main")
-    initial = json.dumps(program.states, ensure_ascii=False)
+    initial = json.dumps(program.states, ensure_ascii=False).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
     names = {key: "nextState[" + json.dumps(key) + "]" for key in program.states}
     rules = " && ".join(js_expr(rule, names) for rule in program.rules) or "true"
     actions = []

@@ -103,7 +103,7 @@ def parse(source):
                 match = re.search(r"\\b" + re.escape(identifier) + r"\\b", source)
                 if match:
                     column += match.start()
-            raise ValueError(f"Line {line_number}, column {column}: {message}") from exc
+            raise ValueError(f"Line {line_number}: column {column}: {message}") from exc
     def block(pos, indent):
         result = []
         while pos < len(lines):

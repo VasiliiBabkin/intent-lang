@@ -1,0 +1,18 @@
+app "Daily steps"
+state count = 0
+persist count
+derive done = count >= 3
+action add:
+    if count < 3:
+        count = count + 1
+action reset:
+    count = 0
+rule count >= 0 and count <= 3
+test complete: add, add, add -> done == true
+test clear: add, reset -> count == 0
+screen main:
+    text "Daily steps"
+    value count
+    show done : text "Goal reached!"
+    button "Add" -> add
+    button "Reset" -> reset

@@ -93,11 +93,17 @@ def parse(source):
     types = {}
     name = None
     i = 0
-    def expression(source, known_types, line_number):
+    def expression(source, known_types, line_number, column=1):
         try:
             return parse_expr(source, known_types)
         except ValueError as exc:
-            raise ValueError(f"Line {line_number}: {exc}") from exc
+            message = str(exc)
+            if message.startswith("Unknown identifier: "):
+                identifier = message.partition(": ")[2]
+                match = re.search(r"\\b" + re.escape(identifier) + r"\\b", source)
+                if match:
+                    column += match.start()
+            raise ValueError(f"Line {line_number}, column {column}: {message}") from exc
     def block(pos, indent):
         result = []
         while pos < len(lines):
@@ -105,7 +111,7 @@ def parse(source):
             if depth < indent or line == "else:": break
             if depth != indent: raise ValueError(f"Line {number}: indentation")
             if line.startswith("if ") and line.endswith(":"):
-                condition = expression(line[3:-1], types, number)
+                condition = expression(line[3:-1], types, number, depth + 4)
                 if type_of(condition, types) is not bool: raise ValueError(f"Line {number}: condition must be bool")
                 if pos + 1 >= len(lines) or lines[pos+1][0] <= indent: raise ValueError(f"Line {number}: empty if")
                 yes, pos = block(pos + 1, lines[pos+1][0])
@@ -118,7 +124,7 @@ def parse(source):
                 continue
             m = re.fullmatch(r"([A-Za-z_]\w*)\s*=\s*(.+)", line)
             if not m or m[1] not in types: raise ValueError(f"Line {number}: invalid assignment")
-            node = expression(m[2], types, number)
+            node = expression(m[2], types, number, depth + m.start(2) + 1)
             if type_of(node, types) is not types[m[1]]: raise ValueError(f"Line {number}: type mismatch")
             result.append(Assign(m[1], node))
             pos += 1
@@ -132,7 +138,7 @@ def parse(source):
         elif m := re.fullmatch(r"state ([A-Za-z_]\w*)\s*=\s*(.+)", line):
             if actions or rules or tests or widgets: raise ValueError(f"Line {number}: states must precede actions")
             if m[1] in states: raise ValueError(f"Line {number}: duplicate state")
-            node = expression(m[2], {}, number)
+            node = expression(m[2], {}, number, m.start(2) + 1)
             states[m[1]] = evaluate(node, {})
             types[m[1]] = type(states[m[1]])
         elif m := re.fullmatch(r"action ([A-Za-z_]\w*):(?:\s*(.+))?", line):
@@ -143,11 +149,11 @@ def parse(source):
             actions[m[1]] = body
             continue
         elif line.startswith("rule "):
-            node = expression(line[5:], types, number)
+            node = expression(line[5:], types, number, 6)
             if type_of(node, types) is not bool: raise ValueError(f"Line {number}: rule must be bool")
             rules.append(node)
         elif m := re.fullmatch(r"test ([A-Za-z_]\w*):\s*(.*?)\s*->\s*(.+)", line):
-            node = expression(m[3], types, number)
+            node = expression(m[3], types, number, m.start(3) + 1)
             if type_of(node, types) is not bool: raise ValueError(f"Line {number}: test must be bool")
             tests.append((m[1], tuple(x.strip() for x in m[2].split(",")), node))
         elif line == "screen main:":

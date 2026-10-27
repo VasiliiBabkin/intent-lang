@@ -50,6 +50,8 @@ def generate(source):
         raise ValueError("Missing screen main")
     initial = json.dumps(program.states, ensure_ascii=False)
     names = {key: "nextState[" + json.dumps(key) + "]" for key in program.states}
+    for key, expr in (program.derived or {}).items():
+        names[key] = js_expr(expr, names)
     rules = " && ".join(js_expr(rule, names) for rule in program.rules) or "true"
     actions = []
     for name, body in program.actions.items():
@@ -60,6 +62,11 @@ def generate(source):
             f"    return ({rules}) ? nextState : state;",
             "  },",
         ])
+    render_names = {key: "derivedState[" + json.dumps(key) + "]" for key in program.states}
+    derived_lines = []
+    for key, expr in (program.derived or {}).items():
+        derived_lines.append("  derivedState[" + json.dumps(key) + "] = " + js_expr(expr, render_names) + ";")
+        render_names[key] = "derivedState[" + json.dumps(key) + "]"
     widgets = []
     for widget in program.widgets:
         if widget[0] == "text":
@@ -85,7 +92,9 @@ def generate(source):
         *actions,
         "};",
         "function render() {",
-        '  document.querySelectorAll("[data-state]").forEach(el => { el.textContent = String(state[el.dataset.state]); });',
+        "  const derivedState = { ...state };",
+        *derived_lines,
+        '  document.querySelectorAll("[data-state]").forEach(el => { el.textContent = String(derivedState[el.dataset.state]); });',
         "}",
         'document.querySelectorAll("[data-action]").forEach(el => {',
         "  el.addEventListener('click', () => {",

@@ -13,7 +13,7 @@ def js_expr(node, names):
         return names[node.id]
     if isinstance(node, ast.UnaryOp):
         operator = "!" if isinstance(node.op, ast.Not) else "-"
-        return f"({operator}{js_expr(node.operand, names)})"
+        return (f"checkedInt(-({js_expr(node.operand, names)}))" if isinstance(node.op, ast.USub) else f"(!{js_expr(node.operand, names)})")
     if isinstance(node, ast.BinOp):
         op = {ast.Add: "+", ast.Sub: "-", ast.Mult: "*"}[type(node.op)]
         return f"checkedInt({js_expr(node.left, names)} {op} {js_expr(node.right, names)})"

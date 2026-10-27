@@ -2,6 +2,8 @@
 
 ## Русский
 
+Имя пакета в основном PyPI: `intent-lng`; язык и CLI по-прежнему называются Intent. В TestPyPI пакет опубликован под прежним именем `intent-lang`.
+
 Intent — экспериментальный декларативный язык для описания состояния приложения, действий, инвариантов и исполняемых тестов.
 
 ### Что уже работает
@@ -17,7 +19,7 @@ Intent — экспериментальный декларативный язы�
 ### Установка после публикации в основном PyPI
 
 ```bash
-python -m pip install intent-lang==0.7.0a1
+python -m pip install intent-lng==0.7.0a1
 intent --version
 ```
 
@@ -34,7 +36,7 @@ Intent is an experimental declarative language for application state, actions, i
 Install **after** the official PyPI release:
 
 ```bash
-python -m pip install intent-lang==0.7.0a1
+python -m pip install intent-lng==0.7.0a1
 intent --version
 ```
 

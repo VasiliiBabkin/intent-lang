@@ -3,6 +3,17 @@ import ast
 import re
 from dataclasses import dataclass
 
+# Portable Int semantics: signed 32-bit, shared with Kotlin Int.
+INT_MIN = -(2 ** 31)
+INT_MAX = 2 ** 31 - 1
+
+
+def checked_int(value):
+    if type(value) is int and not INT_MIN <= value <= INT_MAX:
+        raise ValueError("Integer overflow: outside signed 32-bit range")
+    return value
+
+
 @dataclass(frozen=True)
 class Assign:
     name: str
@@ -53,16 +64,16 @@ def type_of(node, types):
     raise ValueError("Unsupported or ill-typed expression")
 
 def evaluate(node, state):
-    if isinstance(node, ast.Constant): return node.value
+    if isinstance(node, ast.Constant): return checked_int(node.value)
     if isinstance(node, ast.Name): return state[node.id]
     if isinstance(node, ast.UnaryOp):
         x = evaluate(node.operand, state)
-        return -x if isinstance(node.op, ast.USub) else not x
+        return checked_int(-x) if isinstance(node.op, ast.USub) else not x
     if isinstance(node, ast.BinOp):
         a, b = evaluate(node.left, state), evaluate(node.right, state)
-        if isinstance(node.op, ast.Add): return a + b
-        if isinstance(node.op, ast.Sub): return a - b
-        return a * b
+        if isinstance(node.op, ast.Add): return checked_int(a + b)
+        if isinstance(node.op, ast.Sub): return checked_int(a - b)
+        return checked_int(a * b)
     if isinstance(node, ast.BoolOp):
         if isinstance(node.op, ast.And):
             return all(evaluate(x, state) for x in node.values)

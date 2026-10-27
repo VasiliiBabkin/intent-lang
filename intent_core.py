@@ -36,6 +36,7 @@ class Program:
     tests: tuple
     widgets: tuple
     derived: dict = None
+    persistent: tuple = ()
 
 def parse_expr(source, types):
     source = re.sub(r"\b(true|false)\b", lambda m: m[1].title(), source)
@@ -108,6 +109,7 @@ def parse(source):
              for i, raw in enumerate(source.splitlines(), 1)
              if raw.strip() and not raw.lstrip().startswith("#")]
     states, actions, rules, tests, widgets, derived = {}, {}, [], [], [], {}
+    persistent = []
     types = {}
     name = None
     i = 0
@@ -159,6 +161,10 @@ def parse(source):
             node = expression(m[2], {}, number, m.start(2) + 1)
             states[m[1]] = evaluate(node, {})
             types[m[1]] = type(states[m[1]])
+        elif m := re.fullmatch(r"persist ([A-Za-z_]\w*)", line):
+            if m[1] not in states or m[1] in persistent:
+                raise ValueError(f"Line {number}: persist requires a unique declared state")
+            persistent.append(m[1])
         elif m := re.fullmatch(r"derive ([A-Za-z_]\w*)\s*=\s*(.+)", line):
             if actions or rules or tests or widgets:
                 raise ValueError(f"Line {number}: derives must precede actions")
@@ -203,7 +209,7 @@ def parse(source):
     for widget in widgets:
         if widget[0] == "button" and widget[2] not in actions: raise ValueError("Unknown action")
     if not all(evaluate(rule, resolve(states, derived)) for rule in rules): raise ValueError("Invalid initial state")
-    return Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived)
+    return Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived, tuple(persistent))
 
 def resolve(state, derived):
     values = state.copy()

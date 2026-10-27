@@ -10,7 +10,7 @@ class WebBackendTests(unittest.TestCase):
     def test_workflow_generated(self):
         html = generate(SOURCE)
         self.assertIn("<!doctype html>", html)
-        self.assertIn("nextState[\"count\"] = (nextState[\"count\"] + 1)", html)
+        self.assertIn("nextState[\"count\"] = checkedInt(nextState[\"count\"] + 1)", html)
         self.assertIn("nextState[\"completed\"] = true", html)
         self.assertIn('data-action="advance"', html)
         self.assertIn('data-state="completed"', html)

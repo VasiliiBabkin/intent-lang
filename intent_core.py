@@ -101,7 +101,7 @@ def parse(source):
             message = str(exc)
             if message.startswith("Unknown identifier: "):
                 identifier = message.partition(": ")[2]
-                match = re.search(r"\\b" + re.escape(identifier) + r"\\b", source)
+                match = re.search(r"\b" + re.escape(identifier) + r"\b", source)
                 if match:
                     column += match.start()
             raise ValueError(f"Line {line_number}: column {column}: {message}") from exc

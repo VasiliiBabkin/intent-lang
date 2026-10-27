@@ -142,6 +142,14 @@ def parse(source):
             node = expression(m[2], {}, number, m.start(2) + 1)
             states[m[1]] = evaluate(node, {})
             types[m[1]] = type(states[m[1]])
+        elif m := re.fullmatch(r"derive ([A-Za-z_]\\w*)\\s*=\\s*(.+)", line):
+            if actions or rules or tests or widgets:
+                raise ValueError(f"Line {number}: derives must precede actions")
+            if m[1] in types:
+                raise ValueError(f"Line {number}: duplicate identifier")
+            node = expression(m[2], types, number, m.start(2) + 1)
+            derived[m[1]] = node
+            types[m[1]] = type_of(node, types)
         elif m := re.fullmatch(r"action ([A-Za-z_]\w*):(?:\s*(.+))?", line):
             if m[1] in actions: raise ValueError(f"Line {number}: duplicate action")
             if m[2]: lines.insert(i+1, (4, m[2], number))

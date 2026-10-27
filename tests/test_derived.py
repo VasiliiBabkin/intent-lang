@@ -56,3 +56,15 @@ class DerivedTests(unittest.TestCase):
             self.assertIn("val doubled = (count * 2)", code)
             self.assertIn("val ready = (doubled >= 4)", code)
             self.assertIn("Text(\"doubled: \" + doubled.toString())", code)
+
+    def test_derive_declaration_is_parsed_and_typed(self):
+        program = parse(SOURCE)
+        self.assertEqual(list(program.derived), ["doubled", "ready"])
+        self.assertIs(program.states["count"].__class__, int)
+        self.assertEqual(resolve({"count": 2}, program.derived), {
+            "count": 2, "doubled": 4, "ready": True,
+        })
+
+    def test_derive_must_not_shadow_state(self):
+        with self.assertRaisesRegex(ValueError, "duplicate identifier"):
+            parse(SOURCE.replace("derive doubled = count * 2", "derive count = count * 2"))

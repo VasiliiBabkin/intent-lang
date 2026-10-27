@@ -42,9 +42,9 @@ def main(argv=None):
         return 0
     except (OSError, ValueError, AssertionError) as exc:
         message = str(exc)
-        match = re.match(r"Line (\d+): (.*)", message)
+        match = re.match(r"Line (\d+): (?:column (\d+): )?(.*)", message)
         if match:
-            print(f"{args.source}:{match.group(1)}:1: error: {match.group(2)}", file=sys.stderr)
+            print(f"{args.source}:{match.group(1)}:{match.group(2) or 1}: error: {match.group(3)}", file=sys.stderr)
         else:
             print(f"intent: {args.source}: {message}", file=sys.stderr)
         return 1

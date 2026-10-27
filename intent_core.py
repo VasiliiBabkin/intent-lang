@@ -3,6 +3,10 @@ import ast
 import re
 from dataclasses import dataclass
 
+MAX_SOURCE_CHARS = 100_000
+MAX_AST_NODES = 256
+MAX_ACTION_STEPS = 10_000
+
 INT_MIN = -(2 ** 31)
 INT_MAX = 2 ** 31 - 1
 
@@ -39,6 +43,8 @@ def parse_expr(source, types):
         node = ast.parse(source, mode="eval").body
     except SyntaxError as exc:
         raise ValueError("Invalid expression") from exc
+    if sum(1 for _ in ast.walk(node)) > MAX_AST_NODES:
+        raise ValueError("Expression exceeds complexity limit")
     try:
         type_of(node, types)
     except ValueError as exc:
@@ -96,6 +102,8 @@ def evaluate(node, state):
     raise ValueError("Unsupported expression")
 
 def parse(source):
+    if len(source) > MAX_SOURCE_CHARS:
+        raise ValueError("Source exceeds size limit")
     lines = [(len(raw) - len(raw.lstrip(" ")), raw.strip(), i)
              for i, raw in enumerate(source.splitlines(), 1)
              if raw.strip() and not raw.lstrip().startswith("#")]
@@ -206,8 +214,13 @@ def resolve(state, derived):
 def transition(program, state, action):
     if action not in program.actions: raise ValueError("Unknown action")
     candidate = state.copy()
+    steps = 0
     def execute(stmts):
+        nonlocal steps
         for stmt in stmts:
+            steps += 1
+            if steps > MAX_ACTION_STEPS:
+                raise ValueError("Action exceeds execution step limit")
             if isinstance(stmt, Assign):
                 candidate[stmt.name] = evaluate(stmt.expr, resolve(candidate, program.derived))
             else:

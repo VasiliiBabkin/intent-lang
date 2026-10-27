@@ -23,7 +23,9 @@ class NumericInputTests(unittest.TestCase):
     def test_android(self):
         with TemporaryDirectory() as directory:
             code = Path(android(SOURCE, directory)).read_text(encoding="utf-8")
-            self.assertIn("OutlinedTextField(", code)
+            self.assertIn("OutlinedTextField(value = draft_target", code)
+            self.assertIn("draft_target = raw", code)
+            self.assertIn("LaunchedEffect(target)", code)
             self.assertIn("raw.toIntOrNull()", code)
             self.assertIn('prefs.edit().putInt("target", parsed).apply()', code)
 

@@ -16,7 +16,7 @@ def js_expr(node, names):
         return f"({operator}{js_expr(node.operand, names)})"
     if isinstance(node, ast.BinOp):
         op = {ast.Add: "+", ast.Sub: "-", ast.Mult: "*"}[type(node.op)]
-        return f"({js_expr(node.left, names)} {op} {js_expr(node.right, names)})"
+        return f"checkedInt({js_expr(node.left, names)} {op} {js_expr(node.right, names)})"
     if isinstance(node, ast.BoolOp):
         op = " && " if isinstance(node.op, ast.And) else " || "
         return "(" + op.join(js_expr(v, names) for v in node.values) + ")"
@@ -88,6 +88,7 @@ def generate(source):
         "<script>",
         f"const initialState = {initial};",
         "let state = { ...initialState };",
+        "function checkedInt(n) { if (!Number.isInteger(n) || n < -2147483648 || n > 2147483647) throw new RangeError(\'Intent integer overflow\'); return n; }",
         "const actions = {",
         *actions,
         "};",

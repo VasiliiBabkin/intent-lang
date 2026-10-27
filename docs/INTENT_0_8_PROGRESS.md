@@ -15,3 +15,11 @@
 - New Web/Python rejected-transition tests and Android/Kotlin atomic-update code generation checks.
 - Android tests inspect generated Kotlin; they do not compile or execute an Android APK.
 - Development branch only; no PyPI release.
+
+## Android CI / Сборка Android в CI
+
+- Workflow: `.github/workflows/intent08-android-build.yml`.
+- Generates a real Android Gradle project from `examples/workflow.intent` and runs `:app:assembleDebug` on Ubuntu with JDK 17, Android SDK and Gradle 8.11.1.
+- Successful runs upload `intent-08-workflow-debug-apk` as a downloadable artifact.
+- This verifies compilation, **not** runtime behavior on a physical Android device or emulator. A green result must be observed before claiming that compilation passed.
+- Отдельная проверка собирает APK из Intent-кода. Успех сборки ещё не означает, что интерфейс проверен на телефоне.

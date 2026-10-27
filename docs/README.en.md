@@ -32,9 +32,13 @@ Expressions support integer arithmetic, comparisons and boolean operators. Each 
 
 See [Russian guide](README.ru.md) and [example](../examples/workflow.intent).
 
+## Development-only features (not in PyPI 0.7.0)
+
+The 0.9 source branch supports `derive name = expression` (computed values), `persist name` (local state persistence), `input name` (integer input) and `show condition : text "Message"` (conditional text). See [`daily_steps.intent`](../examples/daily_steps.intent) and [`input_goal.intent`](../examples/input_goal.intent). Android device testing confirmed numeric input; rejected-value error feedback is still a known UX issue.
+
 ## Current limitations
 
-No user-defined functions, collections, modules, IO, async, standard library or production-level diagnostics. The web backend is experimental; equivalence across runtimes still needs end-to-end verification.
+No user-defined functions, string state, collections, modules, general-purpose IO, async or standard library. Diagnostics remain limited. The web backend is experimental; equivalence across runtimes still needs end-to-end verification.
 
 ## Install published version 0.7.0 from PyPI
 

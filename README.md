@@ -10,7 +10,7 @@ Experimental declarative programming language for application state, transitions
 
 ## Quick start
 
-Requires Python 3.12+.
+Requires Python 3.10+ according to package metadata; CI covers Python 3.12 and 3.13.
 
 ```bash
 python -m unittest discover -s tests -v
@@ -35,6 +35,6 @@ Each action computes a candidate state. All declared invariants must hold before
 
 ## Status
 
-**Experimental, not production-ready.** Android 0.3 has been manually tested on a device. Web 0.4 generation and its automated tests are under validation. Python/JavaScript differential conformance tests cover selected scenarios, not all possible programs.
+**Experimental, not production-ready.** Android 0.3 has been manually tested on a device. Web generation has automated tests; coverage remains limited. Python/JavaScript differential conformance tests cover selected scenarios, not all possible programs.
 
-Development branch: `feature/intent-0.7-open-source`.
+Release candidate: `release/intent-0.7.0a1`. [Alpha release notes](docs/RELEASE_NOTES_0_7.ru-en.md).

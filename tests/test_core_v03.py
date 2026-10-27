@@ -42,7 +42,7 @@ class Core03Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as path:
             target = generate(EXAMPLE.read_text(encoding="utf-8"), path)
             code = target.read_text(encoding="utf-8")
-            self.assertIn("next_count = (next_count + 1)", code)
+            self.assertIn("next_count = Math.addExact(next_count, 1)", code)
             self.assertIn("next_completed = true", code)
             self.assertIn("Button(onClick", code)
             self.assertTrue((pathlib.Path(path)/"app/build.gradle.kts").exists())

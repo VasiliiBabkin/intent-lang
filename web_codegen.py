@@ -74,6 +74,9 @@ def generate(source):
         elif widget[0] == "value":
             key = html.escape(widget[1], quote=True)
             widgets.append(f'<p>{key}: <output data-state="{key}"></output></p>')
+        elif widget[0] == "show_text":
+            key = html.escape(widget[1], quote=True)
+            widgets.append(f'<p data-show="{key}" hidden>{html.escape(widget[2])}</p>')
         else:
             label, action = widget[1:]
             widgets.append(f'<button type="button" data-action="{html.escape(action, quote=True)}">{html.escape(label)}</button>')
@@ -87,7 +90,10 @@ def generate(source):
         *widgets,
         "<script>",
         f"const initialState = {initial};",
+        "const storageKey = 'intent:' + location.pathname + ':' + " + json.dumps(program.name) + ";",
+        "const persistentKeys = " + json.dumps(list(program.persistent)) + ";",
         "let state = { ...initialState };",
+        "try { const saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); if (saved && typeof saved === 'object' && !Array.isArray(saved)) { for (const key of persistentKeys) { if (Object.hasOwn(saved, key) && typeof saved[key] === typeof initialState[key] && (typeof saved[key] !== 'number' || (Number.isInteger(saved[key]) && saved[key] >= -2147483648 && saved[key] <= 2147483647))) state[key] = saved[key]; } } } catch (_) { /* unavailable or corrupt storage */ }",
         "function checkedInt(n) { if (!Number.isInteger(n) || n < -2147483648 || n > 2147483647) throw new RangeError('Intent integer overflow'); return n; }",
         "const actions = {",
         *actions,
@@ -96,12 +102,14 @@ def generate(source):
         "  const derivedState = { ...state };",
         *derived_lines,
         '  document.querySelectorAll("[data-state]").forEach(el => { el.textContent = String(derivedState[el.dataset.state]); });',
+        '  document.querySelectorAll("[data-show]").forEach(el => { el.hidden = !derivedState[el.dataset.show]; });',
         "}",
         'document.querySelectorAll("[data-action]").forEach(el => {',
         "  el.addEventListener('click', () => {",
         "    const action = actions[el.dataset.action];",
         "    if (!action) throw new Error('Unknown action');",
         "    state = action(state);",
+        "    try { const saved = {}; for (const key of persistentKeys) saved[key] = state[key]; localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) { /* storage is optional */ }",
         "    render();",
         "  });",
         "});",

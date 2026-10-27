@@ -43,6 +43,8 @@ def generate(source, output):
         "import androidx.compose.ui.Modifier",
         "import androidx.compose.ui.unit.dp",
         "import androidx.compose.ui.platform.LocalContext",
+        "import androidx.compose.foundation.text.KeyboardOptions",
+        "import androidx.compose.ui.text.input.KeyboardType",
         "class MainActivity : ComponentActivity() {",
         "  override fun onCreate(savedInstanceState: Bundle?) {",
         "    super.onCreate(savedInstanceState)",
@@ -84,6 +86,21 @@ def generate(source, output):
             lines.append(f"    Text({quoted(widget[1])}, style = MaterialTheme.typography.headlineMedium)")
         elif widget[0] == "value":
             lines.append(f"    Text({quoted(widget[1]+': ')} + {widget[1]}.toString())")
+        elif widget[0] == "input_int":
+            key = widget[1]
+            lines.append(f"    OutlinedTextField(value = {key}.toString(), onValueChange = {{ raw ->")
+            lines.append("      val parsed = raw.toIntOrNull()")
+            lines.append("      if (parsed != null) {")
+            for state_key in program.states:
+                lines.append(f"        val next_{state_key} = " + ("parsed" if state_key == key else state_key))
+            guard = " && ".join(kt(rule, names) for rule in program.rules) or "true"
+            lines.append(f"        if ({guard}) {{")
+            lines.append(f"          {key} = parsed")
+            if key in program.persistent:
+                lines.append(f"          prefs.edit().putInt({quoted(key)}, parsed).apply()")
+            lines.append("        }")
+            lines.append("      }")
+            lines.append(f"    }}, label = {{ Text({quoted(key)}) }}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))")
         elif widget[0] == "show_text":
             lines.append(f"    if ({widget[1]}) {{ Text({quoted(widget[2])}) }}")
         else:

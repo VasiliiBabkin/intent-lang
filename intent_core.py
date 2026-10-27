@@ -138,7 +138,7 @@ def parse(source):
             name = m[1]
         elif m := re.fullmatch(r"state ([A-Za-z_]\w*)\s*=\s*(.+)", line):
             if actions or rules or tests or widgets: raise ValueError(f"Line {number}: states must precede actions")
-            if m[1] in types: raise ValueError(f"Line {number}: duplicate identifier")
+            if m[1] in types: raise ValueError(f"Line {number}: duplicate state")
             node = expression(m[2], {}, number, m.start(2) + 1)
             states[m[1]] = evaluate(node, {})
             types[m[1]] = type(states[m[1]])

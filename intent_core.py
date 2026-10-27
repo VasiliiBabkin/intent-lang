@@ -29,7 +29,14 @@ def parse_expr(source, types):
         node = ast.parse(source, mode="eval").body
     except SyntaxError as exc:
         raise ValueError("Invalid expression") from exc
-    type_of(node, types)
+    try:
+        type_of(node, types)
+    except ValueError as exc:
+        unknown = next((item.id for item in ast.walk(node)
+                        if isinstance(item, ast.Name) and item.id not in types), None)
+        if unknown is not None:
+            raise ValueError(f"Unknown identifier: {unknown}") from exc
+        raise
     return node
 
 def type_of(node, types):

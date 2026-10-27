@@ -7,6 +7,8 @@ on:
       - 'android_codegen_v03.py'
       - 'intent_core.py'
       - 'examples/workflow.intent'
+      - 'examples/derived_progress.intent'
+      - 'tests/test_derived.py'
       - '.github/workflows/intent08-android-build.yml'
   pull_request:
     paths:
@@ -14,6 +16,8 @@ on:
       - 'android_codegen_v03.py'
       - 'intent_core.py'
       - 'examples/workflow.intent'
+      - 'examples/derived_progress.intent'
+      - 'tests/test_derived.py'
       - '.github/workflows/intent08-android-build.yml'
   workflow_dispatch:
 permissions:
@@ -37,8 +41,13 @@ jobs:
           echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
           echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-unset}"
           test -d "${ANDROID_HOME:-/usr/local/lib/android/sdk}/platforms/android-35"
+      - name: Run interpreter and backend regression tests
+        run: |
+          python -m unittest discover -s tests -v
+          python intent_cli.py check examples/derived_progress.intent
+          python intent_cli.py test examples/derived_progress.intent
       - name: Generate Android project from Intent
-        run: python android_codegen_v03.py examples/workflow.intent --output build/intent-android
+        run: python android_codegen_v03.py examples/derived_progress.intent --output build/intent-android
       - name: Install Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -50,6 +59,6 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: intent-08-workflow-debug-apk
+          name: intent-08-derived-progress-debug-apk
           path: build/intent-android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error

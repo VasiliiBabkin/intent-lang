@@ -1,5 +1,6 @@
 """Command line interface for the experimental Intent compiler."""
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -40,7 +41,12 @@ def main(argv=None):
             print(generate(source, output))
         return 0
     except (OSError, ValueError, AssertionError) as exc:
-        print(f"intent: {args.source}: {exc}", file=sys.stderr)
+        message = str(exc)
+        match = re.match(r"Line (\\d+): (.*)", message)
+        if match:
+            print(f"{args.source}:{match.group(1)}:1: error: {match.group(2)}", file=sys.stderr)
+        else:
+            print(f"intent: {args.source}: {message}", file=sys.stderr)
         return 1
 
 if __name__ == "__main__":

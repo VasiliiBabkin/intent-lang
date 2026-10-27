@@ -12,7 +12,6 @@ def kt(node, names):
     if isinstance(node, ast.UnaryOp):
         return ("!(" + kt(node.operand, names) + ")" if isinstance(node.op, ast.Not) else "Math.negateExact(" + kt(node.operand, names) + ")")
     if isinstance(node, ast.BinOp):
-        op = {ast.Add:"+", ast.Sub:"-", ast.Mult:"*"}[type(node.op)]
         return f"Math.{ {ast.Add: 'addExact', ast.Sub: 'subtractExact', ast.Mult: 'multiplyExact'}[type(node.op)] }({kt(node.left,names)}, {kt(node.right,names)})"
     if isinstance(node, ast.BoolOp):
         op = " && " if isinstance(node.op, ast.And) else " || "
@@ -60,7 +59,7 @@ def generate(source, output):
     lines.append("  Column(modifier = Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {")
     names = {key:"next_"+key for key in program.states}
     for key, expr in (program.derived or {}).items():
-        names[key] = kt(expr, names)
+        names[key] = "(" + kt(expr, names) + ")"
     def emit(stmts, pad):
         for stmt in stmts:
             if isinstance(stmt, Assign):

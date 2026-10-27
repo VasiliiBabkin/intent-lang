@@ -10,10 +10,10 @@ def kt(node, names):
         return str(node.value).lower() if type(node.value) is bool else str(node.value)
     if isinstance(node, ast.Name): return names[node.id]
     if isinstance(node, ast.UnaryOp):
-        return ("!" if isinstance(node.op, ast.Not) else "-") + "(" + kt(node.operand, names) + ")"
+        return ("!(" + kt(node.operand, names) + ")" if isinstance(node.op, ast.Not) else "Math.negateExact(" + kt(node.operand, names) + ")")
     if isinstance(node, ast.BinOp):
         op = {ast.Add:"+", ast.Sub:"-", ast.Mult:"*"}[type(node.op)]
-        return f"({kt(node.left,names)} {op} {kt(node.right,names)})"
+        return f"Math.{ {ast.Add: 'addExact', ast.Sub: 'subtractExact', ast.Mult: 'multiplyExact'}[type(node.op)] }({kt(node.left,names)}, {kt(node.right,names)})"
     if isinstance(node, ast.BoolOp):
         op = " && " if isinstance(node.op, ast.And) else " || "
         return "(" + op.join(kt(v,names) for v in node.values) + ")"

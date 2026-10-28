@@ -6,7 +6,7 @@ Sedrava describes application state, actions, invariants and executable tests. I
 
 ## Quick start
 
-Python 3.12+:
+Python 3.10+ (CI uses Python 3.12/3.13):
 
 ```sh
 python -m unittest discover -s tests -v

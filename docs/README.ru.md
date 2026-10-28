@@ -75,23 +75,12 @@ screen main:
 Android-версия 0.3 проверена на устройстве. Веб-компилятор 0.4 экспериментальный: его генерация покрыта тестами, но одинаковое поведение в браузере и на Android необходимо дополнительно проверять сквозными тестами.
 
 
-## Установка CLI (экспериментальная версия 0.5)
+## Установка из исходного кода
 
-Пока пакет не опубликован в PyPI. Установить исходную ветку можно командой:
-
-```bash
-python -m pip install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/sedrava-0.5-cli-package"
-```
-
-Для изолированной установки CLI рекомендуется `pipx`, если он доступен:
+Дистрибутив `sedrava` пока не опубликован в PyPI. В корне клонированного репозитория выполните:
 
 ```bash
-pipx install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/sedrava-0.5-cli-package"
-```
-
-Команды после установки:
-
-```bash
+python -m pip install .
 sedrava --version
 sedrava check examples/workflow.sdr
 sedrava test examples/workflow.sdr
@@ -99,21 +88,4 @@ sedrava build web examples/workflow.sdr --output build/web/index.html
 sedrava build android examples/workflow.sdr --output build/generated-android
 ```
 
-Для Android необходимы Java, Android SDK и Gradle. Имя пакета в PyPI и лицензия проекта ещё не утверждены. До проверки CI установка из GitHub также считается экспериментальной.
-
-## Sedrava 0.6 (экспериментальная ветка)
-
-Установка в виртуальном окружении:
-
-```bash
-python -m pip install --upgrade "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/sedrava-0.6-quality"
-sedrava --version
-sedrava check workflow.sdr
-sedrava test workflow.sdr
-sedrava build web workflow.sdr --output index.html
-```
-
-Новые проверки сравнивают последовательности состояний интерпретатора Python и сгенерированного JavaScript через Node.js. Это проверка совместимости на примере Workflow, а не доказательство эквивалентности всех возможных программ. Для запуска полного набора тестов требуется Node.js. Артефакты предназначены для проверки перед TestPyPI; публикация в реестр не выполняется автоматически.
-
-
-> Sedrava is not yet published on PyPI. Install from this source checkout using `python -m pip install .`; the CLI is `sedrava`, and source files end in `.sdr`. The GitHub repository has not yet been renamed. The domain sedrava.com is prospective only.
+Сборка Android дополнительно требует Java, Android SDK и Gradle. Репозиторий пока расположен по адресу `VasiliiBabkin/intent-lang`; переименование требует отдельного подтверждения. Домен `sedrava.com` рассматривается, но не является действующим сайтом.

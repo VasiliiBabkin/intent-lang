@@ -32,9 +32,9 @@ def generate(source, output):
     output = Path(output)
     # Temporary scaffolding reuse; semantics below depend solely on Sedrava AST.
     scaffold('app "Scaffold"\nstate ready = false\naction start: ready = true\nscreen main:\n    text "Scaffold"\n    button "Start" -> start\n', output)
-    target = output / "app/src/main/java/org/sedravalang/generated/MainActivity.kt"
+    target = output / "app/src/main/java/org/sedrava/generated/MainActivity.kt"
     lines = [
-        "package org.sdr.generated",
+        "package org.sedrava.generated",
         "import android.os.Bundle",
         "import androidx.activity.ComponentActivity",
         "import androidx.activity.compose.setContent",

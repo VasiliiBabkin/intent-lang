@@ -1,8 +1,8 @@
-# Intent — документация на русском языке
+# Sedrava — документация на русском языке
 
 **Статус:** экспериментальный язык, не готов к промышленному использованию.
 
-Intent описывает состояние приложения, действия, ограничения и исполняемые проверки. Один исходный файл может интерпретироваться на Python либо компилироваться в Android (Kotlin/Compose) или автономную веб-страницу (HTML/JavaScript).
+Sedrava описывает состояние приложения, действия, ограничения и исполняемые проверки. Один исходный файл может интерпретироваться на Python либо компилироваться в Android (Kotlin/Compose) или автономную веб-страницу (HTML/JavaScript).
 
 ## Быстрый старт
 
@@ -10,20 +10,20 @@ Intent описывает состояние приложения, действ�
 
 ```bash
 python -m unittest discover -s tests -v
-python web_codegen.py examples/workflow.intent --output build/web/index.html
+python web_codegen.py examples/workflow.sdr --output build/web/index.html
 ```
 
 Откройте `build/web/index.html` в браузере. Для Android:
 
 ```bash
-python android_codegen_v03.py examples/workflow.intent --output build/generated-android
+python android_codegen_v03.py examples/workflow.sdr --output build/generated-android
 ```
 
 Затем соберите проект с помощью Gradle и Android SDK. Готовая веб-страница не требует сервера.
 
 ## Пример
 
-```intent
+```sedrava
 app "Workflow"
 state count = 0
 state completed = false
@@ -75,42 +75,17 @@ screen main:
 Android-версия 0.3 проверена на устройстве. Веб-компилятор 0.4 экспериментальный: его генерация покрыта тестами, но одинаковое поведение в браузере и на Android необходимо дополнительно проверять сквозными тестами.
 
 
-## Установка CLI (экспериментальная версия 0.5)
+## Установка из исходного кода
 
-Пока пакет не опубликован в PyPI. Установить исходную ветку можно командой:
-
-```bash
-python -m pip install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/intent-0.5-cli-package"
-```
-
-Для изолированной установки CLI рекомендуется `pipx`, если он доступен:
+Дистрибутив `sedrava` пока не опубликован в PyPI. В корне клонированного репозитория выполните:
 
 ```bash
-pipx install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/intent-0.5-cli-package"
+python -m pip install .
+sedrava --version
+sedrava check examples/workflow.sdr
+sedrava test examples/workflow.sdr
+sedrava build web examples/workflow.sdr --output build/web/index.html
+sedrava build android examples/workflow.sdr --output build/generated-android
 ```
 
-Команды после установки:
-
-```bash
-intent --version
-intent check examples/workflow.intent
-intent test examples/workflow.intent
-intent build web examples/workflow.intent --output build/web/index.html
-intent build android examples/workflow.intent --output build/generated-android
-```
-
-Для Android необходимы Java, Android SDK и Gradle. Имя пакета в PyPI и лицензия проекта ещё не утверждены. До проверки CI установка из GitHub также считается экспериментальной.
-
-## Intent 0.6 (экспериментальная ветка)
-
-Установка в виртуальном окружении:
-
-```bash
-python -m pip install --upgrade "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/intent-0.6-quality"
-intent --version
-intent check workflow.intent
-intent test workflow.intent
-intent build web workflow.intent --output index.html
-```
-
-Новые проверки сравнивают последовательности состояний интерпретатора Python и сгенерированного JavaScript через Node.js. Это проверка совместимости на примере Workflow, а не доказательство эквивалентности всех возможных программ. Для запуска полного набора тестов требуется Node.js. Артефакты предназначены для проверки перед TestPyPI; публикация в реестр не выполняется автоматически.
+Сборка Android дополнительно требует Java, Android SDK и Gradle. Репозиторий пока расположен по адресу `VasiliiBabkin/intent-lang`; переименование требует отдельного подтверждения. Домен `sedrava.com` рассматривается, но не является действующим сайтом.

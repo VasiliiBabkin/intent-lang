@@ -1,4 +1,4 @@
-# Intent 0.3 design contract
+# Sedrava 0.3 design contract
 
 The next compiler core must parse actions into a typed AST and use the same AST in both interpreter and Android generator.
 
@@ -14,7 +14,7 @@ The next compiler core must parse actions into a typed AST and use the same AST 
 
 ## Target syntax
 
-```intent
+```sedrava
 app "Workflow"
 state count = 0
 state completed = false

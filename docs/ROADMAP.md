@@ -1,20 +1,14 @@
-# Roadmap
+# Sedrava Programming Language — Roadmap
 
-## Phase 1: executable language core
-- [x] Parser for basic state/action/rule/test declarations
-- [x] Deterministic execution and isolated tests
-- [x] CI for language core
-- [ ] Source spans, diagnostics and typed AST
-- [ ] Explicit transitions and time semantics
+Sedrava is experimental. The Python distribution `sedrava` is not published yet.
 
-## Phase 2: Android proof of concept
-- [ ] Declarative screen and UI event syntax
-- [ ] Kotlin/Jetpack Compose backend
-- [ ] Gradle wrapper and pinned Android toolchain
-- [ ] GitHub Actions debug APK build
-- [ ] Device tests and reproducible comparison against native Kotlin
+- **0.7.x:** stabilize the CLI, parser, AST, Web and Android/Compose generators.
+- **0.8–0.9:** improve diagnostics, state persistence, numeric input, safety and backend parity (not in main yet).
+- **0.10:** multi-screen user interfaces and reusable widgets.
+- **0.11:** strings, collections and structured local data.
+- **0.12:** device capabilities and permissions.
+- **0.13–0.15:** modularity, editor tooling and desktop support.
+- **0.16–0.19:** conformance, accessibility and performance.
+- **1.0:** stable specification and supported platform contracts.
 
-## Phase 3: AI-assisted authoring
-- [ ] Constrained spec generation and validation
-- [ ] Independent conformance tests
-- [ ] Quantitative evaluation of authoring effort and failures
+Next candidate release proposal: **0.7.1a1**, only after CI, clean-install tests and explicit publication approval. These milestones are not deadlines.

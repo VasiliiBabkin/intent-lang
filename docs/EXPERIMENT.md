@@ -1,4 +1,4 @@
-# Intent usefulness experiment
+# Sedrava usefulness experiment
 
 ## Hypothesis
 
@@ -10,9 +10,9 @@ This is a hypothesis, not a measured outcome.
 
 1. Native Kotlin/Compose implementation with conventional unit tests.
 2. AI-assisted Kotlin/Compose implementation from the same natural-language requirements.
-3. Intent specification compiled deterministically to Kotlin/Compose.
+3. Sedrava specification compiled deterministically to Kotlin/Compose.
 
-Keep the requirements, target SDK, UI acceptance criteria, developer experience, and test device identical. Count all compiler, runtime, generator, and specification fixes as engineering effort for the Intent arm.
+Keep the requirements, target SDK, UI acceptance criteria, developer experience, and test device identical. Count all compiler, runtime, generator, and specification fixes as engineering effort for the Sedrava arm.
 
 ## Trial applications
 

@@ -1,7 +1,7 @@
-name: Intent packaging and provenance audit
+name: Sedrava packaging and provenance audit
 on:
   push:
-    branches: [feature/intent-0.7-testpypi-prep]
+    branches: [feature/sedrava-0.7-testpypi-prep]
   workflow_dispatch:
 
 permissions:
@@ -30,14 +30,14 @@ jobs:
       - name: Install distribution and smoke test
         shell: bash
         run: |
-          python -m venv /tmp/intent-dist-smoke
-          /tmp/intent-dist-smoke/bin/python -m pip install dist/*.whl
-          /tmp/intent-dist-smoke/bin/intent --version
-          /tmp/intent-dist-smoke/bin/intent check examples/workflow.intent
-          /tmp/intent-dist-smoke/bin/intent test examples/workflow.intent
-          /tmp/intent-dist-smoke/bin/intent build web examples/workflow.intent --output /tmp/intent-dist-smoke/index.html
+          python -m venv /tmp/sedrava-dist-smoke
+          /tmp/sedrava-dist-smoke/bin/python -m pip install dist/*.whl
+          /tmp/sedrava-dist-smoke/bin/sedrava --version
+          /tmp/sedrava-dist-smoke/bin/sedrava check examples/workflow.sdr
+          /tmp/sedrava-dist-smoke/bin/sedrava test examples/workflow.sdr
+          /tmp/sedrava-dist-smoke/bin/sedrava build web examples/workflow.sdr --output /tmp/sedrava-dist-smoke/index.html
       - uses: actions/upload-artifact@v4
         with:
-          name: intent-07-audited-dist
+          name: sedrava-07-audited-dist
           path: dist/*
           if-no-files-found: error

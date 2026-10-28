@@ -8,7 +8,7 @@ assignees: []
 
 ## Problem to solve
 
-## Proposed Intent syntax or behavior
+## Proposed Sedrava syntax or behavior
 
 ## Interpreter, Web and Android implications
 

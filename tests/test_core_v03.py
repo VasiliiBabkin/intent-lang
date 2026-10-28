@@ -1,10 +1,10 @@
 import pathlib
 import tempfile
 import unittest
-from intent_core import parse, run, transition
+from sedrava_core import parse, run, transition
 from android_codegen_v03 import generate
 
-EXAMPLE = pathlib.Path(__file__).resolve().parents[1] / "examples/workflow.intent"
+EXAMPLE = pathlib.Path(__file__).resolve().parents[1] / "examples/workflow.sdr"
 
 class Core03Tests(unittest.TestCase):
     def test_workflow(self):

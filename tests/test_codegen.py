@@ -5,7 +5,7 @@ from android_codegen import generate
 
 class CodegenTests(unittest.TestCase):
     def test_generates_android_project(self):
-        source = (pathlib.Path(__file__).resolve().parents[1] / "examples/counter.intent").read_text(encoding="utf-8")
+        source = (pathlib.Path(__file__).resolve().parents[1] / "examples/counter.sdr").read_text(encoding="utf-8")
         with tempfile.TemporaryDirectory() as directory:
             file = generate(source, directory)
             code = file.read_text(encoding="utf-8")

@@ -1,16 +1,16 @@
 ---
 name: Bug report
-about: Report an Intent compiler, interpreter, or backend bug
+about: Report an Sedrava compiler, interpreter, or backend bug
 title: "[Bug] "
 labels: bug
 assignees: []
 ---
 
-## Intent version and installation method
+## Sedrava version and installation method
 
 ## Operating system / Python / Node.js (if relevant)
 
-## Minimal .intent program
+## Minimal .sdr program
 
 ```text
 

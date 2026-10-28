@@ -1,10 +1,10 @@
-"""Intent web backend: generate self-contained HTML + JS from the shared AST."""
+"""Sedrava web backend: generate self-contained HTML + JS from the shared AST."""
 import argparse
 import ast
 import html
 import json
 from pathlib import Path
-from intent_core import Assign, If, parse, run
+from sedrava_core import Assign, If, parse, run
 
 def js_expr(node, names):
     if isinstance(node, ast.Constant):

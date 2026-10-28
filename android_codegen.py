@@ -80,12 +80,12 @@ def generate(source, output):
         "class MainActivity : ComponentActivity() {",
         "  override fun onCreate(savedInstanceState: Bundle?) {",
         "    super.onCreate(savedInstanceState)",
-        "    setContent { MaterialTheme { SedravaScreen() } }",
+        "    setContent { MaterialTheme { IntentScreen() } }",
         "  }",
         "}",
         "",
         "@Composable",
-        "fun SedravaScreen() {",
+        "fun IntentScreen() {",
     ]
     for key, val in program.states.items():
         literal = str(val).lower() if isinstance(val, bool) else str(val)
@@ -112,13 +112,13 @@ def generate(source, output):
             guard = " && ".join(conditions) if conditions else "true"
             lines.append(f"    Button(onClick = {{ if ({guard}) {target} = {literal} }}) {{ Text({kotlin_string(label)}) }}")
     lines += ["  }", "}"]
-    target = output / "app/src/main/java/org/sedrava/generated/MainActivity.kt"
+    target = output / "app/src/main/java/org/intentlang/generated/MainActivity.kt"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines) + "\n", encoding="utf-8")
     manifest = output / "app/src/main/AndroidManifest.xml"
     manifest.parent.mkdir(parents=True, exist_ok=True)
-    manifest.write_text('<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:label="Sedrava Demo" android:theme="@android:style/Theme.Material.Light.NoActionBar"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>\n', encoding="utf-8")
-    (output / "settings.gradle.kts").write_text('pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }\ndependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }\nrootProject.name = "SedravaDemo"\ninclude(":app")\n', encoding="utf-8")
+    manifest.write_text('<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:label="Sedrava Demo" android:theme="@android:style/Theme.Material.Light.NoActionBar"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.sdr.action.MAIN"/><category android:name="android.sdr.category.LAUNCHER"/></intent-filter></activity></application></manifest>\n', encoding="utf-8")
+    (output / "settings.gradle.kts").write_text('pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }\ndependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }\nrootProject.name = "IntentDemo"\ninclude(":app")\n', encoding="utf-8")
     (output / "build.gradle.kts").write_text('plugins { id("com.android.application") version "8.9.2" apply false; id("org.jetbrains.kotlin.android") version "2.0.21" apply false; id("org.jetbrains.kotlin.plugin.compose") version "2.0.21" apply false }\n', encoding="utf-8")
     (output / "gradle.properties").write_text('org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8\nandroid.useAndroidX=true\n', encoding="utf-8")
     (output / "app/build.gradle.kts").write_text('plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }\nandroid { namespace = "org.sedrava.generated"; compileSdk = 35\n defaultConfig { applicationId = "org.sedrava.generated"; minSdk = 26; targetSdk = 35; versionCode = 1; versionName = "0.1" }\n buildFeatures { compose = true }\n compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }\n kotlinOptions { jvmTarget = "17" }\n}\ndependencies { implementation(platform("androidx.compose:compose-bom:2024.12.01")); implementation("androidx.activity:activity-compose:1.9.3"); implementation("androidx.compose.material3:material3"); implementation("androidx.compose.ui:ui") }\n', encoding="utf-8")

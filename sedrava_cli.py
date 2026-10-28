@@ -1,11 +1,12 @@
 """Command line interface for the experimental Sedrava compiler."""
 import argparse
+import re
 import sys
 from pathlib import Path
 
 from sedrava_core import parse, run
 
-VERSION = "0.7.0a1"
+VERSION = "0.7.1a1"
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="sedrava", description="Sedrava experimental compiler")
@@ -40,7 +41,12 @@ def main(argv=None):
             print(generate(source, output))
         return 0
     except (OSError, ValueError, AssertionError) as exc:
-        print(f"sedrava: {args.source}: {exc}", file=sys.stderr)
+        message = str(exc)
+        match = re.match(r"Line (\d+): (?:column (\d+): )?(.*)", message)
+        if match:
+            print(f"{args.source}:{match.group(1)}:{match.group(2) or 1}: error: {match.group(3)}", file=sys.stderr)
+        else:
+            print(f"sedrava: {args.source}: {message}", file=sys.stderr)
         return 1
 
 if __name__ == "__main__":

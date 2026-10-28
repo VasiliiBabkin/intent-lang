@@ -134,7 +134,7 @@ def generate(source):
         "document.querySelectorAll('[data-input]').forEach(el => {",
         "  el.addEventListener('input', () => validateInput(el));",
         "  el.addEventListener('blur', () => { if (el.value.trim() === '') el.value = String(state[el.dataset.input]); validateInput(el); });",
-        "}",
+        "});",
         "render();",
         "</script></body></html>",
     ]) + "\n"

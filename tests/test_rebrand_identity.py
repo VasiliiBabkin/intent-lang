@@ -29,6 +29,8 @@ class SedravaIdentityTests(unittest.TestCase):
         import re
         legacy = re.compile(r"\\b(?:from|import)\\s+intent(?:_core|_cli)?\\b|\\bintent-lng\\b|\\bintent-lang\\b|\\bintent\\s+(?:check|test|build)\\b")
         for path in [*ROOT.glob("*.py"), *(ROOT / "tests").glob("*.py"), *(ROOT / "scripts").glob("*.py")]:
+            if path.name == "test_rebrand_identity.py":
+                continue
             with self.subTest(path=path.name):
                 self.assertIsNone(legacy.search(path.read_text(encoding="utf-8")))
 

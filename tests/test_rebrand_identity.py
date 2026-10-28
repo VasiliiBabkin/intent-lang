@@ -24,6 +24,9 @@ class SedravaIdentityTests(unittest.TestCase):
             self.assertIn('namespace = "org.sedrava.generated"', gradle)
             self.assertIn('applicationId = "org.sedrava.generated"', gradle)
             self.assertTrue(output.exists())
+            manifest = (pathlib.Path(directory) / "app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
+            self.assertIn("<intent-filter>", manifest)
+            self.assertNotIn("<sedrava-filter>", manifest)
 
     def test_no_legacy_python_imports_or_commands(self):
         import re

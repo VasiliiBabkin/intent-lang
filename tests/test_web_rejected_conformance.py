@@ -44,7 +44,7 @@ screen main:
 const vm = require('node:vm');
 const fs = require('node:fs');
 const data = JSON.parse(fs.readFileSync(0, 'utf8'));
-const context = vm.createContext({document: {querySelectorAll: () => []}});
+const context = vm.createContext({document: {querySelectorAll: () => []}, localStorage: {getItem: () => null, setItem: () => {}}});
 vm.runInContext(data.script, context);
 let state = vm.runInContext('({...initialState})', context);
 const actions = vm.runInContext('actions', context);

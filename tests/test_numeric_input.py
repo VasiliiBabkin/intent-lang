@@ -18,7 +18,7 @@ class NumericInputTests(unittest.TestCase):
         page = web(SOURCE)
         self.assertIn('data-input="target"', page)
         self.assertIn("Number.isInteger(parsed)", page)
-        self.assertIn("const candidate = { ...state, [key]: parsed }", page)
+        self.assertIn("const nextState = { ...state, [key]: parsed }", page)
 
     def test_android(self):
         with TemporaryDirectory() as directory:

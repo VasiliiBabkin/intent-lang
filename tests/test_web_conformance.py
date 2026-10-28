@@ -38,7 +38,7 @@ const vm = require('node:vm');
 const fs = require('node:fs');
 const payload = JSON.parse(fs.readFileSync(0, 'utf8'));
 const document = {querySelectorAll: () => []};
-const context = vm.createContext({document});
+const context = vm.createContext({document, localStorage: {getItem: () => null, setItem: () => {}}});
 vm.runInContext(payload.script, context);
 const output = payload.sequences.map(seq => {
   let state = vm.runInContext('({...initialState})', context);

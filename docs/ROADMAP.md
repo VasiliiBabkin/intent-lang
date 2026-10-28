@@ -39,11 +39,11 @@ Sedrava should turn concise, declarative descriptions into useful applications w
 ## Immediate backlog / Ближайшие задачи
 
 - [ ] Add visible Android validation errors for rejected numeric input; preserve editable draft.
-- [ ] Add Web parity and regression tests for empty, invalid, overflow, corrected input and state changes.
+- [ ] Extend Web parity tests to cover empty, invalid, overflow, corrected input and persistence after restart (basic checks exist).
 - [ ] Verify that only accepted persistent state survives restart.
 - [ ] Document 0.9 syntax, semantics and platform differences.
-- [ ] Keep the published 0.7.0 release distinct from unreleased development features.
-- [ ] Define branch, version and PyPI release procedure before the next publication.
+- [x] Distinguish the historical Intent 0.7 release from the unreleased Sedrava 0.9 candidate.
+- [x] Define separate integration branch and 0.9.0a1 candidate version; PyPI publication deferred.
 - [ ] Create a complete reference application for 0.10.
 
 ## Release gate / Условия завершения этапа

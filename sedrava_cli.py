@@ -6,7 +6,7 @@ from pathlib import Path
 
 from sedrava_core import parse, run
 
-VERSION = "0.7.1a1"
+VERSION = "0.9.0a1"
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="sedrava", description="Sedrava experimental compiler")

@@ -39,6 +39,6 @@ Each action computes a candidate state. All declared invariants must hold before
 
 **Experimental, not production-ready.** Android 0.3 has been manually tested on a device. Web generation has automated tests; coverage remains limited. Python/JavaScript differential conformance tests cover selected scenarios, not all possible programs.
 
-First Sedrava GitHub alpha candidate: **v0.7.1a1**. [Release notes](docs/RELEASE_NOTES_0_7_1.ru-en.md). This is not a PyPI release.
+**Development candidate: Sedrava 0.9.0a1 (unreleased).** The 0.7.1a1 version was an abandoned rebrand release candidate, not a GitHub Release. See [0.9 integration status](docs/SEDRAVA_0_9_STATUS.md) and [roadmap](docs/ROADMAP.md). No PyPI release.
 
 The GitHub repository is now `VasiliiBabkin/sedrava`. `sedrava.com` is a proposed domain, not an official website.

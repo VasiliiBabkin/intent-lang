@@ -48,4 +48,4 @@ sedrava build web examples/workflow.sdr
 
 The `sedrava` distribution is not published on PyPI.
 
-> Sedrava is not yet published on PyPI. Install from this source checkout using `python -m pip install .`; the CLI is `sedrava`, and source files end in `.sdr`. The GitHub repository has not yet been renamed. The domain sedrava.com is prospective only.
+> Sedrava is not yet published on PyPI. Install from this source checkout using `python -m pip install .`; the CLI is `sedrava`, and source files end in `.sdr`. The GitHub repository is now `VasiliiBabkin/sedrava`. The domain sedrava.com is prospective only.

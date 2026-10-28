@@ -41,4 +41,4 @@ Each action computes a candidate state. All declared invariants must hold before
 
 Rebrand branch: `rebrand/sedrava`. [Alpha release notes](docs/RELEASE_NOTES_0_7.ru-en.md).
 
-The repository remains `VasiliiBabkin/intent-lang` until its owner separately approves renaming. `sedrava.com` is a proposed domain, not an official website.
+The GitHub repository is now `VasiliiBabkin/sedrava`. `sedrava.com` is a proposed domain, not an official website.

@@ -88,4 +88,4 @@ sedrava build web examples/workflow.sdr --output build/web/index.html
 sedrava build android examples/workflow.sdr --output build/generated-android
 ```
 
-Сборка Android дополнительно требует Java, Android SDK и Gradle. Репозиторий пока расположен по адресу `VasiliiBabkin/intent-lang`; переименование требует отдельного подтверждения. Домен `sedrava.com` рассматривается, но не является действующим сайтом.
+Сборка Android дополнительно требует Java, Android SDK и Gradle. Репозиторий переименован: `VasiliiBabkin/sedrava`. Домен `sedrava.com` рассматривается, но не является действующим сайтом.

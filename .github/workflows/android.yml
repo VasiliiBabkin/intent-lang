@@ -1,6 +1,7 @@
 name: Sedrava Android Compose build
 on:
   push:
+  pull_request:
   workflow_dispatch:
 jobs:
   apk:

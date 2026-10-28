@@ -1,4 +1,4 @@
-"""Intent 0.3: restricted typed AST, interpreter and atomic transitions."""
+"""Sedrava 0.3: restricted typed AST, interpreter and atomic transitions."""
 import ast
 import re
 from dataclasses import dataclass

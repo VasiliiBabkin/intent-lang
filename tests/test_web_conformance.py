@@ -10,10 +10,10 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from intent_core import parse, transition
+from sedrava_core import parse, transition
 from web_codegen import generate
 
-EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "workflow.intent"
+EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "workflow.sdr"
 
 @unittest.skipUnless(shutil.which("node"), "Node.js is required for cross-runtime conformance")
 class WebConformance(unittest.TestCase):

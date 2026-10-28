@@ -1,16 +1,16 @@
-"""Regression tests for user-facing Intent CLI errors."""
+"""Regression tests for user-facing Sedrava CLI errors."""
 import contextlib
 import io
 import pathlib
 import tempfile
 import unittest
 
-from intent_cli import main
+from sedrava_cli import main
 
 class DiagnosticTests(unittest.TestCase):
     def check_error(self, source):
         with tempfile.TemporaryDirectory() as directory:
-            path = pathlib.Path(directory) / "broken.intent"
+            path = pathlib.Path(directory) / "broken.sdr"
             path.write_text(source, encoding="utf-8")
             stderr = io.StringIO()
             with contextlib.redirect_stderr(stderr):

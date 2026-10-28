@@ -1,10 +1,10 @@
 import pathlib
 import unittest
-from intent_core import parse, run, transition
+from sedrava_core import parse, run, transition
 from web_codegen import generate
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-SOURCE = (ROOT / "examples/workflow.intent").read_text(encoding="utf-8")
+SOURCE = (ROOT / "examples/workflow.sdr").read_text(encoding="utf-8")
 
 class WebBackendTests(unittest.TestCase):
     def test_workflow_generated(self):

@@ -3,9 +3,9 @@ import io
 import pathlib
 import tempfile
 import unittest
-from intent_cli import main
+from sedrava_cli import main
 
-SOURCE = pathlib.Path(__file__).resolve().parents[1] / "examples/workflow.intent"
+SOURCE = pathlib.Path(__file__).resolve().parents[1] / "examples/workflow.sdr"
 
 class CliTests(unittest.TestCase):
     def test_check(self):
@@ -25,4 +25,4 @@ class CliTests(unittest.TestCase):
 
     def test_missing_file(self):
         with contextlib.redirect_stderr(io.StringIO()):
-            self.assertEqual(main(["check", "/definitely/not/a/file.intent"]), 1)
+            self.assertEqual(main(["check", "/definitely/not/a/file.sdr"]), 1)

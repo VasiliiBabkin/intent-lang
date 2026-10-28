@@ -1,4 +1,4 @@
-"""Validate the built Intent archives before any registry upload."""
+"""Validate the built Sedrava archives before any registry upload."""
 import email
 import pathlib
 import tarfile
@@ -7,7 +7,7 @@ import zipfile
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 EXPECTED_MODULES = {
-    "intent.py", "intent_core.py", "intent_cli.py",
+    "sedrava.py", "sedrava_core.py", "sedrava_cli.py",
     "android_codegen.py", "android_codegen_v03.py", "web_codegen.py",
 }
 LICENSE_MARKER = "Apache License"
@@ -16,7 +16,7 @@ VERSION = "0.7.0a1"
 
 def check_metadata(raw):
     metadata = email.message_from_bytes(raw)
-    assert metadata.get("Name", "").lower().replace("_", "-") == "intent-lng", "wrong package name"
+    assert metadata.get("Name", "").lower().replace("_", "-") == "sedrava-lng", "wrong package name"
     assert metadata.get("Version") == VERSION, "wrong package version"
     assert metadata.get("License-Expression") == "Apache-2.0", "missing SPDX license metadata"
 

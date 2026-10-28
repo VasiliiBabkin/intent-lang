@@ -1,4 +1,4 @@
-"""Minimal deterministic Intent prototype (v0.1). No eval/exec."""
+"""Minimal deterministic Sedrava prototype (v0.1). No eval/exec."""
 from dataclasses import dataclass
 import re
 import sys
@@ -123,8 +123,8 @@ def run(program):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        sys.exit("Usage: python intent.py FILE.intent")
+        sys.exit("Usage: python sedrava.py FILE.sdr")
     with open(sys.argv[1], encoding="utf-8") as file:
         program = parse(file.read())
-    print(f"Intent: {program.name}")
+    print(f"Sedrava: {program.name}")
     run(program)

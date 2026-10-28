@@ -1,8 +1,8 @@
-"""Deterministic Intent -> Android Jetpack Compose project generator."""
+"""Deterministic Sedrava -> Android Jetpack Compose project generator."""
 from pathlib import Path
 import argparse
 import re
-from intent import parse, run
+from sedrava import parse, run
 
 IDENT = r"[A-Za-z_][A-Za-z_0-9]*"
 
@@ -64,7 +64,7 @@ def generate(source, output):
     run(program)
     widgets = ui_parse(source, program)
     output = Path(output)
-    package = "org.intentlang.generated"
+    package = "org.sdr.generated"
     lines = [
         f"package {package}",
         "",
@@ -80,12 +80,12 @@ def generate(source, output):
         "class MainActivity : ComponentActivity() {",
         "  override fun onCreate(savedInstanceState: Bundle?) {",
         "    super.onCreate(savedInstanceState)",
-        "    setContent { MaterialTheme { IntentScreen() } }",
+        "    setContent { MaterialTheme { SedravaScreen() } }",
         "  }",
         "}",
         "",
         "@Composable",
-        "fun IntentScreen() {",
+        "fun SedravaScreen() {",
     ]
     for key, val in program.states.items():
         literal = str(val).lower() if isinstance(val, bool) else str(val)
@@ -112,16 +112,16 @@ def generate(source, output):
             guard = " && ".join(conditions) if conditions else "true"
             lines.append(f"    Button(onClick = {{ if ({guard}) {target} = {literal} }}) {{ Text({kotlin_string(label)}) }}")
     lines += ["  }", "}"]
-    target = output / "app/src/main/java/org/intentlang/generated/MainActivity.kt"
+    target = output / "app/src/main/java/org/sedravalang/generated/MainActivity.kt"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines) + "\n", encoding="utf-8")
     manifest = output / "app/src/main/AndroidManifest.xml"
     manifest.parent.mkdir(parents=True, exist_ok=True)
-    manifest.write_text('<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:label="Intent Demo" android:theme="@android:style/Theme.Material.Light.NoActionBar"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>\n', encoding="utf-8")
-    (output / "settings.gradle.kts").write_text('pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }\ndependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }\nrootProject.name = "IntentDemo"\ninclude(":app")\n', encoding="utf-8")
+    manifest.write_text('<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:label="Sedrava Demo" android:theme="@android:style/Theme.Material.Light.NoActionBar"><activity android:name=".MainActivity" android:exported="true"><sedrava-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></sedrava-filter></activity></application></manifest>\n', encoding="utf-8")
+    (output / "settings.gradle.kts").write_text('pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }\ndependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }\nrootProject.name = "SedravaDemo"\ninclude(":app")\n', encoding="utf-8")
     (output / "build.gradle.kts").write_text('plugins { id("com.android.application") version "8.9.2" apply false; id("org.jetbrains.kotlin.android") version "2.0.21" apply false; id("org.jetbrains.kotlin.plugin.compose") version "2.0.21" apply false }\n', encoding="utf-8")
     (output / "gradle.properties").write_text('org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8\nandroid.useAndroidX=true\n', encoding="utf-8")
-    (output / "app/build.gradle.kts").write_text('plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }\nandroid { namespace = "org.intentlang.generated"; compileSdk = 35\n defaultConfig { applicationId = "org.intentlang.generated"; minSdk = 26; targetSdk = 35; versionCode = 1; versionName = "0.1" }\n buildFeatures { compose = true }\n compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }\n kotlinOptions { jvmTarget = "17" }\n}\ndependencies { implementation(platform("androidx.compose:compose-bom:2024.12.01")); implementation("androidx.activity:activity-compose:1.9.3"); implementation("androidx.compose.material3:material3"); implementation("androidx.compose.ui:ui") }\n', encoding="utf-8")
+    (output / "app/build.gradle.kts").write_text('plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }\nandroid { namespace = "org.sdr.generated"; compileSdk = 35\n defaultConfig { applicationId = "org.sdr.generated"; minSdk = 26; targetSdk = 35; versionCode = 1; versionName = "0.1" }\n buildFeatures { compose = true }\n compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }\n kotlinOptions { jvmTarget = "17" }\n}\ndependencies { implementation(platform("androidx.compose:compose-bom:2024.12.01")); implementation("androidx.activity:activity-compose:1.9.3"); implementation("androidx.compose.material3:material3"); implementation("androidx.compose.ui:ui") }\n', encoding="utf-8")
     return target
 
 if __name__ == "__main__":

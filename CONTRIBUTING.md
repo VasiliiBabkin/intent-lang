@@ -1,6 +1,6 @@
-# Contributing to Intent / Участие в разработке Intent
+# Contributing to Sedrava / Участие в разработке Sedrava
 
-Intent is an experimental declarative language. Contributions are welcome, but language semantics and portability must remain deliberate and testable.
+Sedrava is an experimental declarative language. Contributions are welcome, but language semantics and portability must remain deliberate and testable.
 
 ## Русский
 

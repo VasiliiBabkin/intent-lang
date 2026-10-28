@@ -1,8 +1,8 @@
-"""Intent 0.3 Android backend: compile shared AST, reuse v0.2 Gradle scaffold."""
+"""Sedrava 0.3 Android backend: compile shared AST, reuse v0.2 Gradle scaffold."""
 import argparse
 import ast
 from pathlib import Path
-from intent_core import parse, run, Assign, If
+from sedrava_core import parse, run, Assign, If
 from android_codegen import generate as scaffold
 
 def kt(node, names):
@@ -30,11 +30,11 @@ def generate(source, output):
     run(program)
     if not program.widgets: raise ValueError("Missing screen main")
     output = Path(output)
-    # Temporary scaffolding reuse; semantics below depend solely on Intent AST.
+    # Temporary scaffolding reuse; semantics below depend solely on Sedrava AST.
     scaffold('app "Scaffold"\nstate ready = false\naction start: ready = true\nscreen main:\n    text "Scaffold"\n    button "Start" -> start\n', output)
-    target = output / "app/src/main/java/org/intentlang/generated/MainActivity.kt"
+    target = output / "app/src/main/java/org/sedravalang/generated/MainActivity.kt"
     lines = [
-        "package org.intentlang.generated",
+        "package org.sdr.generated",
         "import android.os.Bundle",
         "import androidx.activity.ComponentActivity",
         "import androidx.activity.compose.setContent",
@@ -46,10 +46,10 @@ def generate(source, output):
         "class MainActivity : ComponentActivity() {",
         "  override fun onCreate(savedInstanceState: Bundle?) {",
         "    super.onCreate(savedInstanceState)",
-        "    setContent { MaterialTheme { IntentScreen() } }",
+        "    setContent { MaterialTheme { SedravaScreen() } }",
         "  }",
         "}",
-        "@Composable fun IntentScreen() {",
+        "@Composable fun SedravaScreen() {",
     ]
     for key, val in program.states.items():
         lines.append(f"  var {key} by remember {{ mutableStateOf({str(val).lower()}) }}")

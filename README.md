@@ -1,10 +1,10 @@
-# Intent
+# Sedrava
 
 Experimental declarative programming language for application state, transitions, invariants and executable tests.
 
 **Documentation:** [Русский](docs/README.ru.md) · [English](docs/README.en.md)
 
-**Install from PyPI after the public release:** `python -m pip install intent-lng==0.7.0a1` (CLI: `intent`). The earlier TestPyPI candidate uses the distribution name `intent-lang`.
+**Install from PyPI after the public release:** `python -m pip install sedrava-lng==0.7.0a1` (CLI: `sedrava`). The earlier TestPyPI candidate uses the distribution name `sedrava-lang`.
 
 **License:** [Apache 2.0](LICENSE) · [Open-source policy (RU)](docs/OPEN_SOURCE.ru.md) · [Open-source policy (EN)](docs/OPEN_SOURCE.en.md)
 
@@ -16,7 +16,7 @@ Requires Python 3.10+ according to package metadata; CI covers Python 3.12 and 3
 
 ```bash
 python -m unittest discover -s tests -v
-python web_codegen.py examples/workflow.intent --output build/web/index.html
+python web_codegen.py examples/workflow.sdr --output build/web/index.html
 ```
 
 Open `build/web/index.html` in a browser.
@@ -24,14 +24,14 @@ Open `build/web/index.html` in a browser.
 To generate an Android/Compose project:
 
 ```bash
-python android_codegen_v03.py examples/workflow.intent --output build/generated-android
+python android_codegen_v03.py examples/workflow.sdr --output build/generated-android
 ```
 
 The generated Android project additionally requires Java, Android SDK and Gradle.
 
 ## Architecture
 
-Intent source → restricted typed AST (`intent_core.py`) → interpreter / Android backend / web backend.
+Sedrava source → restricted typed AST (`sedrava_core.py`) → interpreter / Android backend / web backend.
 
 Each action computes a candidate state. All declared invariants must hold before changes are committed. The same source program is used by both code generators.
 
@@ -39,4 +39,4 @@ Each action computes a candidate state. All declared invariants must hold before
 
 **Experimental, not production-ready.** Android 0.3 has been manually tested on a device. Web generation has automated tests; coverage remains limited. Python/JavaScript differential conformance tests cover selected scenarios, not all possible programs.
 
-Release candidate: `release/intent-0.7.0a1`. [Alpha release notes](docs/RELEASE_NOTES_0_7.ru-en.md).
+Release candidate: `release/sedrava-0.7.0a1`. [Alpha release notes](docs/RELEASE_NOTES_0_7.ru-en.md).

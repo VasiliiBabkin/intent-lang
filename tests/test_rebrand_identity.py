@@ -25,6 +25,13 @@ class SedravaIdentityTests(unittest.TestCase):
             self.assertIn('applicationId = "org.sedrava.generated"', gradle)
             self.assertTrue(output.exists())
 
+    def test_no_legacy_python_imports_or_commands(self):
+        import re
+        legacy = re.compile(r"\\b(?:from|import)\\s+intent(?:_core|_cli)?\\b|\\bintent-lng\\b|\\bintent-lang\\b|\\bintent\\s+(?:check|test|build)\\b")
+        for path in [*ROOT.glob("*.py"), *(ROOT / "tests").glob("*.py"), *(ROOT / "scripts").glob("*.py")]:
+            with self.subTest(path=path.name):
+                self.assertIsNone(legacy.search(path.read_text(encoding="utf-8")))
+
     def test_examples_use_sdr(self):
         self.assertTrue(list((ROOT / "examples").glob("*.sdr")))
         self.assertFalse(list((ROOT / "examples").glob("*.intent")))

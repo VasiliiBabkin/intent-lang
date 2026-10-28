@@ -90,20 +90,27 @@ def generate(source, output):
             key = widget[1]
             lines.append(f"    var draft_{key} by remember {{ mutableStateOf({key}.toString()) }}")
             lines.append(f"    LaunchedEffect({key}) {{ draft_{key} = {key}.toString() }}")
+            lines.append(f"    val parsed_{key} = draft_{key}.toIntOrNull()")
+            lines.append(f"    val valid_{key} = parsed_{key} != null && run {{")
+            for state_key in program.states:
+                lines.append(f"      val next_{state_key} = " + (f"parsed_{key}!!" if state_key == key else state_key))
+            guard = " && ".join(kt(rule, names) for rule in program.rules) or "true"
+            lines.append(f"      {guard}")
+            lines.append("    }")
+            lines.append(f"    val error_{key} = draft_{key}.isNotEmpty() && !valid_{key}")
             lines.append(f"    OutlinedTextField(value = draft_{key}, onValueChange = {{ raw ->")
             lines.append(f"      draft_{key} = raw")
             lines.append("      val parsed = raw.toIntOrNull()")
             lines.append("      if (parsed != null) {")
             for state_key in program.states:
                 lines.append(f"        val next_{state_key} = " + ("parsed" if state_key == key else state_key))
-            guard = " && ".join(kt(rule, names) for rule in program.rules) or "true"
             lines.append(f"        if ({guard}) {{")
             lines.append(f"          {key} = parsed")
             if key in program.persistent:
                 lines.append(f"          prefs.edit().putInt({quoted(key)}, parsed).apply()")
             lines.append("        }")
             lines.append("      }")
-            lines.append(f"    }}, label = {{ Text({quoted(key)}) }}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))")
+            lines.append(f"    }}, isError = error_{key}, supportingText = {{ if (error_{key}) Text(\"Value does not satisfy the declared rules\") }}, label = {{ Text({quoted(key)}) }}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))")
         elif widget[0] == "show_text":
             lines.append(f"    if ({widget[1]}) {{ Text({quoted(widget[2])}) }}")
         else:

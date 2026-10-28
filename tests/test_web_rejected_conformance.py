@@ -60,4 +60,5 @@ process.stdout.write(JSON.stringify(trace));
             input=json.dumps({"script": script, "sequence": sequence}),
             text=True, capture_output=True, check=False, timeout=30,
         )
-        self.assertEqual(result.returncode, 0, result.stderr)\n        self.assertEqual(json.loads(result.stdout), expected)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), expected)

@@ -1,8 +1,8 @@
-name: Intent 0.3 experimental validation
+name: Sedrava 0.3 experimental validation
 on:
   push:
     branches:
-      - feature/intent-0.3-ast
+      - feature/sedrava-0.3-ast
   workflow_dispatch:
 jobs:
   validate:
@@ -13,11 +13,11 @@ jobs:
         with:
           python-version: '3.12'
       - name: Python syntax
-        run: python -m compileall -q intent.py intent_core.py android_codegen.py android_codegen_v03.py tests
+        run: python -m compileall -q sedrava.py sedrava_core.py android_codegen.py android_codegen_v03.py tests
       - name: Unit tests
         run: python -m unittest discover -s tests -v
       - name: Generate Android
-        run: python android_codegen_v03.py examples/workflow.intent --output build/generated-android
+        run: python android_codegen_v03.py examples/workflow.sdr --output build/generated-android
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -39,6 +39,6 @@ jobs:
         run: gradle --no-daemon :app:assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: intent-03-workflow-debug
+          name: sedrava-03-workflow-debug
           if-no-files-found: error
           path: build/generated-android/app/build/outputs/apk/debug/app-debug.apk

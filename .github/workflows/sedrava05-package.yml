@@ -1,8 +1,8 @@
-name: Intent 0.5 package validation
+name: Sedrava 0.5 package validation
 on:
   push:
     branches:
-      - feature/intent-0.5-cli-package
+      - feature/sedrava-0.5-cli-package
   workflow_dispatch:
 jobs:
   package:
@@ -16,17 +16,17 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile check
-        run: python -m compileall -q intent_core.py intent_cli.py web_codegen.py android_codegen_v03.py tests
+        run: python -m compileall -q sedrava_core.py sedrava_cli.py web_codegen.py android_codegen_v03.py tests
       - name: Unit tests
         run: python -m unittest discover -s tests -v
       - name: Install package
         run: python -m pip install .
       - name: Verify installed CLI
-        run: intent --version
+        run: sedrava --version
       - name: Verify program
-        run: intent test examples/workflow.intent
+        run: sedrava test examples/workflow.sdr
       - name: Build web application
-        run: intent build web examples/workflow.intent --output build/web/index.html
+        run: sedrava build web examples/workflow.sdr --output build/web/index.html
       - name: Build distributable archives
         run: |
           python -m pip install build
@@ -38,6 +38,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: matrix.os == 'ubuntu-24.04'
         with:
-          name: intent-05-python-distributions
+          name: sedrava-05-python-distributions
           path: dist/*
           if-no-files-found: error

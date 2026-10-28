@@ -58,6 +58,6 @@ process.stdout.write(JSON.stringify(trace));
         result = subprocess.run(
             ["node", "-e", runner],
             input=json.dumps({"script": script, "sequence": sequence}),
-            text=True, capture_output=True, check=True, timeout=30,
+            text=True, capture_output=True, check=False, timeout=30,
         )
-        self.assertEqual(json.loads(result.stdout), expected)
+        self.assertEqual(result.returncode, 0, result.stderr)\n        self.assertEqual(json.loads(result.stdout), expected)

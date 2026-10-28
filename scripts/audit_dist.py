@@ -16,7 +16,7 @@ VERSION = "0.7.0a1"
 
 def check_metadata(raw):
     metadata = email.message_from_bytes(raw)
-    assert metadata.get("Name", "").lower().replace("_", "-") == "sedrava-lng", "wrong package name"
+    assert metadata.get("Name", "").lower().replace("_", "-") == "sedrava", "wrong package name"
     assert metadata.get("Version") == VERSION, "wrong package version"
     assert metadata.get("License-Expression") == "Apache-2.0", "missing SPDX license metadata"
 

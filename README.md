@@ -1,10 +1,10 @@
-# Sedrava
+# Sedrava Programming Language
 
 Experimental declarative programming language for application state, transitions, invariants and executable tests.
 
 **Documentation:** [Русский](docs/README.ru.md) · [English](docs/README.en.md)
 
-**Install from PyPI after the public release:** `python -m pip install sedrava-lng==0.7.0a1` (CLI: `sedrava`). The earlier TestPyPI candidate uses the distribution name `sedrava-lang`.
+**Install from this checkout:** `python -m pip install .` (CLI: `sedrava`). The `sedrava` distribution has **not** been published on PyPI.
 
 **License:** [Apache 2.0](LICENSE) · [Open-source policy (RU)](docs/OPEN_SOURCE.ru.md) · [Open-source policy (EN)](docs/OPEN_SOURCE.en.md)
 
@@ -39,4 +39,6 @@ Each action computes a candidate state. All declared invariants must hold before
 
 **Experimental, not production-ready.** Android 0.3 has been manually tested on a device. Web generation has automated tests; coverage remains limited. Python/JavaScript differential conformance tests cover selected scenarios, not all possible programs.
 
-Release candidate: `release/sedrava-0.7.0a1`. [Alpha release notes](docs/RELEASE_NOTES_0_7.ru-en.md).
+Rebrand branch: `rebrand/sedrava`. [Alpha release notes](docs/RELEASE_NOTES_0_7.ru-en.md).
+
+The repository remains `VasiliiBabkin/intent-lang` until its owner separately approves renaming. `sedrava.com` is a proposed domain, not an official website.

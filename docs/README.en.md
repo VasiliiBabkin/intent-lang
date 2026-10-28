@@ -36,21 +36,16 @@ See [Russian guide](README.ru.md) and [example](../examples/workflow.sdr).
 
 No user-defined functions, collections, modules, IO, async, standard library or production-level diagnostics. The web backend is experimental; equivalence across runtimes still needs end-to-end verification.
 
-## Experimental pip installation (0.5)
-
-Not published to PyPI yet. Install from the development branch:
+## Install from source
 
 ```sh
-python -m pip install "git+https://github.com/VasiliiBabkin/sedrava-lang.git@feature/sedrava-0.5-cli-package"
+python -m pip install .
 sedrava --version
 sedrava check examples/workflow.sdr
 sedrava test examples/workflow.sdr
 sedrava build web examples/workflow.sdr
 ```
 
-For an isolated CLI installation, use `pipx install "git+https://github.com/VasiliiBabkin/sedrava-lang.git@feature/sedrava-0.5-cli-package"`.
-
-The PyPI project name and project license are not finalized. Cross-platform packaging CI must pass before this build is considered validated.
-
+The `sedrava` distribution is not published on PyPI.
 
 > Sedrava is not yet published on PyPI. Install from this source checkout using `python -m pip install .`; the CLI is `sedrava`, and source files end in `.sdr`. The GitHub repository has not yet been renamed. The domain sedrava.com is prospective only.

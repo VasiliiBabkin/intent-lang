@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sedrava-lng"
+name = "sedrava"
 version = "0.7.0a1"
-description = "Experimental declarative language for stateful applications"
+description = "Sedrava Programming Language: experimental declarative language for applications"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"

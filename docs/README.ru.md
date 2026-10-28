@@ -80,13 +80,13 @@ Android-версия 0.3 проверена на устройстве. Веб-к
 Пока пакет не опубликован в PyPI. Установить исходную ветку можно командой:
 
 ```bash
-python -m pip install "git+https://github.com/VasiliiBabkin/sedrava-lang.git@feature/sedrava-0.5-cli-package"
+python -m pip install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/sedrava-0.5-cli-package"
 ```
 
 Для изолированной установки CLI рекомендуется `pipx`, если он доступен:
 
 ```bash
-pipx install "git+https://github.com/VasiliiBabkin/sedrava-lang.git@feature/sedrava-0.5-cli-package"
+pipx install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/sedrava-0.5-cli-package"
 ```
 
 Команды после установки:
@@ -106,7 +106,7 @@ sedrava build android examples/workflow.sdr --output build/generated-android
 Установка в виртуальном окружении:
 
 ```bash
-python -m pip install --upgrade "git+https://github.com/VasiliiBabkin/sedrava-lang.git@feature/sedrava-0.6-quality"
+python -m pip install --upgrade "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/sedrava-0.6-quality"
 sedrava --version
 sedrava check workflow.sdr
 sedrava test workflow.sdr

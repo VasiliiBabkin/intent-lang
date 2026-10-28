@@ -76,7 +76,7 @@ def generate(source):
             widgets.append(f'<p>{key}: <output data-state="{key}"></output></p>')
         elif widget[0] == "input_int":
             key = html.escape(widget[1], quote=True)
-            widgets.append(f'<label>{key}: <input type="number" step="1" min="-2147483648" max="2147483647" data-input="{key}"></label>')
+            widgets.append(f'<label>{key}: <input type="number" step="1" min="-2147483648" max="2147483647" data-input="{key}" aria-describedby="error-{key}"></label><small id="error-{key}" role="alert" hidden>Value does not satisfy the declared rules</small>')
         elif widget[0] == "show_text":
             key = html.escape(widget[1], quote=True)
             widgets.append(f'<p data-show="{key}" hidden>{html.escape(widget[2])}</p>')
@@ -88,7 +88,7 @@ def generate(source):
         "<!doctype html>",
         '<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">',
         f"<title>{html.escape(program.name)}</title>",
-        "<style>body{font:18px system-ui;max-width:38rem;margin:3rem auto;padding:0 1rem}button{padding:.7rem 1rem;margin:.25rem;border-radius:.5rem;cursor:pointer}</style>",
+        "<style>body{font:18px system-ui;max-width:38rem;margin:3rem auto;padding:0 1rem}button{padding:.7rem 1rem;margin:.25rem;border-radius:.5rem;cursor:pointer}input[aria-invalid="true"]{outline:2px solid #b42318}small[role="alert"]{display:block;color:#b42318}small[hidden]{display:none}</style>",
         "</head><body>",
         *widgets,
         "<script>",
@@ -117,19 +117,24 @@ def generate(source):
         "    render();",
         "  });",
         "});",
-        'document.querySelectorAll("[data-input]").forEach(el => {',
-        "  el.addEventListener('change', () => {",
-        "    const key = el.dataset.input;",
-        "    const raw = el.value.trim();",
-        "    const parsed = Number(raw);",
-        "    if (raw === '' || !Number.isInteger(parsed) || parsed < -2147483648 || parsed > 2147483647) { render(); el.value = String(state[key]); return; }",
-        "    const candidate = { ...state, [key]: parsed };",
-        "    const nextState = candidate;",
-        "    const accepted = " + rules + ";",
-        "    if (accepted) { state = candidate; try { const saved = {}; for (const name of persistentKeys) saved[name] = state[name]; if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) {} }",
-        "    el.value = String(state[key]); render();",
-        "  });",
-        "});",
+        "function validateInput(el) {",
+        "  const key = el.dataset.input; const raw = el.value.trim();",
+        "  const parsed = Number(raw);",
+        "  let accepted = false;",
+        "  if (raw !== '' && /^-?[0-9]+$/.test(raw) && Number.isInteger(parsed) && parsed >= -2147483648 && parsed <= 2147483647) {",
+        "    const nextState = { ...state, [key]: parsed };",
+        "    accepted = ; + rules + ;",
+        "    if (accepted) { state = nextState; try { const saved = {}; for (const name of persistentKeys) saved[name] = state[name]; if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) {} render(); }",
+        "  }",
+        "  const invalid = raw !== '' && !accepted;",
+        "  el.setAttribute('aria-invalid', String(invalid));",
+        "  const error = document.getElementById('error-' + key);",
+        "  if (error) error.hidden = !invalid;",
+        "}",
+        "document.querySelectorAll('[data-input]').forEach(el => {",
+        "  el.addEventListener('input', () => validateInput(el));",
+        "  el.addEventListener('blur', () => { if (el.value.trim() === '') el.value = String(state[el.dataset.input]); validateInput(el); });",
+        "}",
         "render();",
         "</script></body></html>",
     ]) + "\n"

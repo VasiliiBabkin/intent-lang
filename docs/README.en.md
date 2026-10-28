@@ -32,22 +32,36 @@ Expressions support integer arithmetic, comparisons and boolean operators. Each 
 
 See [Russian guide](README.ru.md) and [example](../examples/workflow.intent).
 
+## Development-only features (not in PyPI 0.7.0)
+
+The 0.9 source branch supports `derive name = expression` (computed values), `persist name` (local state persistence), `input name` (integer input) and `show condition : text "Message"` (conditional text). See [`daily_steps.intent`](../examples/daily_steps.intent) and [`input_goal.intent`](../examples/input_goal.intent). Android device testing confirmed numeric input; rejected-value error feedback is still a known UX issue.
+
 ## Current limitations
 
-No user-defined functions, collections, modules, IO, async, standard library or production-level diagnostics. The web backend is experimental; equivalence across runtimes still needs end-to-end verification.
+No user-defined functions, string state, collections, modules, general-purpose IO, async or standard library. Diagnostics remain limited. The web backend is experimental; equivalence across runtimes still needs end-to-end verification.
 
-## Experimental pip installation (0.5)
+## Install published version 0.7.0 from PyPI
 
-Not published to PyPI yet. Install from the development branch:
+The published distribution is [`intent-lng`](https://pypi.org/project/intent-lng/); the CLI executable is `intent`. Package metadata requires Python 3.10+.
 
 ```sh
-python -m pip install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/intent-0.5-cli-package"
+python -m pip install --upgrade intent-lng==0.7.0
 intent --version
-intent check examples/workflow.intent
-intent test examples/workflow.intent
-intent build web examples/workflow.intent
 ```
 
-For an isolated CLI installation, use `pipx install "git+https://github.com/VasiliiBabkin/intent-lang.git@feature/intent-0.5-cli-package"`.
+CLI usage:
 
-The PyPI project name and project license are not finalized. Cross-platform packaging CI must pass before this build is considered validated.
+```sh
+intent check examples/workflow.intent
+intent test examples/workflow.intent
+intent build web examples/workflow.intent --output build/web/index.html
+intent build android examples/workflow.intent --output build/generated-android
+```
+
+Android project compilation additionally requires Java, the Android SDK and Gradle. The 0.7.0 package remains experimental.
+
+### Published release versus development branch
+
+The `derive`, `persist`, `input`, and `show` features belong to the later 0.8/0.9 development work and **are not included in the published 0.7.0 package**. Use the [development branch](https://github.com/VasiliiBabkin/intent-lang/tree/feature/intent-0.9-security-integrated) and CI artifacts to test these features. Development milestones do not imply corresponding PyPI releases.
+
+See [0.7 release history](RELEASE_NOTES_0_7.ru-en.md).

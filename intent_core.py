@@ -3,6 +3,19 @@ import ast
 import re
 from dataclasses import dataclass
 
+MAX_SOURCE_CHARS = 100_000
+MAX_AST_NODES = 256
+MAX_ACTION_STEPS = 10_000
+
+INT_MIN = -(2 ** 31)
+INT_MAX = 2 ** 31 - 1
+
+def checked_int(value):
+    if type(value) is int and not INT_MIN <= value <= INT_MAX:
+        raise ValueError("Integer overflow: outside signed 32-bit range")
+    return value
+
+
 @dataclass(frozen=True)
 class Assign:
     name: str
@@ -23,6 +36,7 @@ class Program:
     tests: tuple
     widgets: tuple
     derived: dict = None
+    persistent: tuple = ()
 
 def parse_expr(source, types):
     source = re.sub(r"\b(true|false)\b", lambda m: m[1].title(), source)
@@ -30,6 +44,8 @@ def parse_expr(source, types):
         node = ast.parse(source, mode="eval").body
     except SyntaxError as exc:
         raise ValueError("Invalid expression") from exc
+    if sum(1 for _ in ast.walk(node)) > MAX_AST_NODES:
+        raise ValueError("Expression exceeds complexity limit")
     try:
         type_of(node, types)
     except ValueError as exc:
@@ -61,16 +77,16 @@ def type_of(node, types):
     raise ValueError("Unsupported or ill-typed expression")
 
 def evaluate(node, state):
-    if isinstance(node, ast.Constant): return node.value
+    if isinstance(node, ast.Constant): return checked_int(node.value)
     if isinstance(node, ast.Name): return state[node.id]
     if isinstance(node, ast.UnaryOp):
         x = evaluate(node.operand, state)
-        return -x if isinstance(node.op, ast.USub) else not x
+        return checked_int(-x) if isinstance(node.op, ast.USub) else not x
     if isinstance(node, ast.BinOp):
         a, b = evaluate(node.left, state), evaluate(node.right, state)
-        if isinstance(node.op, ast.Add): return a + b
-        if isinstance(node.op, ast.Sub): return a - b
-        return a * b
+        if isinstance(node.op, ast.Add): return checked_int(a + b)
+        if isinstance(node.op, ast.Sub): return checked_int(a - b)
+        return checked_int(a * b)
     if isinstance(node, ast.BoolOp):
         if isinstance(node.op, ast.And):
             return all(evaluate(x, state) for x in node.values)
@@ -87,10 +103,13 @@ def evaluate(node, state):
     raise ValueError("Unsupported expression")
 
 def parse(source):
+    if len(source) > MAX_SOURCE_CHARS:
+        raise ValueError("Source exceeds size limit")
     lines = [(len(raw) - len(raw.lstrip(" ")), raw.strip(), i)
              for i, raw in enumerate(source.splitlines(), 1)
              if raw.strip() and not raw.lstrip().startswith("#")]
     states, actions, rules, tests, widgets, derived = {}, {}, [], [], [], {}
+    persistent = []
     types = {}
     name = None
     i = 0
@@ -142,6 +161,10 @@ def parse(source):
             node = expression(m[2], {}, number, m.start(2) + 1)
             states[m[1]] = evaluate(node, {})
             types[m[1]] = type(states[m[1]])
+        elif m := re.fullmatch(r"persist ([A-Za-z_]\w*)", line):
+            if m[1] not in states or m[1] in persistent:
+                raise ValueError(f"Line {number}: persist requires a unique declared state")
+            persistent.append(m[1])
         elif m := re.fullmatch(r"derive ([A-Za-z_]\w*)\s*=\s*(.+)", line):
             if actions or rules or tests or widgets:
                 raise ValueError(f"Line {number}: derives must precede actions")
@@ -173,6 +196,14 @@ def parse(source):
                 elif m := re.fullmatch(r"value ([A-Za-z_]\w*)", item):
                     if m[1] not in types: raise ValueError(f"Line {n}: unknown state")
                     widgets.append(("value", m[1]))
+                elif m := re.fullmatch(r'input ([A-Za-z_]\w*)', item):
+                    if m[1] not in states or type(states[m[1]]) is not int:
+                        raise ValueError(f"Line {n}: input requires an integer state")
+                    widgets.append(("input_int", m[1]))
+                elif m := re.fullmatch(r'show ([A-Za-z_]\w*) : text "([^"]*)"', item):
+                    if m[1] not in types or types[m[1]] is not bool:
+                        raise ValueError(f"Line {n}: show requires a boolean state or derive")
+                    widgets.append(("show_text", m[1], m[2]))
                 elif m := re.fullmatch(r'button "([^"]*)" -> ([A-Za-z_]\w*)', item):
                     widgets.append(("button", m[1], m[2]))
                 else: raise ValueError(f"Line {n}: invalid widget")
@@ -186,7 +217,7 @@ def parse(source):
     for widget in widgets:
         if widget[0] == "button" and widget[2] not in actions: raise ValueError("Unknown action")
     if not all(evaluate(rule, resolve(states, derived)) for rule in rules): raise ValueError("Invalid initial state")
-    return Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived)
+    return Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived, tuple(persistent))
 
 def resolve(state, derived):
     values = state.copy()
@@ -197,8 +228,13 @@ def resolve(state, derived):
 def transition(program, state, action):
     if action not in program.actions: raise ValueError("Unknown action")
     candidate = state.copy()
+    steps = 0
     def execute(stmts):
+        nonlocal steps
         for stmt in stmts:
+            steps += 1
+            if steps > MAX_ACTION_STEPS:
+                raise ValueError("Action exceeds execution step limit")
             if isinstance(stmt, Assign):
                 candidate[stmt.name] = evaluate(stmt.expr, resolve(candidate, program.derived))
             else:

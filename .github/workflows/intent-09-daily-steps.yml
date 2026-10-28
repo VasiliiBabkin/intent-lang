@@ -1,0 +1,41 @@
+name: Intent 0.9 Daily Steps Android APK
+on:
+  push:
+    branches:
+      - feature/intent-0.9-security-integrated
+  workflow_dispatch:
+
+jobs:
+  daily-steps-apk:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify Intent program and tests
+        run: |
+          python -m unittest discover -s tests -v
+          python intent_cli.py check examples/daily_steps.intent
+          python intent_cli.py test examples/daily_steps.intent
+      - name: Generate Android app from Intent 0.9 example
+        run: python android_codegen_v03.py examples/daily_steps.intent --output build/daily-steps-android
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Configure preinstalled Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          test -d "$ANDROID_SDK_ROOT/platforms/android-35" || ls "$ANDROID_SDK_ROOT/platforms"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Build debug APK
+        working-directory: build/daily-steps-android
+        run: gradle --no-daemon assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: intent-09-daily-steps-debug-apk
+          path: build/daily-steps-android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

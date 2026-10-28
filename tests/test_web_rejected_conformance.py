@@ -44,8 +44,8 @@ screen main:
 const vm = require('node:vm');
 const fs = require('node:fs');
 const data = JSON.parse(fs.readFileSync(0, 'utf8'));
-const context = vm.createContext({document: {querySelectorAll: () => []}, localStorage: {getItem: () => null, setItem: () => {}}});
-vm.runInContext(data.script, context);
+const context = vm.createContext({document: {querySelectorAll: () => [], getElementById: () => null}, localStorage: {getItem: () => null, setItem: () => {}}});
+try { vm.runInContext(data.script, context); } catch(e) { process.stderr.write(String(e.stack)); process.exit(1); }
 let state = vm.runInContext('({...initialState})', context);
 const actions = vm.runInContext('actions', context);
 const trace = [JSON.parse(JSON.stringify(state))];

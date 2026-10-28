@@ -37,9 +37,9 @@ class WebConformance(unittest.TestCase):
 const vm = require('node:vm');
 const fs = require('node:fs');
 const payload = JSON.parse(fs.readFileSync(0, 'utf8'));
-const document = {querySelectorAll: () => []};
+const document = {querySelectorAll: () => [], getElementById: () => null};
 const context = vm.createContext({document, localStorage: {getItem: () => null, setItem: () => {}}});
-vm.runInContext(payload.script, context);
+try { vm.runInContext(payload.script, context); } catch(e) { process.stderr.write(String(e.stack)); process.exit(1); }
 const output = payload.sequences.map(seq => {
   let state = vm.runInContext('({...initialState})', context);
   const trace = [JSON.parse(JSON.stringify(state))];

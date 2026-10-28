@@ -123,7 +123,7 @@ def generate(source):
         "  let accepted = false;",
         "  if (raw !== '' && /^-?[0-9]+$/.test(raw) && Number.isInteger(parsed) && parsed >= -2147483648 && parsed <= 2147483647) {",
         "    const nextState = { ...state, [key]: parsed };",
-        "    accepted = ; + rules + ;",
+        "    accepted = " + rules + ";",
         "    if (accepted) { state = nextState; try { const saved = {}; for (const name of persistentKeys) saved[name] = state[name]; if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) {} render(); }",
         "  }",
         "  const invalid = raw !== '' && !accepted;",

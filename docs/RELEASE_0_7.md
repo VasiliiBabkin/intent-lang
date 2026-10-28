@@ -1,70 +1,14 @@
-# Sedrava 0.7 — Release candidate / Кандидат на выпуск
+# Sedrava — pre-release process
 
-## RU
+Sedrava is an experimental language. Its new Python distribution `sedrava` is **not yet published**. The repository currently remains `VasiliiBabkin/intent-lang` until a separately approved rename.
 
-Это экспериментальная версия, **не опубликованная в PyPI или TestPyPI**.
+## Validate a release candidate
 
-Установка из ветки разработки (в виртуальном окружении):
+1. Run the complete Python test suite and the Android Compose workflow.
+2. Build the wheel and sdist: `python -m build`.
+3. Validate metadata: `python -m twine check dist/*` and `python scripts/audit_dist.py`.
+4. Install the built wheel in a clean virtual environment and test `sedrava --version`, `sedrava check`, `sedrava test` and both generators against `examples/workflow.sdr`.
+5. Review the final GitHub repository name, PyPI project-name availability and Trusted Publisher configuration.
+6. Only after separate approval, choose a new pre-1.0 version and publish using an explicitly reviewed release workflow.
 
-```bash
-python -m pip install --upgrade "git+https://github.com/VasiliiBabkin/sedrava-lang.git@feature/sedrava-0.7-diagnostics-release"
-sedrava --version
-sedrava check examples/workflow.sdr
-sedrava test examples/workflow.sdr
-```
-
-Файлы `examples/workflow.sdr` нужно предварительно скачать или выполнять команды из клона репозитория.
-
-Порядок публикации:
-1. Убедиться, что все шесть комбинаций ОС и Python прошли CI.
-2. Скачать артефакт `sedrava-07-release-candidate` из GitHub Actions.
-3. Проверить, что имя `sedrava-lang` доступно в реестре, и утвердить лицензию.
-4. Настроить аккаунт TestPyPI и Trusted Publishing для этого репозитория.
-5. Опубликовать артефакт в TestPyPI отдельным контролируемым действием.
-6. Установить пакет из TestPyPI в чистое окружение и выполнить smoke-тест.
-7. Только после этого решать вопрос о публикации в основном PyPI.
-
-Никакие токены или пароли реестра не должны сохраняться в исходном коде.
-
-Ограничения: диагностические сообщения ещё не содержат координаты для всех ошибок выражений; тесты Python/JavaScript не доказывают эквивалентность для произвольных программ и чисел.
-
-## EN
-
-This is an experimental release candidate and is **not published to PyPI or TestPyPI**.
-
-Install from the development branch in a virtual environment:
-
-```bash
-python -m pip install --upgrade "git+https://github.com/VasiliiBabkin/sedrava-lang.git@feature/sedrava-0.7-diagnostics-release"
-sedrava --version
-```
-
-Before publishing, verify all CI matrix jobs, inspect the built artifacts, confirm the package name and license, configure TestPyPI Trusted Publishing, and test installation from TestPyPI in a clean environment. Do not commit publishing credentials.
-
-## TestPyPI: настройка / setup
-
-1. Дождитесь успешного запуска **Sedrava packaging and provenance audit** на ветке `feature/sedrava-0.7-testpypi-prep`. В GitHub Actions должен появиться артефакт `sedrava-07-audited-dist`.
-2. Проверьте доступность имени `sedrava-lang` в TestPyPI и PyPI. Имена могут быть заняты независимо; **доступность ещё не подтверждена**.
-3. Создайте GitHub Environment с именем **`testpypi`**. Рекомендуется включить required reviewers, чтобы публикация требовала ручного подтверждения.
-4. В TestPyPI создайте *pending trusted publisher* с параметрами:
-   - GitHub owner: `VasiliiBabkin`
-   - Repository: `sedrava-lang`
-   - Workflow: `sedrava07-testpypi.yml`
-   - Environment: `testpypi`
-5. Workflow с `workflow_dispatch` должен находиться в **default branch** GitHub, иначе кнопка ручного запуска может быть недоступна. Сначала слейте проверенные изменения через pull request. Не запускайте публикацию до подтверждения владельцем.
-6. В GitHub Actions вручную запустите **Publish Sedrava to TestPyPI (manual)**. Публикация использует OIDC Trusted Publishing; секрет API-токена не нужен.
-7. После публикации установите в новом окружении:
-
-```bash
-python3 -m venv /tmp/sedrava-testpypi
-/tmp/sedrava-testpypi/bin/python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ sedrava-lang==0.7.0a1
-/tmp/sedrava-testpypi/bin/sedrava --version
-```
-
-При использовании двух индексов возможна dependency confusion: для релизной проверки предпочтительнее `--index-url https://test.pypi.org/simple/` без дополнительного индекса, поскольку текущий пакет не объявляет runtime-зависимостей.
-
-**Публикация пока не выполнялась.** Нужна отдельная проверка прав на сторонний код, графику и название проекта. Автоматическая проверка архивов не доказывает юридическую чистоту всех файлов.
-
-## EN: publication gate
-
-The TestPyPI workflow is manual and uses GitHub OIDC Trusted Publishing, restricted to the `testpypi` environment. Configure a matching pending publisher on TestPyPI and review environment protection rules. GitHub manual dispatch requires the workflow to be present on the default branch. Publishing is a separate, explicitly authorized action after CI passes.
+The old project release records remain available in Git history. The previously published `intent-lng` distribution is separate and is not modified by this process.

@@ -31,7 +31,7 @@ def generate(source, output):
     output = Path(output)
     # Temporary scaffolding reuse; semantics below depend solely on Sedrava AST.
     scaffold('app "Scaffold"\nstate ready = false\naction start: ready = true\nscreen main:\n    text "Scaffold"\n    button "Start" -> start\n', output)
-    target = output / "app/src/main/java/org/intentlang/generated/MainActivity.kt"
+    target = output / "app/src/main/java/org/sedrava/generated/MainActivity.kt"
     lines = [
         "package org.sedrava.generated",
         "import android.os.Bundle",
@@ -48,14 +48,14 @@ def generate(source, output):
         "class MainActivity : ComponentActivity() {",
         "  override fun onCreate(savedInstanceState: Bundle?) {",
         "    super.onCreate(savedInstanceState)",
-        "    setContent { MaterialTheme { IntentScreen() } }",
+        "    setContent { MaterialTheme { SedravaScreen() } }",
         "  }",
         "}",
-        "@Composable fun IntentScreen() {",
+        "@Composable fun SedravaScreen() {",
     ]
     if program.persistent:
         lines.append("  val context = LocalContext.current")
-        lines.append("  val prefs = remember { context.getSharedPreferences(\"intent_state\", android.content.Context.MODE_PRIVATE) }")
+        lines.append("  val prefs = remember { context.getSharedPreferences(\"sedrava_state\", android.content.Context.MODE_PRIVATE) }")
     for key, val in program.states.items():
         initial = str(val).lower()
         if key in program.persistent:

@@ -80,12 +80,12 @@ def generate(source, output):
         "class MainActivity : ComponentActivity() {",
         "  override fun onCreate(savedInstanceState: Bundle?) {",
         "    super.onCreate(savedInstanceState)",
-        "    setContent { MaterialTheme { IntentScreen() } }",
+        "    setContent { MaterialTheme { SedravaScreen() } }",
         "  }",
         "}",
         "",
         "@Composable",
-        "fun IntentScreen() {",
+        "fun SedravaScreen() {",
     ]
     for key, val in program.states.items():
         literal = str(val).lower() if isinstance(val, bool) else str(val)
@@ -112,7 +112,7 @@ def generate(source, output):
             guard = " && ".join(conditions) if conditions else "true"
             lines.append(f"    Button(onClick = {{ if ({guard}) {target} = {literal} }}) {{ Text({kotlin_string(label)}) }}")
     lines += ["  }", "}"]
-    target = output / "app/src/main/java/org/intentlang/generated/MainActivity.kt"
+    target = output / "app/src/main/java/org/sedrava/generated/MainActivity.kt"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines) + "\n", encoding="utf-8")
     manifest = output / "app/src/main/AndroidManifest.xml"

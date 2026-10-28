@@ -1,8 +1,8 @@
 # Sedrava — Roadmap / Дорожная карта
 
 **Status / Статус:** development plan, not a release commitment.  
-**Published package / Опубликованный пакет:** `sedrava-lng 0.7.0` (per project owner).  
-**Active work / Текущая разработка:** experimental 0.8–0.9 features; not included in the published 0.7.0 package.
+**Published package / Опубликованный пакет:** historical `intent-lng` 0.7 series; Sedrava has not been published on PyPI.  
+**Active work / Текущая разработка:** Sedrava 0.9 integration in progress; not a published release.
 
 ## Vision / Видение
 
@@ -59,7 +59,7 @@ Visual app builder, reusable component ecosystem, optional AI-assisted authoring
 - [x] Parser, interpreter, actions, invariants and independent tests.
 - [x] Shared typed AST and experimental Kotlin/Compose Android generator.
 - [x] Standalone Web/JavaScript generator.
-- [x] CLI and first public PyPI releases in the 0.7 series.
+- [x] historical Intent 0.7 releases; Sedrava has not been published on PyPI.
 - [x] Android APK builds in GitHub Actions and device tests.
 - [x] Initial cross-backend differential tests and CI.
 - [ ] Formal language specification and comprehensive conformance suite.

@@ -88,7 +88,7 @@ def generate(source):
         "<!doctype html>",
         '<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">',
         f"<title>{html.escape(program.name)}</title>",
-        "<style>body{font:18px system-ui;max-width:38rem;margin:3rem auto;padding:0 1rem}button{padding:.7rem 1rem;margin:.25rem;border-radius:.5rem;cursor:pointer}input[aria-invalid="true"]{outline:2px solid #b42318}small[role="alert"]{display:block;color:#b42318}small[hidden]{display:none}</style>",
+        "<style>body{font:18px system-ui;max-width:38rem;margin:3rem auto;padding:0 1rem}button{padding:.7rem 1rem;margin:.25rem;border-radius:.5rem;cursor:pointer}input[aria-invalid=\"true\"]{outline:2px solid #b42318}small[role="alert"]{display:block;color:#b42318}small[hidden]{display:none}</style>",
         "</head><body>",
         *widgets,
         "<script>",

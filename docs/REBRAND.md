@@ -12,7 +12,7 @@
 
 ## Release status
 
-The Sedrava package has **not** been published on PyPI. The existing source version `0.7.0a1` is retained to avoid conflating a rebrand with a feature release. Proposed next release is **0.7.1a1** after testing and explicit approval. Do not reuse a published version number for a different artifact.
+The Sedrava package has **not** been published on PyPI. The first Sedrava GitHub alpha candidate is **0.7.1a1**. The package remains unpublished on PyPI. A GitHub Release must be created separately after CI passes. Do not reuse a published version number for a different artifact.
 
 ## Owner actions after merging
 

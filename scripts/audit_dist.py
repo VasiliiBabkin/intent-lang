@@ -11,7 +11,7 @@ EXPECTED_MODULES = {
     "android_codegen.py", "android_codegen_v03.py", "web_codegen.py",
 }
 LICENSE_MARKER = "Apache License"
-VERSION = "0.7.0a1"
+VERSION = "0.7.1a1"
 
 
 def check_metadata(raw):

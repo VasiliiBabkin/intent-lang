@@ -34,3 +34,7 @@ On device, the tester entered `11` while the last accepted state was `1`. The te
 - `Plus` and `Reset` continue to work correctly.
 
 This document records an observed issue; it does **not** claim the UX fix is implemented.
+
+## Implementation progress (unverified)
+
+The Android and Web generators now contain rule-aware input feedback and regression-generation tests. The generated UI is intended to retain invalid drafts, show an error, and persist only accepted state. **CI, actual Android compilation, and a fresh device test are still required**; this finding must remain open until those gates pass.

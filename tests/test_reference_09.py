@@ -22,15 +22,19 @@ class Reference09Tests(unittest.TestCase):
         p = parse(SOURCE)
         state = dict(p.states)
         for _ in range(7):
-            state = transition(p, state, "add")
+            state, accepted = transition(p, state, "add")
+            self.assertTrue(accepted)
         self.assertEqual(state["progress"], 5)
         self.assertEqual(state["sessions"], 5)
-        state = transition(p, state, "subtract")
+        state, accepted = transition(p, state, "subtract")
+        self.assertTrue(accepted)
         self.assertEqual(state["progress"], 4)
-        state = transition(p, state, "reset")
+        state, accepted = transition(p, state, "reset")
+        self.assertTrue(accepted)
         self.assertEqual(state["progress"], 0)
         self.assertEqual(state["sessions"], 5)
-        state = transition(p, state, "restore")
+        state, accepted = transition(p, state, "restore")
+        self.assertTrue(accepted)
         self.assertEqual(state, p.states)
 
     def test_web_contract(self):

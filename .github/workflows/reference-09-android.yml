@@ -37,7 +37,7 @@ jobs:
       - name: Check reference semantics
         run: |
           python -m unittest discover -s tests -p test_reference_09.py -v
-          python sedrava.py test examples/reference_09.sdr
+          python sedrava_cli.py test examples/reference_09.sdr
       - name: Generate reference Android project
         run: python android_codegen_v03.py examples/reference_09.sdr --output build/reference-09-android
       - name: Build reference APK

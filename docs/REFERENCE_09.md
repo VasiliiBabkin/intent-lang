@@ -20,7 +20,7 @@ The file [`examples/reference_09.sdr`](../examples/reference_09.sdr) is a cross-
 Local commands:
 
 ```bash
-python sedrava.py test examples/reference_09.sdr
+python sedrava_cli.py test examples/reference_09.sdr
 python web_codegen.py examples/reference_09.sdr --output build/reference-web/index.html
 python android_codegen_v03.py examples/reference_09.sdr --output build/reference-09-android
 ```

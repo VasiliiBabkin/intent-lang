@@ -1,6 +1,6 @@
 # Sedrava 0.10 — String semantics contract (implementation prerequisite)
 
-Status: **proposed**. Nothing in this document claims that strings are implemented. Baseline: [0.9 language reference](LANGUAGE_0_9.md). Parent contract: [Describe → Get](DESCRIBE_GET_010.md).
+Status: **implemented on `feature/010-string-core`, unreleased development increment**. See [normative text reference](LANGUAGE_0_10_TEXT.md) and [measured work report](TEXT_010_REPORT.md). This is not acceptance of the whole 0.10 roadmap. Baseline: [0.9 language reference](LANGUAGE_0_9.md). Parent contract: [Describe → Get](DESCRIBE_GET_010.md).
 
 ## First increment
 
@@ -40,3 +40,7 @@ Only explicitly `persist`-marked text state is stored. Restore malformed, over-l
 ## Sequencing
 
 Implement this increment before records/collections, then define stable identity and bounded collection mutations. Do not create a 0.10 tag or publish a package as part of the implementation PR.
+
+## Resolved implementation boundaries
+
+Static labels now share the escaped literal grammar; escape backslashes in legacy labels. HTML textarea performs native CR/CRLF-to-LF draft normalization, while accepted source/model/persisted strings retain exact scalar equality. Both boundaries have regression tests and are detailed in the [reference](LANGUAGE_0_10_TEXT.md). All published 0.9 examples remain covered.

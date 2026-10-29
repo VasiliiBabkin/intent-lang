@@ -1,5 +1,7 @@
 # Sedrava 0.9 language reference / Справочник языка
 
+> Published 0.9 compatibility baseline. Development text extensions are specified separately in [unreleased 0.10 text reference](LANGUAGE_0_10_TEXT.md); the 0.9 release/tag is unchanged.
+
 Normative for this candidate. Syntax is English. Historical `sedrava.py` and `android_codegen.py` entry points implement earlier subsets and are compatibility tools; use **`sedrava` CLI**, `sedrava_core`, `web_codegen`, and `android_codegen_v03` for 0.9.
 
 ## Source and declarations

@@ -199,6 +199,9 @@ def parse(source):
     if len(source) > MAX_SOURCE_CHARS:
         raise ValueError("Source exceeds size limit")
     for number, raw in enumerate(source.split("\n"), 1):
+        for offset, char in enumerate(raw):
+            if 0xD800 <= ord(char) <= 0xDFFF:
+                raise ValueError(f"Line {number}: column {offset + 1}: Source contains an unpaired surrogate")
         if "\t" in raw[:len(raw) - len(raw.lstrip())]:
             raise ValueError(f"Line {number}: tabs are not allowed in indentation")
     lines = [(len(raw) - len(raw.lstrip(" ")), raw.strip(), i)

@@ -1,3 +1,5 @@
+> Historical 0.9 limits below. This development branch adds bounded text; see [text semantics](LANGUAGE_0_10_TEXT.md) for the supported unreleased increment and remaining limitations. Lists/navigation/full 0.10 remain unimplemented.
+
 # Known limitations / Известные ограничения 0.9.0a1
 
 - Experimental API/grammar; no stable compatibility promise before 1.0. Signed 32-bit integer and boolean state only. No strings as state, lists, records, division, modules, loops, background services, actual timers or navigation.

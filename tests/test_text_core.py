@@ -84,6 +84,9 @@ screen main:
         with self.assertRaisesRegex(ValueError, 'Line 2: column .*surrogate'):
             parse('app "Bad"\nstate title = "\ud800"')
 
+        with self.assertRaisesRegex(ValueError, 'Line 2: column .*surrogate'):
+            parse('app "Bad"\n# comment \ud800')
+
     def test_text_only_operations_are_equality_and_assignment(self):
         for expr in ('"a" + "b"', '"a" * 2', '"a" < "b"', '"a"[0]', 'not "a"',
                      '"a" == 1', '"a" == true', '"a" and true', '-"a"'):

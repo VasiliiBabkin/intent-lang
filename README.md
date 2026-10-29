@@ -1,10 +1,18 @@
-# Sedrava — 0.9.0a1 Alpha candidate
+# Sedrava — unreleased 0.10 text increment
+
+**Describe the application; get the application. / Описал — получил.**
+
+The published compatibility baseline is [Sedrava 0.9.0a1](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.9.0a1). This branch adds first-class text end-to-end and identifies local development builds as **0.10.0.dev0**; no 0.10 release, tag or PyPI publication is created.
+
+Start with [Quick Start](docs/QUICKSTART.md), the [text reference](docs/LANGUAGE_0_10_TEXT.md), [text profile example](examples/text_profile.sdr), and [measured report](docs/TEXT_010_REPORT.md). The full [0.10 task-list vision](docs/DESCRIBE_GET_010.md) remains future work.
+
+## Published 0.9 baseline and common tooling
 
 **Describe the application; get the application. / Опиши приложение — получи приложение.**
 
-Sedrava is an experimental declarative programming language for small applications: describe integer/boolean state, derived values, atomic actions, invariants and a simple UI; generate a standalone Web app or an Android/Compose project from the same source.
+Sedrava is an experimental declarative programming language for small applications: describe text/int32/boolean state, derived values, atomic actions, invariants and a simple UI; generate a standalone Web app or an Android/Compose project from the same source.
 
-**For learning and experimental development, not production.** This is an unreleased candidate until the exact release commit passes its gates. No Sedrava package is published on PyPI. Historical Intent 0.7 releases are a separate project history.
+**For learning and experimental development, not production.** 0.9.0a1 is published; this checkout is an unreleased 0.10 development increment. No Sedrava package is published on PyPI. Historical Intent 0.7 releases are a separate project history.
 
 [Quick Start / Быстрый старт](docs/QUICKSTART.md) · [Русский](docs/README.ru.md) · [English](docs/README.en.md)
 

@@ -1,5 +1,7 @@
 # Quick Start / Быстрый старт
 
+For this branch: [unreleased first-class text guide](LANGUAGE_0_10_TEXT.md). Published baseline: 0.9.0a1; local development build: 0.10.0.dev0, not a published 0.10.
+
 **Describe the application; get the application. / Опиши приложение — получи приложение.**
 
 Sedrava describes local application state, rules, actions and a small UI. The 0.9 alpha targets learning and experimental offline applications; it is not a production framework. No accounts, cloud service or runtime Python dependencies are required.
@@ -20,7 +22,7 @@ sedrava --version
 sedrava --help
 ```
 
-For this unpublished candidate, checkout the alpha PR branch if it has not been merged. Do not `pip install sedrava` from PyPI: no Sedrava package has been published there. On Windows `py -3` may be needed instead of `python`; quote paths containing spaces.
+To try the unreleased text increment, run `git switch feature/010-string-core` before installation. Do not `pip install sedrava` from PyPI: no Sedrava package has been published there. On Windows `py -3` may be needed instead of `python`; quote paths containing spaces.
 
 Create `hello.sdr` (plain UTF-8):
 
@@ -49,3 +51,7 @@ Open http://localhost:8000. `run` prints `{"count": 2}`; it is a deterministic i
 Next: [language syntax and semantics](LANGUAGE_0_9.md), [complete examples](../examples/README.md), [Web/Android build guide](BUILD.md), [FAQ](FAQ.md), [known limitations](KNOWN_LIMITATIONS.md).
 
 Русский: установите Python и Git, создайте виртуальное окружение и установите проект командой `python -m pip install .`. Сохраните пример в UTF-8, проверьте его командами `check` и `test`. `run` выводит состояние после указанных действий; `build web` создаёт HTML, а `build android` — исходный Gradle-проект. Для APK нужны дополнительные инструменты из инструкции сборки. Синтаксис языка остаётся английским.
+
+## First-class text / Полноценный текст
+
+Run `sedrava check examples/text_profile.sdr`, `sedrava test examples/text_profile.sdr`, `sedrava run examples/text_profile.sdr rename`, then `sedrava build web examples/text_profile.sdr --output build/text-web/index.html`. Serve that directory as above. `sedrava build android examples/text_profile.sdr --output build/text-android` produces the Android project without manual application-code changes. Follow the [text guide](LANGUAGE_0_10_TEXT.md) for APK/JVM/Lint commands and input/restore semantics.

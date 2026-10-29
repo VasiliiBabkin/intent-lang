@@ -1,4 +1,4 @@
-"""Sedrava 0.9 Android backend using the shared AST and Gradle scaffold."""
+"""Sedrava Android backend: shared typed state semantics and Compose adapters."""
 import argparse
 import ast
 from pathlib import Path

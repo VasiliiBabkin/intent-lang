@@ -22,7 +22,7 @@
 - Python unit tests and Web differential conformance: CI on the integration branch.
 - Distribution wheel/sdist verification: dedicated workflow, **without publishing**.
 - Android APK: CI compile gate passed for the basic Workflow example. A tester confirmed installation, launch and expected basic action behavior on a physical Android device on 2026-10-29.
-- **Reference app**: `examples/reference_09.sdr` and [test checklist](REFERENCE_09.md) cover numeric input, persistence and derived state; physical-device acceptance is **not yet confirmed**.
+- **Reference app**: `examples/reference_09.sdr` and [test checklist](REFERENCE_09.md) cover numeric input, persistence and derived state; physical-device launch and basic interactions **confirmed by user screenshots on 2026-10-29**; invalid-input feedback, rejected values, and persistence across process restart **remain unverified**.
 
 ## Remaining release gates / Что остаётся
 

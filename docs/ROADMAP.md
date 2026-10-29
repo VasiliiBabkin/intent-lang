@@ -67,3 +67,7 @@ Visual app builder, reusable component ecosystem, optional AI-assisted authoring
 ## Sedrava integration status (2026-10-29)
 
 0.9 functionality is integrated into `main`; **not released**. Basic Android Workflow launch and actions were confirmed on a physical device on 2026-10-29; advanced numeric input and persistence still require device acceptance. See [reference test plan](REFERENCE_09.md). The historical Intent 0.7 PyPI release is not a Sedrava release. English-language syntax only. Release gates: CI, clean install, Android and Web builds, conformance, documentation, device testing. No PyPI publication planned.
+
+### Physical device evidence (2026-10-29)
+
+A tester installed the 0.9 Lab reference APK and supplied screenshots of initial state and accepted goal 6/progress 6/sessions 6/reached true, confirming launch, actions, derived state and conditional UI. See [reference verification](REFERENCE_09.md). Do not treat this as evidence of rejected-input handling, overflow or persistence after force-close; those checks remain open.

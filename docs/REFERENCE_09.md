@@ -35,7 +35,7 @@ python android_codegen_v03.py examples/reference_09.sdr --output build/reference
 6. Force-close/relaunch: only accepted values survive. Test reset and restore.
 7. Compare equivalent actions and validation on generated Web page.
 
-**Device results:** baseline `workflow.sdr` Android launch/actions were confirmed by a tester on 2026-10-29. **Reference app has not yet been device-tested.** Do not mark the numeric-input/persistence milestone complete before these checks.
+**Device results:** baseline `workflow.sdr` Android launch/actions were confirmed by a tester on 2026-10-29. **Reference app was installed and visually verified on a physical Android device on 2026-10-29.** User-provided screenshots show default state (goal 5, progress 0, sessions 0, reached false) and accepted goal 6 with progress 6, sessions 6, reached true and conditional success message. User confirms expected behavior. This supports basic numeric input, action updates, derived flags, conditional UI and reset/default display. Invalid input, rejected edits, persistence after force-close and overflow are not yet individually evidenced. Do not mark the numeric-input/persistence milestone complete before these checks.
 
 ## Limitations
 

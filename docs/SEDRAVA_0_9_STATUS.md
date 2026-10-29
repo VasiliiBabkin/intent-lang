@@ -36,7 +36,7 @@
 
 ### Reference persistence evidence (2026-10-29)
 
-A physical Android tester confirmed goal value 20 survives application relaunch (screenshot). This verifies the tested persistent-goal path only; nonzero progress/session persistence and rejected/overflow input behavior remain open. See [reference verification](REFERENCE_09.md).
+A physical Android tester confirmed goal value 20 survives application relaunch (screenshot). Subsequent device tests confirmed nonzero progress/session persistence, rejected input and overflow handling; see [Android acceptance](ANDROID_09_ACCEPTANCE.md). See [reference verification](REFERENCE_09.md).
 
 ## Release readiness checkpoint (2026-10-29)
 

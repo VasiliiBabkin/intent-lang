@@ -1,0 +1,29 @@
+# A manual countdown model: Tick is an explicit action, not a wall-clock event.
+app "Countdown model"
+state remaining = 5
+state running = false
+derive finished = remaining == 0
+action start: running = true
+action stop: running = false
+action tick:
+    if running and remaining > 0:
+        remaining = remaining - 1
+    if remaining == 0:
+        running = false
+action reset:
+    remaining = 5
+    running = false
+rule remaining >= 0 and remaining <= 5
+test paused: tick -> remaining == 5
+test ticking: start, tick, tick -> remaining == 3
+test finished: start, tick, tick, tick, tick, tick, tick -> finished and not running
+test reset: start, tick, reset -> remaining == 5
+screen main:
+    text "Manual countdown (no automatic clock)"
+    value remaining
+    value running
+    show finished : text "Finished"
+    button "Start" -> start
+    button "Stop" -> stop
+    button "Tick" -> tick
+    button "Reset" -> reset

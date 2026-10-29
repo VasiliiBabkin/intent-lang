@@ -13,7 +13,7 @@
 
 - Checked 32-bit integer arithmetic; bounded AST and action evaluation.
 - Typed numeric input, state persistence declarations, derived state, conditional UI.
-- CLI diagnostics with line numbers (column 1 is a placeholder).
+- CLI check/run/test/build with line diagnostics and expression/identifier columns; some structural errors still use column 1.
 - Web and Android/Compose generation; examples `daily_steps.sdr`, `input_goal.sdr`, `derived_progress.sdr`.
 - Ported Python, JavaScript conformance and Android generation regression tests.
 
@@ -44,3 +44,7 @@ A physical Android tester confirmed goal value 20 survives application relaunch 
 - CI and Android APK generation: previously passed on `main` commit `981fbc011648ea724bb9c1007bcbfae1fe4ceeff`.
 - Python package: `0.9.0a1` is a candidate, not a published release.
 - Open: complete normative language/platform specification, broaden Web parity cases, audit release archive and verify final exact release commit/tag. GitHub Release has not been created. PyPI remains out of scope.
+
+## First-alpha engineering pass
+
+The current contract and all measured new results are maintained in [the alpha audit](ALPHA_AUDIT.md). [Language reference](LANGUAGE_0_9.md), [Quick Start](QUICKSTART.md), [build guide](BUILD.md) and [limitations](KNOWN_LIMITATIONS.md) supersede prototype-era instructions. Web parity and syntax documentation were expanded; exact-commit CI, distribution and Android results must be checked before publication. Previous Android device acceptance applies to its original binary.

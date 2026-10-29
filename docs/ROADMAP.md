@@ -39,9 +39,9 @@ Sedrava should turn concise, declarative descriptions into useful applications w
 ## Immediate backlog / Ближайшие задачи
 
 - [x] Android validation errors and preserved editable draft confirmed on physical device; see [acceptance report](ANDROID_09_ACCEPTANCE.md).
-- [ ] Extend Web parity tests to cover empty, invalid, overflow, corrected input and persistence after restart (basic checks exist).
+- [x] Extend Web parity tests to cover empty, invalid, overflow, corrected input and persistence after restart (basic checks exist).
 - [x] Accepted persistent goal, progress and sessions survive relaunch in the tested Android scenario; see [acceptance report](ANDROID_09_ACCEPTANCE.md).
-- [ ] Complete normative 0.9 language syntax/semantics and platform-difference specification (release disclosure required).
+- [x] Complete normative 0.9 language syntax/semantics and platform-difference specification: [reference](LANGUAGE_0_9.md).
 - [x] Distinguish the historical Intent 0.7 release from the unreleased Sedrava 0.9 candidate.
 - [x] Define separate integration branch and 0.9.0a1 candidate version; PyPI publication deferred.
 - [ ] Create a complete multi-screen reference application for 0.10. The single-screen 0.9 [reference app](REFERENCE_09.md) is separate.
@@ -62,7 +62,7 @@ Visual app builder, reusable component ecosystem, optional AI-assisted authoring
 - [x] historical Intent 0.7 releases; Sedrava has not been published on PyPI.
 - [x] Android APK builds in GitHub Actions and device tests.
 - [x] Initial cross-backend differential tests and CI.
-- [ ] Formal language specification and comprehensive conformance suite.
+- [x] Normative alpha language reference and expanded conformance/browser suite; exhaustive coverage is not claimed.
 
 ## Sedrava integration status (2026-10-29)
 

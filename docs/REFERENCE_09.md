@@ -44,3 +44,7 @@ This is a single-screen Android Compose example. Strings/collections, multi-scre
 ### Additional physical-device result (2026-10-29)
 
 Tester reports that the reference app retains the edited goal after relaunch; screenshot shows `goal: 20`, `progress: 0`, `sessions: 0`, `reached: false`. This confirms goal persistence for the tested relaunch scenario. Subsequent tests confirmed nonzero progress/sessions persistence, invalid-input rejection, overflow rejection and preservation of rejected editable draft. See [Android acceptance](ANDROID_09_ACCEPTANCE.md).
+
+## Alpha regression follow-up (new binaries)
+
+Historical manual Android 16 results above apply to the previously tested binary. After generator changes, additionally test: rotate with nonzero counters and an accepted goal, background/restore the Activity, force-stop/relaunch, enter a value causing arithmetic failure in a derived/rule expression, inspect `adb logcat` for `FATAL EXCEPTION`, and clear/corrupt saved fields to verify default recovery. A JVM validation test is not a replacement for these UI checks. See [current audit](ALPHA_AUDIT.md) and [build guide](BUILD.md).

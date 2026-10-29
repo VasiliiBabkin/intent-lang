@@ -26,7 +26,7 @@ class PersistentUiTests(unittest.TestCase):
             code = Path(android(SOURCE, directory)).read_text(encoding="utf-8")
             self.assertIn('prefs.getInt("count", 0)', code)
             self.assertIn('putInt("count", next_count)', code)
-            self.assertIn('if (done) { Text("Goal reached!") }', code)
+            self.assertIn('if (sdr_done) { Text("Goal reached!") }', code)
 
     def test_invalid_persistence(self):
         with self.assertRaisesRegex(ValueError, "persist requires"):

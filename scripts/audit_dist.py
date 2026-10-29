@@ -37,6 +37,8 @@ def main():
     with tarfile.open(sdist_files[0], "r:gz") as archive:
         names = archive.getnames()
         assert all(any(name.endswith("/" + module) for name in names) for module in EXPECTED_MODULES), "sdist missing modules"
+        for required in ("examples/reference_09.sdr", "examples/countdown.sdr", "docs/LANGUAGE_0_9.md", "docs/QUICKSTART.md", "scripts/test_web_browser.py", "tests/test_alpha_core.py"):
+            assert any(name.endswith("/" + required) for name in names), f"sdist missing {required}"
         license_files = [name for name in names if name.endswith("/LICENSE")]
         assert license_files, "sdist missing LICENSE"
         member = archive.extractfile(license_files[0])

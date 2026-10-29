@@ -2,7 +2,10 @@
 import pathlib
 import tempfile
 import unittest
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10 test-only backport
+    import tomli as tomllib
 from android_codegen_v03 import generate
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]

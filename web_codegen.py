@@ -6,9 +6,13 @@ import json
 from pathlib import Path
 from sedrava_core import Assign, If, parse, run
 
+def json_script(value, **kwargs):
+    # HTML parses script end tags before JavaScript parses quoted strings.
+    return json.dumps(value, **kwargs).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+
 def js_expr(node, names):
     if isinstance(node, ast.Constant):
-        return json.dumps(node.value)
+        return json_script(node.value)
     if isinstance(node, ast.Name):
         return names[node.id]
     if isinstance(node, ast.UnaryOp):
@@ -32,6 +36,7 @@ def statements(body, names, depth=4):
     for stmt in body:
         if isinstance(stmt, Assign):
             result.append(f"{pad}{names[stmt.name]} = {js_expr(stmt.expr, names)};")
+            result.append(f"{pad}checkDerivedState(nextState);")
         elif isinstance(stmt, If):
             result.append(f"{pad}if ({js_expr(stmt.condition, names)}) {{")
             result.extend(statements(stmt.yes, names, depth + 2))
@@ -48,25 +53,25 @@ def generate(source):
     run(program)
     if not program.widgets:
         raise ValueError("Missing screen main")
-    initial = json.dumps(program.states, ensure_ascii=False)
-    names = {key: "nextState[" + json.dumps(key) + "]" for key in program.states}
+    initial = json_script(program.states, ensure_ascii=False)
+    names = {key: "nextState[" + json_script(key) + "]" for key in program.states}
     for key, expr in (program.derived or {}).items():
         names[key] = js_expr(expr, names)
     rules = " && ".join(js_expr(rule, names) for rule in program.rules) or "true"
     actions = []
     for name, body in program.actions.items():
         actions.extend([
-            f"  {json.dumps(name)}: (state) => {{",
+            f"  [{json_script(name)}]: (state) => {{",
             "    const nextState = { ...state };",
             *statements(body, names),
-            f"    return ({rules}) ? nextState : state;",
+            f"    return validateState(nextState) && ({rules}) ? nextState : state;",
             "  },",
         ])
-    render_names = {key: "derivedState[" + json.dumps(key) + "]" for key in program.states}
+    render_names = {key: "derivedState[" + json_script(key) + "]" for key in program.states}
     derived_lines = []
     for key, expr in (program.derived or {}).items():
-        derived_lines.append("  derivedState[" + json.dumps(key) + "] = " + js_expr(expr, render_names) + ";")
-        render_names[key] = "derivedState[" + json.dumps(key) + "]"
+        derived_lines.append("  derivedState[" + json_script(key) + "] = " + js_expr(expr, render_names) + ";")
+        render_names[key] = "derivedState[" + json_script(key) + "]"
     widgets = []
     for widget in program.widgets:
         if widget[0] == "text":
@@ -91,18 +96,29 @@ def generate(source):
         '<style>body{font:18px system-ui;max-width:38rem;margin:3rem auto;padding:0 1rem}button{padding:.7rem 1rem;margin:.25rem;border-radius:.5rem;cursor:pointer}input[aria-invalid="true"]{outline:2px solid #b42318}small[role="alert"]{display:block;color:#b42318}small[hidden]{display:none}</style>',
         "</head><body>",
         *widgets,
+        '<p id="sedrava-error" role="alert" hidden></p>',
         "<script>",
-        f"const initialState = {initial};",
-        "const storageKey = 'sedrava:' + (typeof location !== 'undefined' ? location.pathname : '/') + ':' + " + json.dumps(program.name) + ";",
-        "const persistentKeys = " + json.dumps(list(program.persistent)) + ";",
+        f"const initialState = JSON.parse({json_script(initial)});",
+        "const storageKey = 'sedrava:' + (typeof location !== 'undefined' ? location.pathname : '/') + ':' + " + json_script(program.name) + ";",
+        "const persistentKeys = " + json_script(list(program.persistent)) + ";",
         "let state = { ...initialState };",
         "try { const saved = JSON.parse((typeof localStorage !== 'undefined' ? localStorage.getItem(storageKey) : null) || '{}'); if (saved && typeof saved === 'object' && !Array.isArray(saved)) { for (const key of persistentKeys) { if (Object.hasOwn(saved, key) && typeof saved[key] === typeof initialState[key] && (typeof saved[key] !== 'number' || (Number.isInteger(saved[key]) && saved[key] >= -2147483648 && saved[key] <= 2147483647))) state[key] = saved[key]; } } } catch (_) { /* unavailable or corrupt storage */ }",
         "function checkedInt(n) { if (!Number.isInteger(n) || n < -2147483648 || n > 2147483647) throw new RangeError('Sedrava integer overflow'); return n; }",
         "const actions = {",
         *actions,
         "};",
+        "function checkDerivedState(nextState) { const derivedState = { __proto__: null, ...nextState };",
+        *derived_lines,
+        "}",
+        "function validateState(nextState) {",
+        "  try { const derivedState = { __proto__: null, ...nextState };",
+        *derived_lines,
+        "    return " + rules + "; } catch (_) { return false; }",
+        "}",
+        "if (!validateState(state)) state = { ...initialState };",
+        "function showError(message) { const el = document.getElementById('sedrava-error'); if (el) { el.textContent = message; el.hidden = !message; } }",
         "function render() {",
-        "  const derivedState = { ...state };",
+        "  const derivedState = { __proto__: null, ...state };",
         *derived_lines,
         '  document.querySelectorAll("[data-state]").forEach(el => { el.textContent = String(derivedState[el.dataset.state]); });',
         '  document.querySelectorAll("[data-show]").forEach(el => { el.hidden = !derivedState[el.dataset.show]; });',
@@ -112,7 +128,8 @@ def generate(source):
         "  el.addEventListener('click', () => {",
         "    const action = actions[el.dataset.action];",
         "    if (!action) throw new Error('Unknown action');",
-        "    state = action(state);",
+        "    try { const next = action(state); showError(next === state ? 'Action rejected by declared rules' : ''); state = next; }",
+        "    catch (_) { showError('Action rejected: integer overflow'); return; }",
         "    try { const saved = {}; for (const key of persistentKeys) saved[key] = state[key]; localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) { /* storage is optional */ }",
         "    render();",
         "  });",
@@ -123,7 +140,7 @@ def generate(source):
         "  let accepted = false;",
         "  if (raw !== '' && /^-?[0-9]+$/.test(raw) && Number.isInteger(parsed) && parsed >= -2147483648 && parsed <= 2147483647) {",
         "    const nextState = { ...state, [key]: parsed };",
-        "    accepted = " + rules + ";",
+        "    accepted = validateState(nextState);",
         "    if (accepted) { state = nextState; try { const saved = {}; for (const name of persistentKeys) saved[name] = state[name]; if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) {} render(); }",
         "  }",
         "  const invalid = raw !== '' && !accepted;",

@@ -18,7 +18,7 @@ class NumericInputTests(unittest.TestCase):
         page = web(SOURCE)
         self.assertIn('data-input="target"', page)
         self.assertIn("Number.isInteger(parsed)", page)
-        self.assertIn("const nextState = { ...state, [key]: parsed }", page)
+        self.assertIn("const nextState = { ...state, [key]: isText ? raw : parsed }", page)
 
     def test_android(self):
         with TemporaryDirectory() as directory:
@@ -27,10 +27,10 @@ class NumericInputTests(unittest.TestCase):
             self.assertIn("draft_target = raw", code)
             self.assertIn("LaunchedEffect(sdr_target)", code)
             self.assertIn("?.toIntOrNull()", code)
-            self.assertIn('prefs.edit().putInt("target", parsed).apply()', code)
+            self.assertIn('putInt("target", state.sdr_target)', code)
 
     def test_bool_not_editable_as_number(self):
-        with self.assertRaisesRegex(ValueError, "integer state"):
+        with self.assertRaisesRegex(ValueError, "integer or text state"):
             parse('app "Bad"\nstate flag = true\nscreen main:\n    input flag\n')
 
 if __name__ == "__main__":

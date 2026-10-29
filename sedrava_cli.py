@@ -7,7 +7,7 @@ from pathlib import Path
 
 from sedrava_core import MAX_SOURCE_CHARS, parse, run, resolve, transition
 
-VERSION = "0.9.0a1"
+VERSION = "0.10.0.dev0"
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="sedrava", description="Sedrava experimental compiler")
@@ -28,7 +28,8 @@ def main(argv=None):
     try:
         if args.source.stat().st_size > MAX_SOURCE_CHARS * 4:
             raise ValueError("Source exceeds size limit")
-        source = args.source.read_text(encoding="utf-8")
+        with args.source.open(encoding="utf-8") as handle:
+            source = handle.read(MAX_SOURCE_CHARS + 1)
         if args.command == "check":
             parse(source)
             print(f"OK: {args.source}")

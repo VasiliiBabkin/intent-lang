@@ -24,8 +24,8 @@ class PersistentUiTests(unittest.TestCase):
     def test_android(self):
         with TemporaryDirectory() as directory:
             code = Path(android(SOURCE, directory)).read_text(encoding="utf-8")
-            self.assertIn('prefs.getInt("count", 0)', code)
-            self.assertIn('putInt("count", next_count)', code)
+            self.assertIn('restoreState(prefs.all)', code)
+            self.assertIn('putInt("count", state.sdr_count)', code)
             self.assertIn('if (sdr_done) { Text("Goal reached!") }', code)
 
     def test_invalid_persistence(self):

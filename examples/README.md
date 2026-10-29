@@ -18,6 +18,7 @@ For Android APK instructions see [build guide](../docs/BUILD.md). All UI example
 | `countdown.sdr` | Manual countdown / Ручная модель отсчёта | Start, Tick five times, reset; no automatic clock |
 | `daily_steps.sdr` | Persistent habit progress / Прогресс привычки | Add three times, reload, reset |
 | `input_goal.sdr` | Validated integer input / Проверяемый ввод | Enter 5, reject 11, correct to 3, reload |
+| `text_profile.sdr` | First-class text profile / Текстовое имя с сохранением | Unicode input, rejected blank input/action, reload; [guide](../docs/LANGUAGE_0_10_TEXT.md) |
 | `reference_09.sdr` | Sedrava 0.9 Lab | Goal, progress, sessions, relational constraints, persistence |
 | `derived_progress.sdr` | Chained derived values / Вычисляемые значения | Next three times; Reset |
 | `workflow.sdr` | Sequential atomic updates / Последовательные атомарные изменения | Next three times; Reset |

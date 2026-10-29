@@ -3,6 +3,7 @@ import email
 import pathlib
 import tarfile
 import zipfile
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
@@ -11,7 +12,8 @@ EXPECTED_MODULES = {
     "android_codegen.py", "android_codegen_v03.py", "web_codegen.py",
 }
 LICENSE_MARKER = "Apache License"
-VERSION = "0.9.0a1"
+sys.path.insert(0, str(ROOT))
+from sedrava_cli import VERSION
 
 
 def check_metadata(raw):
@@ -37,7 +39,7 @@ def main():
     with tarfile.open(sdist_files[0], "r:gz") as archive:
         names = archive.getnames()
         assert all(any(name.endswith("/" + module) for name in names) for module in EXPECTED_MODULES), "sdist missing modules"
-        for required in ("examples/reference_09.sdr", "examples/countdown.sdr", "docs/LANGUAGE_0_9.md", "docs/QUICKSTART.md", "scripts/test_web_browser.py", "tests/test_alpha_core.py"):
+        for required in ("examples/reference_09.sdr", "examples/countdown.sdr", "docs/LANGUAGE_0_9.md", "docs/QUICKSTART.md", "scripts/test_web_browser.py", "tests/test_alpha_core.py", "examples/text_profile.sdr", "docs/STRING_010_CONTRACT.md", "tests/fixtures/text_escaping.sdr", "scripts/prepare_text_android_tests.py"):
             assert any(name.endswith("/" + required) for name in names), f"sdist missing {required}"
         license_files = [name for name in names if name.endswith("/LICENSE")]
         assert license_files, "sdist missing LICENSE"

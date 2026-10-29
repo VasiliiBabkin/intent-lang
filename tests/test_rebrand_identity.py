@@ -7,6 +7,7 @@ try:
 except ModuleNotFoundError:  # Python 3.10 test-only backport
     import tomli as tomllib
 from android_codegen_v03 import generate
+from sedrava_cli import VERSION
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -14,6 +15,7 @@ class SedravaIdentityTests(unittest.TestCase):
     def test_distribution_and_entrypoint(self):
         metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
         self.assertEqual(metadata["project"]["name"], "sedrava")
+        self.assertEqual(metadata["project"]["version"], VERSION)
         self.assertEqual(metadata["project"]["scripts"]["sedrava"], "sedrava_cli:main")
         self.assertIn("sedrava_core", metadata["tool"]["setuptools"]["py-modules"])
 

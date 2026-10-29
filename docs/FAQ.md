@@ -1,3 +1,5 @@
+> This checkout includes the [unreleased text increment](LANGUAGE_0_10_TEXT.md). Historical 0.9 restrictions below apply to the published baseline; text state/input is now supported on this development branch. Lists/navigation remain future work.
+
 # FAQ and troubleshooting / Вопросы и устранение ошибок
 
 **What can I build?** Small integer/boolean state applications with explicit user actions, validation, persistence and a single screen. See [examples](../examples/README.md). Sedrava is an alpha learning/experimentation tool.

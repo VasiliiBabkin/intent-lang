@@ -1,8 +1,10 @@
+> Current development increment: [first-class text](LANGUAGE_0_10_TEXT.md), [measured report](TEXT_010_REPORT.md). 0.9.0a1 is published; 0.10 remains unreleased and incomplete.
+
 # Sedrava — Roadmap / Дорожная карта
 
 **Status / Статус:** development plan, not a release commitment.  
 **Published package / Опубликованный пакет:** historical `intent-lng` 0.7 series; Sedrava has not been published on PyPI.  
-**Active work / Текущая разработка:** Sedrava 0.9.0a1 integrated into main; still an unpublished release candidate.
+**Active work / Текущая разработка:** Sedrava 0.9.0a1 is published on GitHub; 0.10 text work is an unreleased development increment.
 
 ## Vision / Видение
 
@@ -42,7 +44,7 @@ Sedrava should turn concise, declarative descriptions into useful applications w
 - [x] Extend Web parity tests to cover empty, invalid, overflow, corrected input and persistence after restart (basic checks exist).
 - [x] Accepted persistent goal, progress and sessions survive relaunch in the tested Android scenario; see [acceptance report](ANDROID_09_ACCEPTANCE.md).
 - [x] Complete normative 0.9 language syntax/semantics and platform-difference specification: [reference](LANGUAGE_0_9.md).
-- [x] Distinguish the historical Intent 0.7 release from the unreleased Sedrava 0.9 candidate.
+- [x] Distinguish the historical Intent 0.7 release from the published Sedrava 0.9 alpha.
 - [x] Define separate integration branch and 0.9.0a1 candidate version; PyPI publication deferred.
 - [ ] Create a complete multi-screen reference application for 0.10. The single-screen 0.9 [reference app](REFERENCE_09.md) is separate.
 
@@ -66,7 +68,7 @@ Visual app builder, reusable component ecosystem, optional AI-assisted authoring
 
 ## Sedrava integration status (2026-10-29)
 
-0.9 functionality is integrated into `main`; **not released**. Basic Android Workflow launch and actions were confirmed on a physical device on 2026-10-29; advanced numeric input, invalid-input rejection, overflow rejection and persistence passed the documented physical-device acceptance scenarios. See [reference test plan](REFERENCE_09.md). The historical Intent 0.7 PyPI release is not a Sedrava release. English-language syntax only. Release gates: CI, clean install, Android and Web builds, conformance, documentation, device testing. No PyPI publication planned.
+0.9.0a1 is published on GitHub; its checked source, tag and release assets are preserved. Basic Android Workflow launch and actions were confirmed on a physical device on 2026-10-29; advanced numeric input, invalid-input rejection, overflow rejection and persistence passed the documented physical-device acceptance scenarios. See [reference test plan](REFERENCE_09.md). The historical Intent 0.7 PyPI release is not a Sedrava release. English-language syntax only. Release gates: CI, clean install, Android and Web builds, conformance, documentation, device testing. No PyPI publication planned.
 
 ### Physical device evidence (2026-10-29)
 
@@ -74,4 +76,8 @@ A tester installed the 0.9 Lab reference APK and supplied screenshots of initial
 
 ### Device acceptance closure
 
-The planned physical Android 0.9 Lab acceptance tests passed, including accepted-state persistence and rejection of invalid, relationally inconsistent and overflowing input. Evidence and limitations: [Android 0.9 acceptance](ANDROID_09_ACCEPTANCE.md). This does not close the Web parity, normative specification or public release gates.
+The planned physical Android 0.9 Lab acceptance tests passed, including accepted-state persistence and rejection of invalid, relationally inconsistent and overflowing input. Evidence and limitations: [Android 0.9 acceptance](ANDROID_09_ACCEPTANCE.md). The later alpha engineering pass closed its release gates; new 0.10 binaries need their own measured verification.
+
+## First 0.10 increment
+
+Text state/derive/equality/actions, inferred text input and persistence are implemented on `feature/010-string-core` with Python/JS/JVM and browser conformance. This does not implement records, collections or the full task-list/navigation target. The [Describe → Get contract](DESCRIBE_GET_010.md) remains the product gate for the full milestone.

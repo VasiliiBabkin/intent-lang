@@ -33,16 +33,16 @@ class AndroidBackendRegressionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             target = generate(SOURCE, Path(directory) / "android")
             code = target.read_text(encoding="utf-8")
-            self.assertIn("var next_count = sdr_count", code)
-            self.assertIn("var next_finished = sdr_finished", code)
+            self.assertIn("var next_count = state.sdr_count", code)
+            self.assertIn("var next_finished = state.sdr_finished", code)
             self.assertIn("next_count = Math.addExact(next_count, 1)", code)
             self.assertIn("next_finished = true", code)
             self.assertIn("(next_count >= 0)", code)
-            self.assertIn("sdr_count = next_count", code)
-            self.assertIn("sdr_finished = next_finished", code)
+            self.assertIn("sdr_count = next.sdr_count", code)
+            self.assertIn("sdr_finished = next.sdr_finished", code)
             self.assertIn('Text("Advance")', code)
             self.assertIn('Text("Reset")', code)
-            self.assertLess(code.index("      if (validState(next_count, next_finished)"), code.index("sdr_count = next_count"))
+            self.assertLess(code.index("if (validState(next_count, next_finished)) SedravaState"), code.index("sdr_count = next.sdr_count"))
 
     def test_rejects_invalid_program_before_generation(self):
         source = SOURCE.replace("rule count >= 0 and count <= 2", "rule count < 0")

@@ -1,0 +1,39 @@
+# First-class text on Python, Web and Android. All defaults satisfy the rules.
+app "Text profile"
+state name = "Guest"
+state visits = 0
+state saved = false
+persist name
+persist visits
+persist saved
+derive named = name != ""
+derive guest = name == "Guest"
+action rename:
+    name = "Алиса 😀"
+    visits = visits + 1
+    saved = true
+action reset:
+    name = "Guest"
+    visits = 0
+    saved = false
+action reject_blank:
+    visits = visits + 1
+    saved = true
+    name = ""
+rule named
+rule visits >= 0
+test initial: -> name == "Guest"
+test unicode_rename: rename -> name == "Алиса 😀" and saved and visits == 1
+test restore_defaults: rename, reset -> name == "Guest" and not saved
+screen main:
+    text "Your profile"
+    text "Enter a nonempty name (up to 1024 Unicode scalar values)."
+    input name
+    value name
+    value visits
+    value saved
+    show named : text "Name accepted"
+    show guest : text "Choose your own name"
+    button "Rename to Алиса 😀" -> rename
+    button "Try rejected blank action" -> reject_blank
+    button "Reset" -> reset

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.10.0.dev0 — unreleased text increment
+
+- First-class immutable text state, derived aliases/booleans, exact equality, assignments, rules/tests and CLI JSON.
+- Strict escaped literals shared by expressions and UI labels; bounded Unicode scalar values and rejection of invalid surrogates.
+- Inferred validated multiline input, accepted-state persistence and atomic mixed-type actions on Web and Android.
+- Pure generated Kotlin state adapters shared by Compose and JVM conformance; hostile-string fixture and text profile example.
+- Expanded Python/JavaScript/browser/JVM tests, Android APK/Lint workflow and normative text guide.
+- Explicit label-backslash migration and native HTML textarea line-ending boundary, both tested. No full 0.10 milestone, tag or publication.
+
+The published 0.9.0a1 release/tag/assets remain unchanged. Older candidate notes below are historical.
+
+
 ## 0.9.0a1 — unreleased first Sedrava public alpha candidate
 
 - Shared restricted typed AST for integer/boolean state, derived values, sequential atomic actions, rules and embedded tests.

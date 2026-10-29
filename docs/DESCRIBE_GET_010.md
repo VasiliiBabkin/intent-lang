@@ -1,6 +1,6 @@
 # Sedrava 0.10 — Describe → Get contract (proposal)
 
-Status: **design only; no syntax below is implemented**. Sedrava 0.9.0a1 is the published compatibility baseline.
+Status: **full task-list outcome remains design only**. The [first-class text increment](LANGUAGE_0_10_TEXT.md) is implemented on its development branch; the records/lists/navigation pseudocode below is not implemented. Sedrava 0.9.0a1 is the published compatibility baseline.
 
 ## Non-negotiable product promise
 

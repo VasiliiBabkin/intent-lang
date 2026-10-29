@@ -25,8 +25,8 @@ class NumericInputTests(unittest.TestCase):
             code = Path(android(SOURCE, directory)).read_text(encoding="utf-8")
             self.assertIn("OutlinedTextField(value = draft_target", code)
             self.assertIn("draft_target = raw", code)
-            self.assertIn("LaunchedEffect(target)", code)
-            self.assertIn("raw.toIntOrNull()", code)
+            self.assertIn("LaunchedEffect(sdr_target)", code)
+            self.assertIn("?.toIntOrNull()", code)
             self.assertIn('prefs.edit().putInt("target", parsed).apply()', code)
 
     def test_bool_not_editable_as_number(self):

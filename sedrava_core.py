@@ -1,11 +1,14 @@
-"""Sedrava 0.3: restricted typed AST, interpreter and atomic transitions."""
+"""Sedrava 0.9: restricted typed AST, interpreter and atomic transitions."""
 import ast
+import keyword
 import re
 from dataclasses import dataclass
 
 MAX_SOURCE_CHARS = 100_000
 MAX_AST_NODES = 256
 MAX_ACTION_STEPS = 10_000
+MAX_BLOCK_DEPTH = 32
+MAX_DERIVED_NODES = 4096
 
 INT_MIN = -(2 ** 31)
 INT_MAX = 2 ** 31 - 1
@@ -42,10 +45,20 @@ def parse_expr(source, types):
     source = re.sub(r"\b(true|false)\b", lambda m: m[1].title(), source)
     try:
         node = ast.parse(source, mode="eval").body
-    except SyntaxError as exc:
-        raise ValueError("Invalid expression") from exc
+    except (SyntaxError, RecursionError) as exc:
+        raise ValueError("Invalid or excessively nested expression") from exc
     if sum(1 for _ in ast.walk(node)) > MAX_AST_NODES:
         raise ValueError("Expression exceeds complexity limit")
+    # Normalize the signed minimum before evaluating its positive AST operand.
+    for parent in ast.walk(node):
+        for field, value in ast.iter_fields(parent):
+            if isinstance(value, ast.UnaryOp) and isinstance(value.op, ast.USub) and isinstance(value.operand, ast.Constant) and type(value.operand.value) is int and value.operand.value == -INT_MIN:
+                setattr(parent, field, ast.Constant(INT_MIN))
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Constant) and type(node.operand.value) is int and node.operand.value == -INT_MIN:
+        node = ast.Constant(INT_MIN)
+    for item in ast.walk(node):
+        if isinstance(item, ast.Constant):
+            checked_int(item.value)
     try:
         type_of(node, types)
     except ValueError as exc:
@@ -105,6 +118,9 @@ def evaluate(node, state):
 def parse(source):
     if len(source) > MAX_SOURCE_CHARS:
         raise ValueError("Source exceeds size limit")
+    for number, raw in enumerate(source.splitlines(), 1):
+        if "\t" in raw[:len(raw) - len(raw.lstrip())]:
+            raise ValueError(f"Line {number}: tabs are not allowed in indentation")
     lines = [(len(raw) - len(raw.lstrip(" ")), raw.strip(), i)
              for i, raw in enumerate(source.splitlines(), 1)
              if raw.strip() and not raw.lstrip().startswith("#")]
@@ -112,6 +128,7 @@ def parse(source):
     persistent = []
     types = {}
     name = None
+    screen_seen = False
     i = 0
     def expression(source, known_types, line_number, column=1):
         try:
@@ -124,7 +141,9 @@ def parse(source):
                 if match:
                     column += match.start()
             raise ValueError(f"Line {line_number}: column {column}: {message}") from exc
-    def block(pos, indent):
+    def block(pos, indent, nesting=0):
+        if nesting > MAX_BLOCK_DEPTH:
+            raise ValueError(f"Line {lines[pos][2]}: block nesting limit")
         result = []
         while pos < len(lines):
             depth, line, number = lines[pos]
@@ -134,15 +153,15 @@ def parse(source):
                 condition = expression(line[3:-1], types, number, depth + 4)
                 if type_of(condition, types) is not bool: raise ValueError(f"Line {number}: condition must be bool")
                 if pos + 1 >= len(lines) or lines[pos+1][0] <= indent: raise ValueError(f"Line {number}: empty if")
-                yes, pos = block(pos + 1, lines[pos+1][0])
+                yes, pos = block(pos + 1, lines[pos+1][0], nesting + 1)
                 no = ()
                 if pos < len(lines) and lines[pos][:2] == (indent, "else:"):
                     pos += 1
                     if pos >= len(lines) or lines[pos][0] <= indent: raise ValueError(f"Line {number}: empty else")
-                    no, pos = block(pos, lines[pos][0])
+                    no, pos = block(pos, lines[pos][0], nesting + 1)
                 result.append(If(condition, tuple(yes), tuple(no)))
                 continue
-            m = re.fullmatch(r"([A-Za-z_]\w*)\s*=\s*(.+)", line)
+            m = re.fullmatch(r"([A-Za-z_][A-Za-z_0-9]*)\s*=\s*(.+)", line)
             if not m or m[1] not in states: raise ValueError(f"Line {number}: invalid assignment")
             node = expression(m[2], types, number, depth + m.start(2) + 1)
             if type_of(node, types) is not types[m[1]]: raise ValueError(f"Line {number}: type mismatch")
@@ -155,25 +174,32 @@ def parse(source):
         if m := re.fullmatch(r'app "([^"]+)"', line):
             if name: raise ValueError(f"Line {number}: duplicate app")
             name = m[1]
-        elif m := re.fullmatch(r"state ([A-Za-z_]\w*)\s*=\s*(.+)", line):
+        elif m := re.fullmatch(r"state ([A-Za-z_][A-Za-z_0-9]*)\s*=\s*(.+)", line):
             if actions or rules or tests or widgets: raise ValueError(f"Line {number}: states must precede actions")
             if m[1] in types: raise ValueError(f"Line {number}: duplicate state")
+            if keyword.iskeyword(m[1]) or m[1] in ("true", "false"):
+                raise ValueError(f"Line {number}: reserved identifier {m[1]}")
             node = expression(m[2], {}, number, m.start(2) + 1)
-            states[m[1]] = evaluate(node, {})
+            try:
+                states[m[1]] = evaluate(node, {})
+            except ValueError as exc:
+                raise ValueError(f"Line {number}: column {m.start(2) + 1}: {exc}") from exc
             types[m[1]] = type(states[m[1]])
-        elif m := re.fullmatch(r"persist ([A-Za-z_]\w*)", line):
+        elif m := re.fullmatch(r"persist ([A-Za-z_][A-Za-z_0-9]*)", line):
             if m[1] not in states or m[1] in persistent:
                 raise ValueError(f"Line {number}: persist requires a unique declared state")
             persistent.append(m[1])
-        elif m := re.fullmatch(r"derive ([A-Za-z_]\w*)\s*=\s*(.+)", line):
+        elif m := re.fullmatch(r"derive ([A-Za-z_][A-Za-z_0-9]*)\s*=\s*(.+)", line):
             if actions or rules or tests or widgets:
                 raise ValueError(f"Line {number}: derives must precede actions")
             if m[1] in types:
                 raise ValueError(f"Line {number}: duplicate identifier")
             node = expression(m[2], types, number, m.start(2) + 1)
+            if keyword.iskeyword(m[1]) or m[1] in ("true", "false"):
+                raise ValueError(f"Line {number}: reserved identifier {m[1]}")
             derived[m[1]] = node
             types[m[1]] = type_of(node, types)
-        elif m := re.fullmatch(r"action ([A-Za-z_]\w*):(?:\s*(.+))?", line):
+        elif m := re.fullmatch(r"action ([A-Za-z_][A-Za-z_0-9]*):(?:\s*(.+))?", line):
             if m[1] in actions: raise ValueError(f"Line {number}: duplicate action")
             if m[2]: lines.insert(i+1, (4, m[2], number))
             if i+1 >= len(lines) or lines[i+1][0] <= 0: raise ValueError(f"Line {number}: empty action")
@@ -184,27 +210,29 @@ def parse(source):
             node = expression(line[5:], types, number, 6)
             if type_of(node, types) is not bool: raise ValueError(f"Line {number}: rule must be bool")
             rules.append(node)
-        elif m := re.fullmatch(r"test ([A-Za-z_]\w*):\s*(.*?)\s*->\s*(.+)", line):
+        elif m := re.fullmatch(r"test ([A-Za-z_][A-Za-z_0-9]*):\s*(.*?)\s*->\s*(.+)", line):
             node = expression(m[3], types, number, m.start(3) + 1)
             if type_of(node, types) is not bool: raise ValueError(f"Line {number}: test must be bool")
-            tests.append((m[1], tuple(x.strip() for x in m[2].split(",")), node))
+            tests.append((m[1], tuple(x.strip() for x in m[2].split(",") if x.strip()), node))
         elif line == "screen main:":
+            if screen_seen: raise ValueError(f"Line {number}: duplicate screen main")
+            screen_seen = True
             i += 1
             while i < len(lines) and lines[i][0] > 0:
                 _, item, n = lines[i]
                 if m := re.fullmatch(r'text "([^"]*)"', item): widgets.append(("text", m[1]))
-                elif m := re.fullmatch(r"value ([A-Za-z_]\w*)", item):
+                elif m := re.fullmatch(r"value ([A-Za-z_][A-Za-z_0-9]*)", item):
                     if m[1] not in types: raise ValueError(f"Line {n}: unknown state")
                     widgets.append(("value", m[1]))
-                elif m := re.fullmatch(r'input ([A-Za-z_]\w*)', item):
+                elif m := re.fullmatch(r'input ([A-Za-z_][A-Za-z_0-9]*)', item):
                     if m[1] not in states or type(states[m[1]]) is not int:
                         raise ValueError(f"Line {n}: input requires an integer state")
                     widgets.append(("input_int", m[1]))
-                elif m := re.fullmatch(r'show ([A-Za-z_]\w*) : text "([^"]*)"', item):
+                elif m := re.fullmatch(r'show ([A-Za-z_][A-Za-z_0-9]*) : text "([^"]*)"', item):
                     if m[1] not in types or types[m[1]] is not bool:
                         raise ValueError(f"Line {n}: show requires a boolean state or derive")
                     widgets.append(("show_text", m[1], m[2]))
-                elif m := re.fullmatch(r'button "([^"]*)" -> ([A-Za-z_]\w*)', item):
+                elif m := re.fullmatch(r'button "([^"]*)" -> ([A-Za-z_][A-Za-z_0-9]*)', item):
                     widgets.append(("button", m[1], m[2]))
                 else: raise ValueError(f"Line {n}: invalid widget")
                 i += 1
@@ -216,7 +244,14 @@ def parse(source):
         if any(action not in actions for action in seq): raise ValueError("Unknown action")
     for widget in widgets:
         if widget[0] == "button" and widget[2] not in actions: raise ValueError("Unknown action")
-    if not all(evaluate(rule, resolve(states, derived)) for rule in rules): raise ValueError("Invalid initial state")
+    # Bound expanded derived expressions: generators inline them in actions/rules.
+    sizes = {key: 1 for key in states}
+    for key, expr in derived.items():
+        sizes[key] = sum(sizes[item.id] if isinstance(item, ast.Name) else 1 for item in ast.walk(expr))
+        if sizes[key] > MAX_DERIVED_NODES:
+            raise ValueError("Derived expression exceeds expansion limit")
+    values = resolve(states, derived)
+    if not all(evaluate(rule, values) for rule in rules): raise ValueError("Invalid initial state")
     return Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived, tuple(persistent))
 
 def resolve(state, derived):
@@ -237,10 +272,12 @@ def transition(program, state, action):
                 raise ValueError("Action exceeds execution step limit")
             if isinstance(stmt, Assign):
                 candidate[stmt.name] = evaluate(stmt.expr, resolve(candidate, program.derived))
+                resolve(candidate, program.derived)
             else:
                 execute(stmt.yes if evaluate(stmt.condition, resolve(candidate, program.derived)) else stmt.no)
     execute(program.actions[action])
-    if not all(evaluate(rule, resolve(candidate, program.derived)) for rule in program.rules):
+    values = resolve(candidate, program.derived)
+    if not all(evaluate(rule, values) for rule in program.rules):
         return state.copy(), False
     return candidate, True
 

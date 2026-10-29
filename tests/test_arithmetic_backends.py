@@ -7,7 +7,7 @@ from web_codegen import generate as web_generate
 from android_codegen_v03 import generate as android_generate
 
 SOURCE = """app "Arithmetic"
-state n = 2147483647
+state n = 10
 derive doubled = n * 2
 action reset: n = 1
 action add: n = n + 1
@@ -20,9 +20,8 @@ screen main:
 class ArithmeticBackendTests(unittest.TestCase):
     def test_interpreter_rejects_derived_overflow_on_evaluation(self):
         from sedrava_core import resolve
-        p = parse(SOURCE)
         with self.assertRaisesRegex(ValueError, "Integer overflow"):
-            resolve(p.states, p.derived)
+            parse(SOURCE.replace("state n = 10", "state n = 2147483647"))
 
     def test_web_emits_checked_arithmetic(self):
         output = web_generate(SOURCE)

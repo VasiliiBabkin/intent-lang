@@ -1,0 +1,26 @@
+"""Every supported example has executable tests; every UI builds deterministically."""
+from pathlib import Path
+import tempfile
+import unittest
+from sedrava_core import parse, run
+from web_codegen import generate
+from android_codegen_v03 import generate as android
+
+ROOT = Path(__file__).resolve().parents[1]
+
+class ExamplesAlpha(unittest.TestCase):
+    def test_all_examples(self):
+        for path in sorted((ROOT / 'examples').glob('*.sdr')):
+            with self.subTest(example=path.name):
+                source = path.read_text(encoding='utf-8')
+                program = parse(source)
+                self.assertGreater(run(program), 0)
+                if program.widgets:
+                    self.assertEqual(generate(source), generate(source))
+                    with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:
+                        android(source, a)
+                        android(source, b)
+                        files = sorted(p.relative_to(a) for p in Path(a).rglob('*') if p.is_file())
+                        for file in files:
+                            self.assertEqual((Path(a) / file).read_bytes(), (Path(b) / file).read_bytes())
+                        self.assertNotIn('uses-permission', (Path(a) / 'app/src/main/AndroidManifest.xml').read_text())

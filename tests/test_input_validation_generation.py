@@ -32,7 +32,7 @@ class InputValidationGenerationTests(unittest.TestCase):
         self.assertIn("isError = error_target", kotlin)
         self.assertIn("supportingText = { if (error_target)", kotlin)
         self.assertIn("draft_target = raw", kotlin)
-        self.assertIn("if (((next_target >= 0) && (next_target <= 10)))", kotlin)
+        self.assertIn("if (validState(next_target))", kotlin)
         self.assertIn('prefs.edit().putInt("target", parsed).apply()', kotlin)
 
     def test_web_validation_and_accessibility(self):

@@ -1,10 +1,11 @@
 """Command line interface for the experimental Sedrava compiler."""
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
 
-from sedrava_core import parse, run
+from sedrava_core import parse, run, resolve, transition
 
 VERSION = "0.9.0a1"
 
@@ -14,6 +15,9 @@ def main(argv=None):
     commands = parser.add_subparsers(dest="command", required=True)
     check = commands.add_parser("check", help="Parse and type-check an Sedrava program")
     check.add_argument("source", type=Path)
+    execute = commands.add_parser("run", help="Print interpreter state after an optional action sequence")
+    execute.add_argument("source", type=Path)
+    execute.add_argument("actions", nargs="*", help="Actions to execute in order; no wall-clock or UI loop")
     test = commands.add_parser("test", help="Run embedded Sedrava tests")
     test.add_argument("source", type=Path)
     build = commands.add_parser("build", help="Generate an application")
@@ -26,6 +30,14 @@ def main(argv=None):
         if args.command == "check":
             parse(source)
             print(f"OK: {args.source}")
+        elif args.command == "run":
+            program = parse(source)
+            state = program.states.copy()
+            for action in args.actions:
+                state, accepted = transition(program, state, action)
+                if not accepted:
+                    raise ValueError(f"Action {action}: invariant rejected; state unchanged")
+            print(json.dumps(resolve(state, program.derived), ensure_ascii=False, sort_keys=True))
         elif args.command == "test":
             count = run(parse(source))
             print(f"PASS: {count} Sedrava tests")
@@ -40,7 +52,7 @@ def main(argv=None):
             output = args.output or Path("build/generated-android")
             print(generate(source, output))
         return 0
-    except (OSError, ValueError, AssertionError) as exc:
+    except (OSError, ValueError, AssertionError, RecursionError) as exc:
         message = str(exc)
         match = re.match(r"Line (\d+): (?:column (\d+): )?(.*)", message)
         if match:

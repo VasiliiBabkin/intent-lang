@@ -42,3 +42,7 @@ Each action computes a candidate state. All declared invariants must hold before
 **Development candidate: Sedrava 0.9.0a1 (unreleased).** The 0.7.1a1 version was an abandoned rebrand release candidate, not a GitHub Release. See [0.9 integration status](docs/SEDRAVA_0_9_STATUS.md) and [roadmap](docs/ROADMAP.md). No PyPI release.
 
 The GitHub repository is now `VasiliiBabkin/sedrava`. `sedrava.com` is a proposed domain, not an official website.
+
+### Sedrava 0.9 reference application
+
+The [reference application](examples/reference_09.sdr) exercises persistent state, validated numeric input, derived values, guarded actions and conditional UI. [Device verification checklist and APK build instructions](docs/REFERENCE_09.md). This is a test application, not a production UI.

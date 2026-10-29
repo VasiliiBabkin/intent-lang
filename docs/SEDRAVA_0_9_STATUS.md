@@ -5,8 +5,8 @@
 ## Version truth / Версии без путаницы
 
 - Historical **Intent 0.7**: published as the separate legacy `intent-lng` project, not Sedrava.
-- Sedrava `main`: rebranded 0.7 foundation; the `0.7.1a1` release proposal was **not published**.
-- Sedrava `integration/sedrava-0.9`: experimental integration of the old 0.8–0.9 branch; package metadata `0.9.0a1` means **candidate only**, not a release.
+- Sedrava `main`: contains the integrated 0.9.0a1 candidate after PR #6; the `0.7.1a1` release proposal was **not published**.
+- Sedrava `integration/sedrava-0.9`: historical integration branch, merged via PR #6. Package metadata `0.9.0a1` means **candidate only**, not a release.
 - **No Sedrava package has been published on PyPI. No Sedrava 0.9 GitHub Release exists.**
 
 ## Implemented / Реализовано
@@ -21,8 +21,8 @@
 
 - Python unit tests and Web differential conformance: CI on the integration branch.
 - Distribution wheel/sdist verification: dedicated workflow, **without publishing**.
-- Android APK: CI compile gate; passing a build does not establish physical-device behavior.
-- Actual physical-device verification: **not yet confirmed for this 0.9 candidate**.
+- Android APK: CI compile gate passed for the basic Workflow example. A tester confirmed installation, launch and expected basic action behavior on a physical Android device on 2026-10-29.
+- **Reference app**: `examples/reference_09.sdr` and [test checklist](REFERENCE_09.md) cover numeric input, persistence and derived state; physical-device acceptance is **not yet confirmed**.
 
 ## Remaining release gates / Что остаётся
 

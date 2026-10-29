@@ -2,7 +2,7 @@
 
 **Status / Статус:** development plan, not a release commitment.  
 **Published package / Опубликованный пакет:** historical `intent-lng` 0.7 series; Sedrava has not been published on PyPI.  
-**Active work / Текущая разработка:** Sedrava 0.9 integration in progress; not a published release.
+**Active work / Текущая разработка:** Sedrava 0.9.0a1 integrated into main; still an unpublished release candidate.
 
 ## Vision / Видение
 
@@ -44,7 +44,7 @@ Sedrava should turn concise, declarative descriptions into useful applications w
 - [ ] Document 0.9 syntax, semantics and platform differences.
 - [x] Distinguish the historical Intent 0.7 release from the unreleased Sedrava 0.9 candidate.
 - [x] Define separate integration branch and 0.9.0a1 candidate version; PyPI publication deferred.
-- [ ] Create a complete reference application for 0.10.
+- [ ] Create a complete multi-screen reference application for 0.10. The single-screen 0.9 [reference app](REFERENCE_09.md) is separate.
 
 ## Release gate / Условия завершения этапа
 
@@ -66,4 +66,4 @@ Visual app builder, reusable component ecosystem, optional AI-assisted authoring
 
 ## Sedrava integration status (2026-10-29)
 
-0.9 functionality is being integrated; **not released**. The historical Intent 0.7 PyPI release is not a Sedrava release. English-language syntax only. Release gates: CI, clean install, Android and Web builds, conformance, documentation, device testing. No PyPI publication planned.
+0.9 functionality is integrated into `main`; **not released**. Basic Android Workflow launch and actions were confirmed on a physical device on 2026-10-29; advanced numeric input and persistence still require device acceptance. See [reference test plan](REFERENCE_09.md). The historical Intent 0.7 PyPI release is not a Sedrava release. English-language syntax only. Release gates: CI, clean install, Android and Web builds, conformance, documentation, device testing. No PyPI publication planned.

@@ -22,7 +22,7 @@
 - Python unit tests and Web differential conformance: CI on the integration branch.
 - Distribution wheel/sdist verification: dedicated workflow, **without publishing**.
 - Android APK: CI compile gate passed for the basic Workflow example. A tester confirmed installation, launch and expected basic action behavior on a physical Android device on 2026-10-29.
-- **Reference app**: `examples/reference_09.sdr` and [test checklist](REFERENCE_09.md) cover numeric input, persistence and derived state; physical-device launch and basic interactions **confirmed by user screenshots on 2026-10-29**; invalid-input feedback, rejected values, and persistence across process restart **remain unverified**.
+- **Reference app**: `examples/reference_09.sdr` and [test checklist](REFERENCE_09.md) cover numeric input, persistence and derived state; physical-device acceptance **confirmed on 2026-10-29**, including invalid input, relational constraints, overflow rejection, editable draft, and persistence of goal/progress/sessions across relaunch. See [Android acceptance](ANDROID_09_ACCEPTANCE.md).
 
 ## Remaining release gates / Что остаётся
 
@@ -36,4 +36,11 @@
 
 ### Reference persistence evidence (2026-10-29)
 
-A physical Android tester confirmed goal value 20 survives application relaunch (screenshot). This verifies the tested persistent-goal path only; nonzero progress/session persistence and rejected/overflow input behavior remain open. See [reference verification](REFERENCE_09.md).
+A physical Android tester confirmed goal value 20 survives application relaunch (screenshot). Subsequent device tests confirmed nonzero progress/session persistence, rejected input and overflow handling; see [Android acceptance](ANDROID_09_ACCEPTANCE.md). See [reference verification](REFERENCE_09.md).
+
+## Release readiness checkpoint (2026-10-29)
+
+- Android reference app physical-device acceptance: **PASS** ([details](ANDROID_09_ACCEPTANCE.md)).
+- CI and Android APK generation: previously passed on `main` commit `981fbc011648ea724bb9c1007bcbfae1fe4ceeff`.
+- Python package: `0.9.0a1` is a candidate, not a published release.
+- Open: complete normative language/platform specification, broaden Web parity cases, audit release archive and verify final exact release commit/tag. GitHub Release has not been created. PyPI remains out of scope.

@@ -35,7 +35,7 @@ python android_codegen_v03.py examples/reference_09.sdr --output build/reference
 6. Force-close/relaunch: only accepted values survive. Test reset and restore.
 7. Compare equivalent actions and validation on generated Web page.
 
-**Device results:** baseline `workflow.sdr` Android launch/actions were confirmed by a tester on 2026-10-29. **Reference app was installed and visually verified on a physical Android device on 2026-10-29.** User-provided screenshots show default state (goal 5, progress 0, sessions 0, reached false) and accepted goal 6 with progress 6, sessions 6, reached true and conditional success message. User confirms expected behavior. This supports basic numeric input, action updates, derived flags, conditional UI and reset/default display. Invalid input, rejected edits, persistence after force-close and overflow are not yet individually evidenced. Do not mark the numeric-input/persistence milestone complete before these checks.
+**Device results:** baseline `workflow.sdr` Android launch/actions were confirmed by a tester on 2026-10-29. **Reference app was installed and visually verified on a physical Android device on 2026-10-29.** User-provided screenshots show default state (goal 5, progress 0, sessions 0, reached false) and accepted goal 6 with progress 6, sessions 6, reached true and conditional success message. User confirms expected behavior. This supports basic numeric input, action updates, derived flags, conditional UI and reset/default display. Subsequent manual tests confirmed rejected edits, overflow rejection and state persistence after relaunch. See [Android acceptance](ANDROID_09_ACCEPTANCE.md).
 
 ## Limitations
 
@@ -43,4 +43,4 @@ This is a single-screen Android Compose example. Strings/collections, multi-scre
 
 ### Additional physical-device result (2026-10-29)
 
-Tester reports that the reference app retains the edited goal after relaunch; screenshot shows `goal: 20`, `progress: 0`, `sessions: 0`, `reached: false`. This confirms goal persistence for the tested relaunch scenario. Persistence of nonzero progress/sessions, invalid-input rejection, overflow and rejected draft preservation are **not yet separately confirmed**.
+Tester reports that the reference app retains the edited goal after relaunch; screenshot shows `goal: 20`, `progress: 0`, `sessions: 0`, `reached: false`. This confirms goal persistence for the tested relaunch scenario. Subsequent tests confirmed nonzero progress/sessions persistence, invalid-input rejection, overflow rejection and preservation of rejected editable draft. See [Android acceptance](ANDROID_09_ACCEPTANCE.md).

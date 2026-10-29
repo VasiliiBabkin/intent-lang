@@ -70,7 +70,7 @@ Visual app builder, reusable component ecosystem, optional AI-assisted authoring
 
 ### Physical device evidence (2026-10-29)
 
-A tester installed the 0.9 Lab reference APK and supplied screenshots of initial state and accepted goal 6/progress 6/sessions 6/reached true, confirming launch, actions, derived state and conditional UI. See [reference verification](REFERENCE_09.md). Do not treat this as evidence of rejected-input handling, overflow or persistence after force-close; those checks remain open.
+A tester installed the 0.9 Lab reference APK and supplied screenshots of initial state and accepted goal 6/progress 6/sessions 6/reached true, confirming launch, actions, derived state and conditional UI. See [reference verification](REFERENCE_09.md). Subsequent device tests confirmed rejected-input handling, overflow rejection and persistence after relaunch; see [Android acceptance](ANDROID_09_ACCEPTANCE.md).
 
 ### Device acceptance closure
 

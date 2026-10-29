@@ -18,6 +18,9 @@ classifiers = [
 ]
 dependencies = []
 
+[project.optional-dependencies]
+test = ["tomli>=2; python_version < '3.11'"]
+
 [project.urls]
 Homepage = "https://github.com/VasiliiBabkin/sedrava"
 Documentation = "https://github.com/VasiliiBabkin/sedrava/blob/main/docs/QUICKSTART.md"

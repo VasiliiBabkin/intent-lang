@@ -20,7 +20,7 @@ python -m playwright install --with-deps chromium
 python scripts/test_web_browser.py
 ```
 
-Set `SEDRAVA_CHROMIUM` to an installed Chromium executable if needed. Browser traces are saved under `build/browser`. The browser suite fails if Playwright/Chromium is missing; it is not silently skipped. Node.js is required to run differential conformance tests in the unit suite; CI installs it explicitly.
+Set `SEDRAVA_CHROMIUM` to an installed Chromium executable if needed. Browser traces are saved under `build/browser`. The browser suite fails if Playwright/Chromium is missing; it is not silently skipped. On Python 3.10 install test-only TOML support with `python -m pip install ".[test]"`. Node.js is required to run differential conformance tests in the unit suite; CI installs it explicitly.
 
 ## Android debug APK
 

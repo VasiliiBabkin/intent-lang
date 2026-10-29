@@ -54,3 +54,12 @@ For next steps use the [publication checklist](RELEASE_NOTES_0_9_0a1.md), [build
 - Current documentation checker validates 11 guide files and their local links.
 
 The first implementation commit is [`1565170`](https://github.com/VasiliiBabkin/sedrava/commit/15651705cdfc64afb8382affb3dd98b05901b198). Final PR/CI artifact evidence is added after the corresponding run exists; no placeholder URL is evidence of success.
+
+## Final local Android result and first CI feedback
+
+- **PASS:** clean reference build, `assembleDebug`, `lintDebug`, `testDebugUnitTest`; 52 tasks executed, 2 JVM tests, 0 failures/errors/skips. JVM tests execute generated snapshot/input invariant validation, not Compose UI callbacks.
+- **PASS:** separate Countdown Android APK build (35 tasks), without modifying generated application code.
+- **PASS:** SDK `apksigner verify` (v2 signature), `aapt dump badging`, `aapt dump permissions`. The merged APK has only AndroidX's own `org.sedrava.generated.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` (signature protection), no Internet/storage/camera/location or other dangerous permission. Lint: 0 errors, 5 `UseKtx` style warnings and 3 informational boxing suggestions.
+- **PASS:** separate clean Git worktree at `2323256`: unit/conformance/example suite, documentation links, wheel/sdist build and metadata/archive audit; wheel installation and CLI check/test/run/both targets from outside the source directory, including output paths with spaces. Source-archive installation also checked.
+- The first expanded CI run exposed an existing test-only Python 3.10 incompatibility (`tomllib` is standard only from 3.11). Fixed with the test-only `tomli` extra/backport, without raising the supported runtime Python version or skipping the test. CI now disables matrix fail-fast and checks out the exact PR head for alpha/reference gates.
+- PR: [#9](https://github.com/VasiliiBabkin/sedrava/pull/9). First CI run: [40890956733](https://github.com/VasiliiBabkin/sedrava/actions/runs/40890956733) (not green; Python 3.10 test import failure). Final passing runs must be used for publication.

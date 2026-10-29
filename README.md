@@ -47,6 +47,7 @@ To produce an APK, install a full JDK, SDK 35 and Gradle 8.11.1 and follow the [
 Source → restricted typed AST (`sedrava_core.py`) → interpreter / Web (`web_codegen.py`) / Android (`android_codegen_v03.py`). Builds run embedded language tests. Actions change a candidate state sequentially; all final rules must hold before atomic commit. Integers and arithmetic intermediates are checked signed 32-bit values. Python runtime has no third-party dependencies and never executes source through `eval`/`exec`.
 
 ```sh
+python -m pip install ".[test]"
 python -m unittest discover -s tests -v
 python -m pip install playwright
 python -m playwright install --with-deps chromium

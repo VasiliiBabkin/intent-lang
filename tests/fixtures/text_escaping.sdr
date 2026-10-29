@@ -1,0 +1,33 @@
+# Compile hostile-looking data without treating it as source code.
+app "Text \"escaping\" </script> ${context}"
+state title = "true false"
+state count = 0
+state flag = false
+persist title
+persist count
+persist flag
+derive named = title != ""
+derive echoed = title
+action escape:
+    title = "</script><script>globalThis.injected=true</script> ${context} $name \"quote\" \\ slash /\n\r\t😀"
+    count = count + 1
+    flag = true
+action blank:
+    title = ""
+    count = count + 1
+action reset:
+    title = "true false"
+    count = 0
+    flag = false
+rule named
+rule count >= 0
+test escaped: escape -> flag and echoed == title
+test reset: escape, reset -> title == "true false"
+screen main:
+    text "Quoted \"label\" \\ ${context} </script> 😀"
+    input title
+    value echoed
+    show named : text "Named\ntrue false"
+    button "Escape \"now\" ${context}" -> escape
+    button "Rejected blank" -> blank
+    button "Reset" -> reset

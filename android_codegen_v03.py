@@ -7,6 +7,7 @@ from android_codegen import generate as scaffold
 
 def kt(node, names):
     if isinstance(node, ast.Constant):
+        if type(node.value) is str: return quoted(node.value)
         return str(node.value).lower() if type(node.value) is bool else str(node.value)
     if isinstance(node, ast.Name): return names[node.id]
     if isinstance(node, ast.UnaryOp):
@@ -21,18 +22,36 @@ def kt(node, names):
         return f"({kt(node.left,names)} {op} {kt(node.comparators[0],names)})"
     raise ValueError("Unsupported AST")
 
-def quoted(s):
-    return '"' + s.replace("\\","\\\\").replace('"','\\"').replace("\n","\\n").replace("$", "\\$").replace("\r", "\\r").replace("\t", "\\t") + '"'
+def quoted(value):
+    escapes = {"\\": "\\\\", '"': '\\"', "$": "\\$", "\n": "\\n", "\r": "\\r", "\t": "\\t"}
+    return '"' + "".join(escapes.get(char, "\\u%04x" % ord(char) if ord(char) < 32 or 0xD800 <= ord(char) <= 0xDFFF or ord(char) in (0x2028, 0x2029) else char) for char in value) + '"'
+
+
+def literal(value):
+    return quoted(value) if type(value) is str else str(value).lower()
+
 
 def generate(source, output):
     program = parse(source)
     run(program)
-    if not program.widgets: raise ValueError("Missing screen main")
-    user_names = {key: "sdr_" + key for key in (*program.states, *(program.derived or {}))}
+    if not program.widgets:
+        raise ValueError("Missing screen main")
     output = Path(output)
-    # Reuse the compatible Gradle scaffold; language semantics use only the shared AST.
     scaffold('app "Scaffold"\nstate ready = false\naction start: ready = true\nscreen main:\n    text "Scaffold"\n    button "Start" -> start\n', output)
     target = output / "app/src/main/java/org/sedrava/generated/MainActivity.kt"
+    # One pure state adapter supplies both Compose callbacks and JVM conformance.
+    kinds = {int: "Int", bool: "Boolean", str: "String"}
+    keys = list(program.states)
+    user = {key: "sdr_" + key for key in (*keys, *(program.derived or {}))}
+    next_names = {key: "next_" + key for key in keys}
+    for key, expr in (program.derived or {}).items():
+        next_names[key] = "(" + kt(expr, next_names) + ")"
+    params = ", ".join("next_" + key + ": " + kinds[type(val)] for key, val in program.states.items())
+    next_args = ", ".join("next_" + key for key in keys)
+    user_args = ", ".join(user[key] for key in keys)
+    def state_args(prefix):
+        return ", ".join(prefix + "." + user[key] for key in keys)
+    guard = " && ".join(kt(rule, next_names) for rule in program.rules) or "true"
     lines = [
         "package org.sedrava.generated",
         "import android.os.Bundle",
@@ -49,112 +68,120 @@ def generate(source, output):
         "import androidx.compose.ui.platform.LocalContext",
         "import androidx.compose.foundation.text.KeyboardOptions",
         "import androidx.compose.ui.text.input.KeyboardType",
-        "class MainActivity : ComponentActivity() {",
-        "  override fun onCreate(savedInstanceState: Bundle?) {",
-        "    super.onCreate(savedInstanceState)",
-        "    setContent { MaterialTheme { SedravaScreen() } }",
+        "internal fun validText(value: String): Boolean {",
+        "  var i = 0; var count = 0",
+        "  while (i < value.length) {",
+        "    val cp = Character.codePointAt(value, i)",
+        "    if (cp in 0xD800..0xDFFF || ++count > 1024) return false",
+        "    i += Character.charCount(cp)",
         "  }",
+        "  return true",
         "}",
-        "@Composable fun SedravaScreen() {",
+        'internal fun checkedText(value: String): String { require(validText(value)) { "Invalid text value" }; return value }',
+        "internal " + ("data " if keys else "") + "class SedravaState(" + ", ".join("val " + user[key] + ": " + kinds[type(val)] + " = " + literal(val) for key, val in program.states.items()) + ")",
+        "internal fun checkDerivedState(" + params + ") {",
     ]
-    if program.persistent:
-        lines.append("  val context = LocalContext.current")
-        lines.append("  val prefs = remember { context.getSharedPreferences(\"sedrava_state\", android.content.Context.MODE_PRIVATE) }")
-    names = {key: "next_" + key for key in program.states}
-    for key, expr in (program.derived or {}).items():
-        names[key] = "(" + kt(expr, names) + ")"
-    params = ", ".join("next_" + key + ": " + ("Boolean" if type(val) is bool else "Int") for key, val in program.states.items())
-    checks = ["    val checked_" + key + " = " + names[key] for key in (program.derived or {})]
-    guard = " && ".join(kt(rule, names) for rule in program.rules) or "true"
-    helper = ["internal fun checkDerivedState(" + params + ") {", *checks, "}", "internal fun validState(" + params + "): Boolean = try {", "    checkDerivedState(" + ", ".join("next_" + key for key in program.states) + ")", "    " + guard, "} catch (_: ArithmeticException) { false }"]
-    lines[lines.index("class MainActivity : ComponentActivity() {"):lines.index("class MainActivity : ComponentActivity() {")] = helper
     for key, val in program.states.items():
-        initial = str(val).lower()
+        if type(val) is str:
+            lines.append("  checkedText(next_" + key + ")")
+    for key in (program.derived or {}):
+        lines.append("  val checked_" + key + " = " + next_names[key])
+    lines += ["}", "internal fun validState(" + params + "): Boolean = try {", "  checkDerivedState(" + next_args + ")", "  " + guard,
+              "} catch (_: ArithmeticException) { false } catch (_: IllegalArgumentException) { false }",
+              "internal fun restoreState(saved: Map<String, *>): SedravaState {"]
+    for key, val in program.states.items():
         if key in program.persistent:
-            method = "getBoolean" if type(val) is bool else "getInt"
-            initial = f"try {{ prefs.{method}({quoted(key)}, {initial}) }} catch (_: ClassCastException) {{ {initial} }}"
-        lines.append(f"  val restored_{key} = remember {{ {initial} }}")
-    restored = ", ".join("restored_" + key for key in program.states)
-    lines.append(f"  val restoredValid = remember {{ validState({restored}) }}")
-    lines.append('  var actionError by remember { mutableStateOf("") }')
+            lines.append("  val saved_" + key + " = saved[" + quoted(key) + "]")
+            condition = "saved_" + key + " is " + kinds[type(val)]
+            if type(val) is str:
+                condition += " && validText(saved_" + key + ")"
+            lines.append("  val next_" + key + " = if (" + condition + ") saved_" + key + " else " + literal(val))
+        else:
+            lines.append("  val next_" + key + " = " + literal(val))
+    lines += ["  return if (validState(" + next_args + ")) SedravaState(" + next_args + ") else SedravaState()", "}",
+              "internal fun editState(state: SedravaState, key: String, value: Any?): SedravaState {", "  val next = when (key) {"]
     for key, val in program.states.items():
-        lines.append(f"  var {user_names[key]} by rememberSaveable {{ mutableStateOf(if (restoredValid) restored_{key} else {str(val).lower()}) }}")
-    for key, expr in (program.derived or {}).items():
-        display_names = {name: user_names[name] for name in program.states}
-        display_names.update({name: user_names[name] for name in program.derived if name != key})
-        lines.append(f"  val {user_names[key]} = {kt(expr, display_names)}")
-    lines.append("  Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {")
-    lines.append('    if (actionError.isNotEmpty()) Text(actionError, color = MaterialTheme.colorScheme.error)')
-    names = {key:"next_"+key for key in program.states}
-    for key, expr in (program.derived or {}).items():
-        names[key] = "(" + kt(expr, names) + ")"
-    def emit(stmts, pad):
-        for stmt in stmts:
+        lines.append("    " + quoted(key) + " -> if (value is " + kinds[type(val)] + ") state.copy(" + user[key] + " = value) else return state")
+    lines += ["    else -> return state", "  }", "  return if (validState(" + state_args("next") + ")) next else state", "}",
+              "internal fun transitionState(state: SedravaState, action: String): SedravaState {",
+              "  if (!validState(" + state_args("state") + ")) return state"]
+    for key in keys:
+        lines.append("  var next_" + key + " = state." + user[key])
+    lines += ["  return try {", "    when (action) {"]
+    def emit(body, depth):
+        for stmt in body:
             if isinstance(stmt, Assign):
-                lines.append(" "*pad + names[stmt.name] + " = " + kt(stmt.expr,names))
-                lines.append(" "*pad + "checkDerivedState(" + ", ".join("next_" + key for key in program.states) + ")")
-            elif isinstance(stmt, If):
-                lines.append(" "*pad + "if (" + kt(stmt.condition,names) + ") {")
-                emit(stmt.yes,pad+2)
+                lines.append(" " * depth + next_names[stmt.name] + " = " + kt(stmt.expr, next_names))
+                lines.append(" " * depth + "checkDerivedState(" + next_args + ")")
+            else:
+                lines.append(" " * depth + "if (" + kt(stmt.condition, next_names) + ") {")
+                emit(stmt.yes, depth + 2)
                 if stmt.no:
-                    lines.append(" "*pad + "} else {")
-                    emit(stmt.no,pad+2)
-                lines.append(" "*pad + "}")
+                    lines.append(" " * depth + "} else {")
+                    emit(stmt.no, depth + 2)
+                lines.append(" " * depth + "}")
+    for key, body in program.actions.items():
+        lines.append("      " + quoted(key) + " -> {")
+        emit(body, 8)
+        lines.append("      }")
+    lines += ["      else -> return state", "    }", "    if (validState(" + next_args + ")) SedravaState(" + next_args + ") else state",
+              "  } catch (_: ArithmeticException) { state } catch (_: IllegalArgumentException) { state }", "}"]
+    if program.persistent:
+        lines += ["private fun persistState(prefs: android.content.SharedPreferences, state: SedravaState) {", "  prefs.edit().apply {"]
+        for key in program.persistent:
+            method = {int: "putInt", bool: "putBoolean", str: "putString"}[type(program.states[key])]
+            lines.append("    " + method + "(" + quoted(key) + ", state." + user[key] + ")")
+        lines += ["  }.apply()", "}"]
+    lines += ["class MainActivity : ComponentActivity() {", "  override fun onCreate(savedInstanceState: Bundle?) {", "    super.onCreate(savedInstanceState)",
+              "    setContent { MaterialTheme { SedravaScreen() } }", "  }", "}", "@Composable fun SedravaScreen() {"]
+    if program.persistent:
+        lines += ["  val context = LocalContext.current", '  val prefs = remember { context.getSharedPreferences("sedrava_state", android.content.Context.MODE_PRIVATE) }',
+                  "  val restoredState = remember { restoreState(prefs.all) }"]
+    else:
+        lines.append("  val restoredState = remember { SedravaState() }")
+    for key in keys:
+        lines.append("  var " + user[key] + " by rememberSaveable { mutableStateOf(restoredState." + user[key] + ") }")
+    lines.append('  var actionError by remember { mutableStateOf("") }')
+    for key, expr in (program.derived or {}).items():
+        lines.append("  val " + user[key] + " = " + kt(expr, user))
+    lines += ["  Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {",
+              '    if (actionError.isNotEmpty()) Text(actionError, color = MaterialTheme.colorScheme.error)']
     for widget in program.widgets:
         if widget[0] == "text":
-            lines.append(f"    Text({quoted(widget[1])}, style = MaterialTheme.typography.headlineMedium)")
+            lines.append("    Text(" + quoted(widget[1]) + ", style = MaterialTheme.typography.headlineMedium)")
         elif widget[0] == "value":
-            lines.append(f"    Text({quoted(widget[1]+': ')} + {user_names[widget[1]]}.toString())")
-        elif widget[0] == "input_int":
+            lines.append("    Text(" + quoted(widget[1] + ": ") + " + " + user[widget[1]] + ".toString())")
+        elif widget[0] in ("input_int", "input_text"):
             key = widget[1]
-            lines.append("    run {")
-            lines.append(f"    var draft_{key} by remember {{ mutableStateOf({user_names[key]}.toString()) }}")
-            lines.append(f"    LaunchedEffect({user_names[key]}) {{ draft_{key} = {user_names[key]}.toString() }}")
-            lines.append(f'    val parsed_{key} = draft_{key}.trim().takeIf {{ it.matches(Regex("-?[0-9]+")) }}?.toIntOrNull()')
-            lines.append(f"    val valid_{key} = parsed_{key} != null && run {{")
-            for state_key in program.states:
-                lines.append(f"      val next_{state_key} = " + (f"parsed_{key}!!" if state_key == key else user_names[state_key]))
-            guard = "validState(" + ", ".join("next_" + key for key in program.states) + ")"
-            lines.append(f"      {guard}")
-            lines.append("    }")
-            lines.append(f"    val error_{key} = draft_{key}.isNotEmpty() && !valid_{key}")
-            lines.append(f"    OutlinedTextField(value = draft_{key}, onValueChange = {{ raw ->")
-            lines.append(f"      draft_{key} = raw")
-            lines.append('      val parsed = raw.trim().takeIf { it.matches(Regex("-?[0-9]+")) }?.toIntOrNull()')
-            lines.append("      if (parsed != null) {")
-            for state_key in program.states:
-                lines.append(f"        val next_{state_key} = " + ("parsed" if state_key == key else user_names[state_key]))
-            lines.append(f"        if ({guard}) {{")
-            lines.append(f"          {user_names[key]} = parsed")
-            if key in program.persistent:
-                lines.append(f"          prefs.edit().putInt({quoted(key)}, parsed).apply()")
-            lines.append("        }")
-            lines.append("      }")
-            lines.append(f"    }}, isError = error_{key}, supportingText = {{ if (error_{key}) Text(\"Value does not satisfy the declared rules\") }}, label = {{ Text({quoted(key)}) }}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))")
-            lines.append("    }")
+            text = widget[0] == "input_text"
+            parse_draft = "draft_" + key if text else 'draft_' + key + '.trim().takeIf { it.matches(Regex("-?[0-9]+")) }?.toIntOrNull()'
+            parse_raw = "raw" if text else 'raw.trim().takeIf { it.matches(Regex("-?[0-9]+")) }?.toIntOrNull()'
+            lines += ["    run {", "      val current = SedravaState(" + user_args + ")",
+                      "      var draft_" + key + " by remember { mutableStateOf(" + user[key] + ".toString()) }",
+                      "      LaunchedEffect(" + user[key] + ") { draft_" + key + " = " + user[key] + ".toString() }",
+                      "      val parsed_" + key + " = " + parse_draft,
+                      "      val valid_" + key + " = editState(current, " + quoted(key) + ", parsed_" + key + ") !== current",
+                      "      val error_" + key + " = " + ("" if text else "draft_" + key + ".isNotEmpty() && ") + "!valid_" + key,
+                      "      OutlinedTextField(value = draft_" + key + ", onValueChange = { raw ->",
+                      "        draft_" + key + " = raw", "        val next = editState(current, " + quoted(key) + ", " + parse_raw + ")",
+                      "        if (next !== current) {", "          " + user[key] + " = next." + user[key]]
+            if program.persistent:
+                lines.append("          persistState(prefs, next)")
+            message = "Text must contain at most 1024 Unicode scalar values and satisfy the declared rules" if text else "Value does not satisfy the declared rules"
+            lines += ["        }", "      }, isError = error_" + key + ", supportingText = { if (error_" + key + ") Text(" + quoted(message) + ") }, label = { Text(" + quoted(key) + ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType." + ("Text" if text else "Number") + "))", "    }"]
         elif widget[0] == "show_text":
-            lines.append(f"    if ({user_names[widget[1]]}) {{ Text({quoted(widget[2])}) }}")
+            lines.append("    if (" + user[widget[1]] + ") { Text(" + quoted(widget[2]) + ") }")
         else:
             _, label, action = widget
-            lines.append("    Button(onClick = {")
-            lines.append("      try {")
-            for key in program.states: lines.append(f"      var next_{key} = {user_names[key]}")
-            emit(program.actions[action],6)
-            guard = "validState(" + ", ".join("next_" + key for key in program.states) + ") && (" + (" && ".join(kt(rule,names) for rule in program.rules) or "true") + ")"
-            lines.append("      if (" + guard + ") {")
-            for key in program.states: lines.append(f"        {user_names[key]} = next_{key}")
+            lines += ["    Button(onClick = {", "      val current = SedravaState(" + user_args + ")", "      val next = transitionState(current, " + quoted(action) + ")",
+                      "      if (next !== current) {"]
+            for key in keys:
+                lines.append("        " + user[key] + " = next." + user[key])
             if program.persistent:
-                lines.append("        prefs.edit().apply {")
-                for key in program.persistent:
-                    method = "putBoolean" if type(program.states[key]) is bool else "putInt"
-                    lines.append(f"          {method}({quoted(key)}, next_{key})")
-                lines.append("        }.apply()")
-            lines.append('        actionError = ""')
-            lines.append('      } else { actionError = "Action rejected by declared rules" }')
-            lines.append('      } catch (_: ArithmeticException) { actionError = "Action rejected: integer overflow" }')
-            lines.append(f"    }}) {{ Text({quoted(label)}) }}")
-    lines += ["  }","}"]
-    target.write_text("\n".join(lines)+"\n",encoding="utf-8")
+                lines.append("        persistState(prefs, next)")
+            lines += ['        actionError = ""', '      } else { actionError = "Action rejected: constraints or arithmetic/value error" }', "    }) { Text(" + quoted(label) + ") }"]
+    lines += ["  }", "}"]
+    target.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return target
 
 if __name__ == "__main__":

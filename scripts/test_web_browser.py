@@ -156,6 +156,127 @@ screen main:
                 self.open(source)
                 self.assertTrue(self.page.locator('body').is_visible())
 
+    def test_text_profile_input_actions_and_reload(self):
+        self.open((ROOT / 'examples/text_profile.sdr').read_text(encoding='utf-8'))
+        field = self.page.locator('textarea')
+        self.assertEqual(field.input_value(), 'Guest')
+        self.assertEqual(self.state('name'), 'Guest')
+        field.fill('Мария 😀')
+        self.assertEqual(self.state('name'), 'Мария 😀')
+        self.assertEqual(field.get_attribute('aria-invalid'), 'false')
+        self.assertFalse(self.page.get_by_text('Choose your own name', exact=True).is_visible())
+        self.page.reload()
+        self.assertEqual(field.input_value(), 'Мария 😀')
+        self.assertEqual(self.state('name'), 'Мария 😀')
+        self.page.get_by_role('button', name='Rename to Алиса 😀', exact=True).click()
+        self.assertEqual(self.state('name'), 'Алиса 😀')
+        self.assertEqual(self.state('visits'), '1')
+        self.assertEqual(self.state('saved'), 'true')
+        self.page.get_by_role('button', name='Try rejected blank action', exact=True).click()
+        self.assertEqual(self.state('name'), 'Алиса 😀')
+        self.assertEqual(self.state('visits'), '1')
+        self.assertEqual(self.state('saved'), 'true')
+        self.assertTrue(self.page.locator('#sedrava-error').is_visible())
+        self.page.reload()
+        self.assertEqual(self.state('name'), 'Алиса 😀')
+        self.assertEqual(self.state('visits'), '1')
+
+    def test_text_blank_draft_error_and_correction(self):
+        self.open((ROOT / 'examples/text_profile.sdr').read_text(encoding='utf-8'))
+        field = self.page.locator('textarea')
+        field.fill('')
+        self.assertEqual(self.state('name'), 'Guest')
+        self.assertEqual(field.get_attribute('aria-invalid'), 'true')
+        self.assertTrue(self.page.locator('#error-name').is_visible())
+        self.page.locator('h1').first.click()
+        self.assertEqual(field.input_value(), '')
+        field.fill('  exact whitespace  ')
+        self.assertEqual(self.state('name'), '  exact whitespace  ')
+        self.assertEqual(field.get_attribute('aria-invalid'), 'false')
+        self.assertTrue(self.page.locator('#error-name').is_hidden())
+        self.page.reload()
+        self.assertEqual(field.input_value(), '  exact whitespace  ')
+
+    def test_text_scalar_limit_and_unpaired_surrogate_input(self):
+        self.open((ROOT / 'examples/text_profile.sdr').read_text(encoding='utf-8'))
+        field = self.page.locator('textarea')
+        for char in ('a', '😀'):
+            field.fill(char * 1024)
+            self.assertEqual(self.state('name'), char * 1024)
+            self.page.reload()
+            self.assertEqual(self.state('name'), char * 1024)
+            field.fill(char * 1025)
+            self.assertEqual(field.get_attribute('aria-invalid'), 'true')
+            self.assertEqual(self.state('name'), char * 1024)
+        for unit in (0xD800, 0xDFFF):
+            self.page.evaluate("unit => { const el = document.querySelector('textarea'); el.value = String.fromCharCode(unit); el.dispatchEvent(new Event('input', {bubbles:true})); }", unit)
+            self.assertEqual(field.get_attribute('aria-invalid'), 'true')
+            self.assertEqual(self.state('name'), '😀' * 1024)
+        field.fill('Corrected 😀')
+        self.assertEqual(self.state('name'), 'Corrected 😀')
+        self.assertEqual(field.get_attribute('aria-invalid'), 'false')
+
+    def test_text_restore_malformed_snapshots(self):
+        import json
+        from sedrava_core import parse, restore_state
+        source = (ROOT / 'examples/text_profile.sdr').read_text(encoding='utf-8')
+        program = parse(source)
+        self.open(source)
+        values = [None, 1, True, [], {}, '', '😀' * 1025, '\ud800', '\udfff', '😀' * 1024, 'exact é']
+        for value in values:
+            saved = {'name': value, 'visits': 7, 'saved': True}
+            self.page.evaluate("value => localStorage.setItem('sedrava:' + location.pathname + ':Text profile', value)", json.dumps(saved))
+            self.page.reload()
+            actual = self.page.evaluate('({...state})')
+            self.assertEqual(actual, restore_state(program, saved))
+        self.page.evaluate("localStorage.setItem('sedrava:' + location.pathname + ':Text profile', '{broken')")
+        self.page.reload()
+        self.assertEqual(self.page.evaluate('({...state})'), program.states)
+
+    def test_text_is_rendered_as_data_and_not_normalized(self):
+        self.open((ROOT / 'examples/text_profile.sdr').read_text(encoding='utf-8'))
+        values = ['</script><script>globalThis.injected=true</script>', '${context} $name',
+                  '<img src=x onerror="globalThis.injected=true">', 'a"quote" \\ path',
+                  'true false', 'é', 'é', 'line1\nline2\t😀']
+        for value in values:
+            self.page.locator('textarea').fill(value)
+            self.assertEqual(self.state('name'), value)
+            self.page.reload()
+            self.assertEqual(self.state('name'), value)
+            self.assertFalse(self.page.evaluate('globalThis.injected === true'))
+            self.assertEqual(self.page.locator('img').count(), 0)
+
+    def test_text_empty_value_is_valid_without_a_nonempty_rule(self):
+        self.open('app "Empty text"\nstate title = "seed"\npersist title\nscreen main:\n    input title\n    value title\n')
+        field = self.page.locator('textarea')
+        field.fill('')
+        self.assertEqual(field.get_attribute('aria-invalid'), 'false')
+        self.assertEqual(self.state('title'), '')
+        self.page.reload()
+        self.assertEqual(self.state('title'), '')
+
+    def test_text_native_line_endings_and_model_scalar_equality(self):
+        self.open((ROOT / 'examples/text_profile.sdr').read_text(encoding='utf-8'))
+        # HTML textarea normalizes native draft line endings. The state model and
+        # persisted/source strings themselves preserve scalar sequences, including CR.
+        self.page.evaluate("() => { const el=document.querySelector('textarea'); el.value='a\\rb\\r\\nc'; el.dispatchEvent(new Event('input')); }")
+        self.assertEqual(self.state('name'), 'a\nb\nc')
+        self.assertEqual(self.page.evaluate("editState(state, 'name', 'a\\rb\\r\\nc').name"), 'a\rb\r\nc')
+
+    def test_text_escaping_source_literals_and_labels(self):
+        from sedrava_core import parse, transition
+        source = (ROOT / 'tests/fixtures/text_escaping.sdr').read_text(encoding='utf-8')
+        program = parse(source)
+        expected, accepted = transition(program, program.states, 'escape')
+        self.assertTrue(accepted)
+        self.open(source)
+        self.page.get_by_role('button', name='Escape "now" ${context}', exact=True).click()
+        self.assertEqual(self.page.evaluate('({...state})'), expected)
+        self.assertEqual(self.page.locator('output[data-state="echoed"]').text_content(), expected['title'])
+        self.assertFalse(self.page.evaluate('globalThis.injected === true'))
+        self.page.reload()
+        self.assertEqual(self.page.evaluate('({...state})'), expected)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

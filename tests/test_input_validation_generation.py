@@ -33,7 +33,7 @@ class InputValidationGenerationTests(unittest.TestCase):
         self.assertIn("supportingText = { if (error_target)", kotlin)
         self.assertIn("draft_target = raw", kotlin)
         self.assertIn("if (validState(next_target))", kotlin)
-        self.assertIn('prefs.edit().putInt("target", parsed).apply()', kotlin)
+        self.assertIn('putInt("target", state.sdr_target)', kotlin)
 
     def test_web_validation_and_accessibility(self):
         page = web_generate(SOURCE)
@@ -43,8 +43,8 @@ class InputValidationGenerationTests(unittest.TestCase):
         self.assertIn("el.addEventListener('input', () => validateInput(el))", page)
         self.assertIn("accepted = ", page)
         self.assertNotIn("accepted = ;", page)
-        self.assertIn("const nextState = { ...state, [key]: parsed };", page)
-        self.assertIn("const invalid = raw !== '' && !accepted;", page)
+        self.assertIn("const nextState = { ...state, [key]: isText ? raw : parsed };", page)
+        self.assertIn("const invalid = (isText || raw !== '') && !accepted;", page)
 
 
 if __name__ == "__main__":

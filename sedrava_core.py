@@ -1,10 +1,11 @@
-"""Sedrava 0.9: restricted typed AST, interpreter and atomic transitions."""
+"""Sedrava shared text/int32/bool core: restricted typed AST, interpreter and atomic transitions."""
 import ast
 import keyword
 import re
 from dataclasses import dataclass
 
 MAX_SOURCE_CHARS = 100_000
+MAX_TEXT_SCALARS = 1024
 MAX_AST_NODES = 256
 MAX_ACTION_STEPS = 10_000
 MAX_BLOCK_DEPTH = 32
@@ -17,6 +18,81 @@ def checked_int(value):
     if type(value) is int and not INT_MIN <= value <= INT_MAX:
         raise ValueError("Integer overflow: outside signed 32-bit range")
     return value
+
+
+def checked_text(value):
+    if type(value) is not str:
+        raise ValueError("Text value required")
+    if len(value) > MAX_TEXT_SCALARS:
+        raise ValueError("Text exceeds 1024 Unicode scalar values")
+    if any(0xD800 <= ord(char) <= 0xDFFF for char in value):
+        raise ValueError("Text contains an unpaired surrogate")
+    return value
+
+
+def checked_value(value, expected=None):
+    if type(value) not in (int, bool, str) or (expected is not None and type(value) is not expected):
+        raise ValueError("Value type mismatch")
+    return checked_text(value) if type(value) is str else checked_int(value)
+
+
+class LiteralError(ValueError):
+    def __init__(self, message, offset):
+        super().__init__(message)
+        self.offset = offset
+
+
+def read_literal(source, start=0):
+    """Decode only the contract's double-quoted grammar, never Python escapes."""
+    if start >= len(source) or source[start] != '"':
+        raise LiteralError("Expected double-quoted text", start)
+    chars = []
+    i = start + 1
+    escapes = {"\\": "\\", '"': '"', "n": "\n", "r": "\r", "t": "\t"}
+    while i < len(source):
+        char = source[i]
+        if char == '"':
+            try:
+                return checked_text("".join(chars)), i + 1
+            except ValueError as exc:
+                raise LiteralError(str(exc), start) from exc
+        if char in "\n\r":
+            raise LiteralError("Unterminated text literal", i)
+        if char == "\\":
+            i += 1
+            if i >= len(source) or source[i] not in escapes:
+                raise LiteralError("Invalid text escape", i - 1)
+            char = escapes[source[i]]
+        chars.append(char)
+        i += 1
+    raise LiteralError("Unterminated text literal", start)
+
+
+def literal_expression(source):
+    """Keep booleans outside literals; placeholders prevent implicit concatenation."""
+    prefix = "__sedrava_literal_"
+    while prefix in source:
+        prefix += "_"
+    values, chunks = {}, []
+    i = 0
+    while i < len(source):
+        if source[i] == '"':
+            value, end = read_literal(source, i)
+            name = prefix + str(len(values))
+            values[name] = value
+            chunks.append("(" + name + ")")
+            i = end
+        elif source[i] == "'":
+            raise LiteralError("Text requires double quotes", i)
+        else:
+            end = source.find('"', i)
+            end = len(source) if end == -1 else end
+            chunk = source[i:end]
+            if "'" in chunk:
+                raise LiteralError("Text requires double quotes", i + chunk.index("'"))
+            chunks.append(re.sub(r"\b(true|false)\b", lambda m: m[1].title(), chunk))
+            i = end
+    return "".join(chunks), values
 
 
 @dataclass(frozen=True)
@@ -42,11 +118,15 @@ class Program:
     persistent: tuple = ()
 
 def parse_expr(source, types):
-    source = re.sub(r"\b(true|false)\b", lambda m: m[1].title(), source)
+    source, literals = literal_expression(source)
     try:
         node = ast.parse(source, mode="eval").body
     except (SyntaxError, RecursionError) as exc:
         raise ValueError("Invalid or excessively nested expression") from exc
+    class ReplaceLiterals(ast.NodeTransformer):
+        def visit_Name(self, item):
+            return ast.copy_location(ast.Constant(literals[item.id]), item) if item.id in literals else item
+    node = ReplaceLiterals().visit(node)
     if sum(1 for _ in ast.walk(node)) > MAX_AST_NODES:
         raise ValueError("Expression exceeds complexity limit")
     # Normalize the signed minimum before evaluating its positive AST operand.
@@ -58,7 +138,7 @@ def parse_expr(source, types):
         node = ast.Constant(INT_MIN)
     for item in ast.walk(node):
         if isinstance(item, ast.Constant):
-            checked_int(item.value)
+            checked_value(item.value)
     try:
         type_of(node, types)
     except ValueError as exc:
@@ -70,7 +150,7 @@ def parse_expr(source, types):
     return node
 
 def type_of(node, types):
-    if isinstance(node, ast.Constant) and type(node.value) in (int, bool):
+    if isinstance(node, ast.Constant) and type(node.value) in (int, bool, str):
         return type(node.value)
     if isinstance(node, ast.Name) and node.id in types:
         return types[node.id]
@@ -90,8 +170,8 @@ def type_of(node, types):
     raise ValueError("Unsupported or ill-typed expression")
 
 def evaluate(node, state):
-    if isinstance(node, ast.Constant): return checked_int(node.value)
-    if isinstance(node, ast.Name): return state[node.id]
+    if isinstance(node, ast.Constant): return checked_value(node.value)
+    if isinstance(node, ast.Name): return checked_value(state[node.id])
     if isinstance(node, ast.UnaryOp):
         x = evaluate(node.operand, state)
         return checked_int(-x) if isinstance(node.op, ast.USub) else not x
@@ -118,11 +198,11 @@ def evaluate(node, state):
 def parse(source):
     if len(source) > MAX_SOURCE_CHARS:
         raise ValueError("Source exceeds size limit")
-    for number, raw in enumerate(source.splitlines(), 1):
+    for number, raw in enumerate(source.split("\n"), 1):
         if "\t" in raw[:len(raw) - len(raw.lstrip())]:
             raise ValueError(f"Line {number}: tabs are not allowed in indentation")
     lines = [(len(raw) - len(raw.lstrip(" ")), raw.strip(), i)
-             for i, raw in enumerate(source.splitlines(), 1)
+             for i, raw in enumerate(source.split("\n"), 1)
              if raw.strip() and not raw.lstrip().startswith("#")]
     states, actions, rules, tests, widgets, derived = {}, {}, [], [], [], {}
     persistent = []
@@ -135,12 +215,21 @@ def parse(source):
             return parse_expr(source, known_types)
         except ValueError as exc:
             message = str(exc)
+            column += getattr(exc, "offset", 0)
             if message.startswith("Unknown identifier: "):
                 identifier = message.partition(": ")[2]
                 match = re.search(r"\b" + re.escape(identifier) + r"\b", source)
                 if match:
                     column += match.start()
             raise ValueError(f"Line {line_number}: column {column}: {message}") from exc
+    def label(source, line_number, column=1):
+        try:
+            value, end = read_literal(source)
+            if source[end:].strip():
+                raise LiteralError("Unexpected text after literal", end)
+            return value
+        except LiteralError as exc:
+            raise ValueError(f"Line {line_number}: column {column + exc.offset}: {exc}") from exc
     def statement_count(body):
         return sum(1 + (statement_count(stmt.yes) + statement_count(stmt.no) if isinstance(stmt, If) else 0) for stmt in body)
     def block(pos, indent, nesting=0):
@@ -173,9 +262,9 @@ def parse(source):
     while i < len(lines):
         depth, line, number = lines[i]
         if depth: raise ValueError(f"Line {number}: unexpected indentation")
-        if m := re.fullmatch(r'app "([^"]+)"', line):
-            if name: raise ValueError(f"Line {number}: duplicate app")
-            name = m[1]
+        if m := re.fullmatch(r'app (.+)', line):
+            if name is not None: raise ValueError(f"Line {number}: duplicate app")
+            name = label(m[1], number, 5)
         elif m := re.fullmatch(r"state ([A-Za-z_][A-Za-z_0-9]*)\s*=\s*(.+)", line):
             if actions or rules or tests or widgets: raise ValueError(f"Line {number}: states must precede actions")
             if m[1] in types: raise ValueError(f"Line {number}: duplicate state")
@@ -226,20 +315,20 @@ def parse(source):
             while i < len(lines) and lines[i][0] > 0:
                 widget_depth, item, n = lines[i]
                 if widget_depth != widget_indent: raise ValueError(f"Line {n}: widget indentation")
-                if m := re.fullmatch(r'text "([^"]*)"', item): widgets.append(("text", m[1]))
+                if m := re.fullmatch(r'text (.+)', item): widgets.append(("text", label(m[1], n, widget_depth + 6)))
                 elif m := re.fullmatch(r"value ([A-Za-z_][A-Za-z_0-9]*)", item):
                     if m[1] not in types: raise ValueError(f"Line {n}: unknown state")
                     widgets.append(("value", m[1]))
                 elif m := re.fullmatch(r'input ([A-Za-z_][A-Za-z_0-9]*)', item):
-                    if m[1] not in states or type(states[m[1]]) is not int:
-                        raise ValueError(f"Line {n}: input requires an integer state")
-                    widgets.append(("input_int", m[1]))
-                elif m := re.fullmatch(r'show ([A-Za-z_][A-Za-z_0-9]*) : text "([^"]*)"', item):
+                    if m[1] not in states or type(states[m[1]]) not in (int, str):
+                        raise ValueError(f"Line {n}: input requires an integer or text state")
+                    widgets.append(("input_text" if type(states[m[1]]) is str else "input_int", m[1]))
+                elif m := re.fullmatch(r'show ([A-Za-z_][A-Za-z_0-9]*) : text (.+)', item):
                     if m[1] not in types or types[m[1]] is not bool:
                         raise ValueError(f"Line {n}: show requires a boolean state or derive")
-                    widgets.append(("show_text", m[1], m[2]))
-                elif m := re.fullmatch(r'button "([^"]*)" -> ([A-Za-z_][A-Za-z_0-9]*)', item):
-                    widgets.append(("button", m[1], m[2]))
+                    widgets.append(("show_text", m[1], label(m[2], n, widget_depth + m.start(2) + 1)))
+                elif m := re.fullmatch(r'button (.+) -> ([A-Za-z_][A-Za-z_0-9]*)', item):
+                    widgets.append(("button", label(m[1], n, widget_depth + 8), m[2]))
                 else: raise ValueError(f"Line {n}: invalid widget")
                 i += 1
             continue
@@ -261,13 +350,44 @@ def parse(source):
     return Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived, tuple(persistent))
 
 def resolve(state, derived):
-    values = state.copy()
+    values = {name: checked_value(value) for name, value in state.items()}
     for name, expr in (derived or {}).items():
         values[name] = evaluate(expr, values)
     return values
 
+def valid_state(program, state):
+    try:
+        if state.keys() != program.states.keys():
+            return False
+        for key, initial in program.states.items():
+            checked_value(state[key], type(initial))
+        values = resolve(state, program.derived)
+        return all(evaluate(rule, values) for rule in program.rules)
+    except (ValueError, KeyError):
+        return False
+
+
+def edit_state(program, state, key, value):
+    if key not in program.states:
+        return state.copy(), False
+    candidate = {**state, key: value}
+    return (candidate, True) if valid_state(program, candidate) else (state.copy(), False)
+
+
+def restore_state(program, saved):
+    candidate = program.states.copy()
+    if type(saved) is dict:
+        for key, initial in program.states.items():
+            if key in program.persistent and key in saved:
+                try:
+                    candidate[key] = checked_value(saved[key], type(initial))
+                except ValueError:
+                    pass
+    return candidate if valid_state(program, candidate) else program.states.copy()
+
 def transition(program, state, action):
     if action not in program.actions: raise ValueError("Unknown action")
+    if not valid_state(program, state): raise ValueError("Invalid action input state")
     candidate = state.copy()
     steps = 0
     def execute(stmts):

@@ -38,10 +38,10 @@ Sedrava should turn concise, declarative descriptions into useful applications w
 
 ## Immediate backlog / Ближайшие задачи
 
-- [ ] Add visible Android validation errors for rejected numeric input; preserve editable draft.
+- [x] Android validation errors and preserved editable draft confirmed on physical device; see [acceptance report](ANDROID_09_ACCEPTANCE.md).
 - [ ] Extend Web parity tests to cover empty, invalid, overflow, corrected input and persistence after restart (basic checks exist).
-- [ ] Verify that only accepted persistent state survives restart.
-- [ ] Document 0.9 syntax, semantics and platform differences.
+- [x] Accepted persistent goal, progress and sessions survive relaunch in the tested Android scenario; see [acceptance report](ANDROID_09_ACCEPTANCE.md).
+- [ ] Complete normative 0.9 language syntax/semantics and platform-difference specification (release disclosure required).
 - [x] Distinguish the historical Intent 0.7 release from the unreleased Sedrava 0.9 candidate.
 - [x] Define separate integration branch and 0.9.0a1 candidate version; PyPI publication deferred.
 - [ ] Create a complete multi-screen reference application for 0.10. The single-screen 0.9 [reference app](REFERENCE_09.md) is separate.
@@ -66,8 +66,12 @@ Visual app builder, reusable component ecosystem, optional AI-assisted authoring
 
 ## Sedrava integration status (2026-10-29)
 
-0.9 functionality is integrated into `main`; **not released**. Basic Android Workflow launch and actions were confirmed on a physical device on 2026-10-29; advanced numeric input and persistence still require device acceptance. See [reference test plan](REFERENCE_09.md). The historical Intent 0.7 PyPI release is not a Sedrava release. English-language syntax only. Release gates: CI, clean install, Android and Web builds, conformance, documentation, device testing. No PyPI publication planned.
+0.9 functionality is integrated into `main`; **not released**. Basic Android Workflow launch and actions were confirmed on a physical device on 2026-10-29; advanced numeric input, invalid-input rejection, overflow rejection and persistence passed the documented physical-device acceptance scenarios. See [reference test plan](REFERENCE_09.md). The historical Intent 0.7 PyPI release is not a Sedrava release. English-language syntax only. Release gates: CI, clean install, Android and Web builds, conformance, documentation, device testing. No PyPI publication planned.
 
 ### Physical device evidence (2026-10-29)
 
 A tester installed the 0.9 Lab reference APK and supplied screenshots of initial state and accepted goal 6/progress 6/sessions 6/reached true, confirming launch, actions, derived state and conditional UI. See [reference verification](REFERENCE_09.md). Do not treat this as evidence of rejected-input handling, overflow or persistence after force-close; those checks remain open.
+
+### Device acceptance closure
+
+The planned physical Android 0.9 Lab acceptance tests passed, including accepted-state persistence and rejection of invalid, relationally inconsistent and overflowing input. Evidence and limitations: [Android 0.9 acceptance](ANDROID_09_ACCEPTANCE.md). This does not close the Web parity, normative specification or public release gates.

@@ -30,7 +30,7 @@ Actual features: int32/bool state, checked +/−/*, pure derives, typed sequenti
 ## Measured local results
 
 - Baseline: **78 tests passed**.
-- Updated Python unit/integration/conformance/example suite: **87 tests passed**, no skips in the local run. Node differential suite includes 720 deterministic steps over 9 UI/boundary programs in addition to prior Workflow/rejection suites.
+- Updated Python unit/integration/conformance/example suite: **88 tests passed**, no skips in the local run. Node differential suite includes 720 deterministic steps over 9 UI/boundary programs in addition to prior Workflow/rejection suites.
 - Actual Chromium through Playwright: **7 tests passed**. All UI examples launch; input ranges/relational constraints, correction, empty draft, derived overflow, atomic action overflow, persistence/reload, malformed saved data, script injection and prototype/minimum-integer cases covered. Browser traces are emitted under `build/browser`.
 - Android: full JDK 17.0.17 (Temurin), Gradle 8.11.1, SDK platform 35, build-tools 35.0.0 installed during this pass. Initial build using the environment's Java 21 JRE failed because `javac` was missing; this is a toolchain issue, not a passed gate. Final APK/JVM/Lint results are recorded below when completed.
 - `adb devices`: **no attached devices**. `/dev/kvm`: **absent**. No local emulator, installation, UI instrumentation, logcat/rotation or new physical-device acceptance is claimed.
@@ -63,3 +63,7 @@ The first implementation commit is [`1565170`](https://github.com/VasiliiBabkin/
 - **PASS:** separate clean Git worktree at `2323256`: unit/conformance/example suite, documentation links, wheel/sdist build and metadata/archive audit; wheel installation and CLI check/test/run/both targets from outside the source directory, including output paths with spaces. Source-archive installation also checked.
 - The first expanded CI run exposed an existing test-only Python 3.10 incompatibility (`tomllib` is standard only from 3.11). Fixed with the test-only `tomli` extra/backport, without raising the supported runtime Python version or skipping the test. CI now disables matrix fail-fast and checks out the exact PR head for alpha/reference gates.
 - PR: [#9](https://github.com/VasiliiBabkin/sedrava/pull/9). First CI run: [40890956733](https://github.com/VasiliiBabkin/sedrava/actions/runs/40890956733) (not green; Python 3.10 test import failure). Final passing runs must be used for publication.
+
+## Additional consistency gates
+
+Final source checks also bound total action statements at parse time (so generated runtimes cannot bypass the interpreter step ceiling), enforce uniform widget indentation and reject oversized CLI files before reading them fully. The reference Android workflow enforces an actual APK permission allowlist and produces a release-candidate bundle with wheel, sdist, debug APK, Web examples and SHA-256 checksums, without publishing.

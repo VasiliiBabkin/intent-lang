@@ -53,7 +53,7 @@ Every literal and arithmetic intermediate must fit `[-2147483648, 2147483647]`. 
 
 ## State, actions and invariants
 
-Actions contain state assignments and `if`/`else` only. Conditions must be boolean; assignment must preserve the state's exact type. Assigning to a derive is forbidden. No loops, recursion, action calls or asynchronous events. Interpreter execution is limited to 10,000 visited statements per action.
+Actions contain state assignments and `if`/`else` only. Conditions must be boolean; assignment must preserve the state's exact type. Assigning to a derive is forbidden. No loops, recursion, action calls or asynchronous events. Each action is limited to 10,000 syntactic statements (including both branches); the interpreter also limits visited statements to 10,000.
 
 An action starts with a candidate copy. Assignments execute sequentially, reading the current candidate. Derived values are pure and recomputed from candidate values; all derives must be evaluable initially and after each assignment. Arithmetic failure aborts the whole action. Rules are boolean invariants checked against the **final** candidate, so temporary rule violations within an action are allowed. If any final rule is false, the entire candidate is rejected. Accepted state changes atomically. Python `transition` returns `(state, accepted)` for rule rejection and raises `ValueError` for arithmetic failure without mutating its input. Generated UIs preserve accepted state and display an error. The interpreter CLI exits nonzero on either rejection.
 

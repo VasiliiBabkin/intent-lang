@@ -141,6 +141,8 @@ def parse(source):
                 if match:
                     column += match.start()
             raise ValueError(f"Line {line_number}: column {column}: {message}") from exc
+    def statement_count(body):
+        return sum(1 + (statement_count(stmt.yes) + statement_count(stmt.no) if isinstance(stmt, If) else 0) for stmt in body)
     def block(pos, indent, nesting=0):
         if nesting > MAX_BLOCK_DEPTH:
             raise ValueError(f"Line {lines[pos][2]}: block nesting limit")
@@ -204,6 +206,8 @@ def parse(source):
             if m[2]: lines.insert(i+1, (4, m[2], number))
             if i+1 >= len(lines) or lines[i+1][0] <= 0: raise ValueError(f"Line {number}: empty action")
             body, i = block(i+1, lines[i+1][0])
+            if statement_count(body) > MAX_ACTION_STEPS:
+                raise ValueError(f"Line {number}: action exceeds statement limit")
             actions[m[1]] = body
             continue
         elif line.startswith("rule "):
@@ -218,8 +222,10 @@ def parse(source):
             if screen_seen: raise ValueError(f"Line {number}: duplicate screen main")
             screen_seen = True
             i += 1
+            widget_indent = lines[i][0] if i < len(lines) else 0
             while i < len(lines) and lines[i][0] > 0:
-                _, item, n = lines[i]
+                widget_depth, item, n = lines[i]
+                if widget_depth != widget_indent: raise ValueError(f"Line {n}: widget indentation")
                 if m := re.fullmatch(r'text "([^"]*)"', item): widgets.append(("text", m[1]))
                 elif m := re.fullmatch(r"value ([A-Za-z_][A-Za-z_0-9]*)", item):
                     if m[1] not in types: raise ValueError(f"Line {n}: unknown state")

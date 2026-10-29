@@ -5,7 +5,7 @@ import re
 import sys
 from pathlib import Path
 
-from sedrava_core import parse, run, resolve, transition
+from sedrava_core import MAX_SOURCE_CHARS, parse, run, resolve, transition
 
 VERSION = "0.9.0a1"
 
@@ -26,6 +26,8 @@ def main(argv=None):
     build.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
     try:
+        if args.source.stat().st_size > MAX_SOURCE_CHARS * 4:
+            raise ValueError("Source exceeds size limit")
         source = args.source.read_text(encoding="utf-8")
         if args.command == "check":
             parse(source)

@@ -38,6 +38,13 @@ class AlphaCore(unittest.TestCase):
         from sedrava_core import run
         self.assertEqual(run(parse('app "A"\nstate n = 0\ntest initial: -> n == 0')), 1)
 
+    def test_action_size_and_widget_indentation(self):
+        source = 'app "Steps"\nstate n = 0\naction many:\n' + '    n=0\n' * 10001
+        with self.assertRaisesRegex(ValueError, 'statement limit'):
+            parse(source)
+        with self.assertRaisesRegex(ValueError, 'indentation'):
+            parse('app "Screen"\nscreen main:\n    text "A"\n        text "B"')
+
     def test_expansion_limit(self):
         source = 'app "Bounded"\nstate n = 0\nderive d0 = n\n'
         source += '\n'.join(f'derive d{i} = d{i-1} + d{i-1}' for i in range(1, 30))

@@ -33,3 +33,7 @@
 5. Review release notes, security limitations and versioned release tag before a public GitHub pre-release.
 
 **Language syntax remains English.** Documentation may be bilingual. PyPI publishing remains explicitly postponed.
+
+### Reference persistence evidence (2026-10-29)
+
+A physical Android tester confirmed goal value 20 survives application relaunch (screenshot). This verifies the tested persistent-goal path only; nonzero progress/session persistence and rejected/overflow input behavior remain open. See [reference verification](REFERENCE_09.md).

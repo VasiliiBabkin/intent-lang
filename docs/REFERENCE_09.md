@@ -40,3 +40,7 @@ python android_codegen_v03.py examples/reference_09.sdr --output build/reference
 ## Limitations
 
 This is a single-screen Android Compose example. Strings/collections, multi-screen navigation, accessibility review and real-world application design are later milestones. This document is the canonical test plan for the 0.9 reference APK.
+
+### Additional physical-device result (2026-10-29)
+
+Tester reports that the reference app retains the edited goal after relaunch; screenshot shows `goal: 20`, `progress: 0`, `sessions: 0`, `reached: false`. This confirms goal persistence for the tested relaunch scenario. Persistence of nonzero progress/sessions, invalid-input rejection, overflow and rejected draft preservation are **not yet separately confirmed**.

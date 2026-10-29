@@ -26,6 +26,8 @@ class SedravaIdentityTests(unittest.TestCase):
             self.assertTrue(output.exists())
             manifest = (pathlib.Path(directory) / "app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
             self.assertIn("<intent-filter>", manifest)
+            self.assertIn("android.intent.action.MAIN", manifest)
+            self.assertIn("android.intent.category.LAUNCHER", manifest)
             self.assertNotIn("<sedrava-filter>", manifest)
 
     def test_no_legacy_python_imports_or_commands(self):

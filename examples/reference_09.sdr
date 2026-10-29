@@ -1,0 +1,44 @@
+# Sedrava 0.9 reference: persistent goal and progress, validation, derived state.
+app "Sedrava 0.9 Lab"
+state goal = 5
+state progress = 0
+state sessions = 0
+persist goal
+persist progress
+persist sessions
+derive reached = progress >= goal
+derive active = progress < goal
+action add:
+    if progress < goal:
+        progress = progress + 1
+        sessions = sessions + 1
+action subtract:
+    if progress > 0:
+        progress = progress - 1
+action reset:
+    progress = 0
+action restore:
+    goal = 5
+    progress = 0
+    sessions = 0
+rule goal >= 1 and goal <= 20
+rule progress >= 0 and progress <= goal
+rule sessions >= 0
+test add_once: add -> progress == 1
+test undo: add, subtract -> progress == 0
+test reset_progress: add, add, reset -> progress == 0
+test restore_defaults: add, restore -> goal == 5
+screen main:
+    text "Sedrava 0.9 Lab"
+    text "Change goal (1 to 20):"
+    input goal
+    value goal
+    value progress
+    value sessions
+    value reached
+    show reached : text "Goal reached!"
+    show active : text "Keep going"
+    button "Add progress" -> add
+    button "Undo progress" -> subtract
+    button "Reset progress" -> reset
+    button "Restore defaults" -> restore

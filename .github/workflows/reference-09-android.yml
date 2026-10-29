@@ -1,0 +1,50 @@
+name: Sedrava 0.9 reference Android APK
+on:
+  push:
+    paths:
+      - "examples/reference_09.sdr"
+      - "android_codegen.py"
+      - "android_codegen_v03.py"
+      - "sedrava_core.py"
+      - "tests/test_reference_09.py"
+      - ".github/workflows/reference-09-android.yml"
+  pull_request:
+  workflow_dispatch:
+jobs:
+  reference-apk:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare Android SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || test "${PIPESTATUS[1]}" -eq 0
+          "$SDK/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Check reference semantics
+        run: |
+          python -m unittest discover -s tests -p test_reference_09.py -v
+          python sedrava.py test examples/reference_09.sdr
+      - name: Generate reference Android project
+        run: python android_codegen_v03.py examples/reference_09.sdr --output build/reference-09-android
+      - name: Build reference APK
+        working-directory: build/reference-09-android
+        run: gradle --no-daemon :app:assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sedrava-09-reference-debug-apk
+          if-no-files-found: error
+          path: build/reference-09-android/app/build/outputs/apk/debug/app-debug.apk

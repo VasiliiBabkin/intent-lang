@@ -21,7 +21,7 @@ class DiagnosticTests(unittest.TestCase):
             return stderr.getvalue()
 
     def test_invalid_assignment(self):
-        self.assertIn("Line 4", self.check_error(
+        self.assertIn(":4:1: error: invalid assignment", self.check_error(
             'app "Broken"\nstate count = 0\naction go:\n    missing = 1\n'
         ))
 

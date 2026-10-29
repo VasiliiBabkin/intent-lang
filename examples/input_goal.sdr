@@ -1,0 +1,18 @@
+app "Set a goal"
+state target = 2
+persist target
+derive reached = target >= 5
+action plus:
+    if target < 10:
+        target = target + 1
+action reset:
+    target = 2
+rule target >= 0 and target <= 10
+test increment: plus -> target == 3
+screen main:
+    text "Set your goal"
+    input target
+    value target
+    show reached : text "Goal is at least five!"
+    button "Plus" -> plus
+    button "Reset" -> reset

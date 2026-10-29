@@ -37,9 +37,9 @@ class WebConformance(unittest.TestCase):
 const vm = require('node:vm');
 const fs = require('node:fs');
 const payload = JSON.parse(fs.readFileSync(0, 'utf8'));
-const document = {querySelectorAll: () => []};
-const context = vm.createContext({document});
-vm.runInContext(payload.script, context);
+const document = {querySelectorAll: () => [], getElementById: () => null};
+const context = vm.createContext({document, localStorage: {getItem: () => null, setItem: () => {}}});
+try { vm.runInContext(payload.script, context); } catch(e) { process.stderr.write(String(e.stack)); process.exit(1); }
 const output = payload.sequences.map(seq => {
   let state = vm.runInContext('({...initialState})', context);
   const trace = [JSON.parse(JSON.stringify(state))];
@@ -54,6 +54,7 @@ process.stdout.write(JSON.stringify(output));
         result = subprocess.run(
             ["node", "-e", runner],
             input=json.dumps({"script": script, "sequences": sequences}),
-            text=True, capture_output=True, timeout=30, check=True,
+            text=True, capture_output=True, timeout=30, check=False,
         )
+        self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(result.stdout), expected)

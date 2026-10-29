@@ -47,3 +47,15 @@ The example above is illustrative, **not executable syntax yet**. Navigation act
 - Modules, reusable components and IDE features are later milestones.
 
 Reference: [roadmap](ROADMAP.md).
+## Architecture decisions to specify before implementation
+
+Keep the existing typed expression/action core; add explicit typed widget/screen nodes instead of encoding more unrelated tuples. Add source spans while extending the AST, without rewriting the working interpreter. Give each state, screen and widget a stable identifier for focus, test selectors, persistence and diagnostics.
+
+- **Text input:** specify string state, length/Unicode rules, draft/accepted separation, validation, escaping and persistence before adding the widget. A narrow string subset in 0.10 must not silently imply the full 0.11 data model.
+- **Toggle:** bind only to boolean state; apply the same atomic candidate/constraint path as numeric input.
+- **Lists/cards:** begin with static declarative composition or explicitly scoped read-only data. Mutable collections need the 0.11 type/identity semantics; do not fake them with string APIs.
+- **Navigation:** introduce screen identifiers and explicit transitions with back-stack and restoration semantics; distinguish navigation state from domain state and specify Web history and Android back behavior.
+- **Themes/responsiveness:** shared semantic tokens and layout constraints, mapped to native Compose and CSS. No platform pixels in the language core.
+- **Accessibility:** labels, roles, focus order, keyboard navigation, dynamic errors and screen-reader announcements are acceptance requirements, not decorative attributes.
+
+Use an editor-shaped multi-screen reference (source text, validation messages, preview) to preserve the long-term prospect of a Sedrava editor implemented in Sedrava. Full self-hosting is not a 0.10 promise. Every new node needs interpreter/model semantics, Web tests, Android compile tests and device acceptance before being called implemented.

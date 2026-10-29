@@ -1,3 +1,5 @@
+> Current 0.9 alpha documentation / Актуальная документация: [Quick Start](QUICKSTART.md), [Language reference / Справочник](LANGUAGE_0_9.md), [Build / Сборка](BUILD.md), [FAQ](FAQ.md), [Limitations / Ограничения](KNOWN_LIMITATIONS.md), [Audit / Аудит](ALPHA_AUDIT.md). Older prototype commands below are historical.
+
 # Sedrava — документация на русском языке
 
 **Статус:** экспериментальный язык, не готов к промышленному использованию.

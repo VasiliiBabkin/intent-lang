@@ -1,0 +1,74 @@
+name: Sedrava alpha checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  language-package:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python: ['3.10', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m unittest discover -s tests -v
+      - run: python scripts/check_docs.py
+      - run: python -m pip install build twine
+      - run: python -m build
+      - run: python -m twine check dist/*
+      - run: python scripts/audit_dist.py
+      - name: Install wheel outside source tree
+        shell: bash
+        run: |
+          python -m venv /tmp/sedrava-clean
+          /tmp/sedrava-clean/bin/python -m pip install dist/*.whl
+          cd /tmp
+          /tmp/sedrava-clean/bin/sedrava --version
+          /tmp/sedrava-clean/bin/sedrava check "$GITHUB_WORKSPACE/examples/reference_09.sdr"
+          /tmp/sedrava-clean/bin/sedrava test "$GITHUB_WORKSPACE/examples/reference_09.sdr"
+          /tmp/sedrava-clean/bin/sedrava run "$GITHUB_WORKSPACE/examples/reference_09.sdr" add
+          /tmp/sedrava-clean/bin/sedrava build web "$GITHUB_WORKSPACE/examples/reference_09.sdr" --output '/tmp/build with spaces/index.html'
+          /tmp/sedrava-clean/bin/sedrava build android "$GITHUB_WORKSPACE/examples/reference_09.sdr" --output '/tmp/android with spaces'
+      - uses: actions/upload-artifact@v4
+        if: matrix.python == '3.12'
+        with:
+          name: sedrava-alpha-distributions
+          if-no-files-found: error
+          path: dist/*
+  chromium:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install playwright==1.62.0
+      - run: python -m playwright install --with-deps chromium
+      - run: python scripts/test_web_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sedrava-browser-traces
+          if-no-files-found: warn
+          path: build/browser/*
+      - name: Generate Web examples
+        run: |
+          python -m pip install .
+          for file in examples/*.sdr; do
+            if [ "$(basename "$file")" != timer.sdr ]; then
+              sedrava build web "$file" --output "build/web/$(basename "$file" .sdr).html"
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sedrava-web-examples
+          if-no-files-found: error
+          path: build/web/*

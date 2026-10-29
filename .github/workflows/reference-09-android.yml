@@ -40,11 +40,31 @@ jobs:
           python sedrava_cli.py test examples/reference_09.sdr
       - name: Generate reference Android project
         run: python android_codegen_v03.py examples/reference_09.sdr --output build/reference-09-android
+      - name: Prepare reference JVM state-validation tests
+        run: python scripts/prepare_android_tests.py build/reference-09-android
       - name: Build reference APK
         working-directory: build/reference-09-android
-        run: gradle --no-daemon :app:assembleDebug
+        run: gradle --no-daemon :app:assembleDebug :app:lintDebug :app:testDebugUnitTest
+      - name: Verify APK signature and permissions
+        shell: bash
+        run: |
+          APK=build/reference-09-android/app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions "$APK"
       - uses: actions/upload-artifact@v4
         with:
           name: sedrava-09-reference-debug-apk
           if-no-files-found: error
           path: build/reference-09-android/app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sedrava-09-android-lint-and-source
+          if-no-files-found: error
+          path: |
+            build/reference-09-android/app/build/reports/lint-results-debug.*
+            build/reference-09-android/app/build/reports/tests
+            build/reference-09-android/app/build/test-results
+            build/reference-09-android/app/src
+            build/reference-09-android/*.kts
+            build/reference-09-android/app/*.kts

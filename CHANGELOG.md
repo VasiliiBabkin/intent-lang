@@ -1,0 +1,17 @@
+# Changelog
+
+## 0.9.0a1 — unreleased first Sedrava public alpha candidate
+
+- Shared restricted typed AST for integer/boolean state, derived values, sequential atomic actions, rules and embedded tests.
+- Numeric input, accepted-state persistence and conditional text on Web and Android.
+- Added `sedrava run FILE [ACTION ...]` with deterministic JSON output alongside check/test/build commands.
+- Fixed signed-minimum integer literals; reject oversized literals even in short-circuited expressions.
+- Reject initially overflowing derives; validate all derived values after every assignment and before input/restored-state acceptance.
+- Handle action overflow and invariant rejection visibly without partial state updates in generated interfaces.
+- Validate restored snapshots, recover from wrong-type Android preferences and preserve accepted state across Activity recreation.
+- Escape HTML script content and Kotlin dollar interpolation; namespace generated Kotlin variables to avoid collisions; support prototype-like identifiers safely on Web.
+- Bound nested blocks and expanded derived expressions; reject duplicate screens, tab indentation and reserved state names; allow initial-state tests with an empty action sequence.
+- Added full manual countdown example, browser regression suite, example/determinism tests, normative language reference and installation/build/troubleshooting guides.
+- Source distributions now include examples, documentation and validation scripts; CI prepares downloadable candidate artifacts without PyPI publishing.
+
+This is Sedrava's first candidate; historical Intent 0.7 and abandoned Sedrava 0.7.1 proposals are not releases of this version. No stable-language compatibility promise is made.

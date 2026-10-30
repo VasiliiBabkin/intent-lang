@@ -24,6 +24,18 @@ The audit retains rc1 metadata intentionally; it is not a new release artifact.
 не нормализуются. Для обновления Android нужны прежние application ID и ключ
 подписи; смена названия меняет ID по умолчанию. Два разных ID хранят данные отдельно.
 
+Web localStorage is isolated by browser origin; the generated key also includes
+`location.pathname` and the exact app title. Moving/renaming the HTML path, changing
+origin or changing the title selects different storage, even if the schema stays
+compatible. Query strings and URL fragments are not part of this key. Existing
+bytes stay under the old key; there is no automatic transfer. CLI uses the explicit
+`--state-file` path. The schema fingerprint validates structure, not data ownership
+or authenticity; it is not an encryption/signature mechanism.
+
+Русский: Web выбирает хранилище по origin, пути HTML и точному названию приложения.
+Изменение адреса или названия не переносит данные; оригинал остаётся под старым
+ключом. Query/fragment ключ не меняют. CLI использует указанный путь state-file.
+
 ## Exact snapshots / Строгие снимки
 
 Programs declaring records or navigation use schema 1. The fingerprint includes

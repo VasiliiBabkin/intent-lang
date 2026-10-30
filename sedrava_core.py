@@ -425,7 +425,14 @@ def parse(source):
             raise ValueError("Derived expression exceeds expansion limit")
     values = resolve(states, derived)
     if not all(evaluate(rule, values) for rule in rules): raise ValueError("Invalid initial state")
-    return Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived, tuple(persistent), records)
+    program = Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived, tuple(persistent), records)
+    if records:
+        from sedrava_records import check_resources
+        try:
+            check_resources(program, states)
+        except ValueError as exc:
+            raise ValueError(f"Line 1: column 1: {exc}") from exc
+    return program
 
 def resolve(state, derived):
     values = {name: validate(value) for name, value in state.items()}

@@ -27,7 +27,7 @@ Local development evidence (2026-10-30):
 
 | Check | Result |
 | --- | --- |
-| Python suite including 0.9/text regressions | 120 tests passed |
+| Python suite including 0.9/text regressions | 121 tests passed |
 | Python/generated JavaScript oracle | passed, including accepted/rejected CRUD and strict snapshot corpus |
 | Real Chromium | 17 scenarios passed, including task CRUD, reload, capacity, corrupt storage and invalid input |
 | Kotlin/JVM emitted state functions | 3 task-manager + 1 generic-record JUnit tests passed; shared oracle includes Unicode/control text, int32, strict snapshots and canonical JSON |

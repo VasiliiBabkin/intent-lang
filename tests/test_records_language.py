@@ -112,3 +112,9 @@ class RecordsLanguage(unittest.TestCase):
         runner="const vm=require('vm');const data=JSON.parse(require('fs').readFileSync(0,'utf8'));const c=vm.createContext({document:{querySelectorAll:()=>[],getElementById:()=>null}});vm.runInContext(data.code,c);c.saved=data.raw;process.stdout.write(vm.runInContext('JSON.stringify(restoreState(saved))',c));"
         result=subprocess.run(['node','-e',runner],input=json.dumps({'code':code,'raw':json.dumps(data)}),capture_output=True,text=True,check=True)
         self.assertEqual(json.loads(result.stdout),{k:plain(v) for k,v in p.states.items()})
+
+    def test_initial_state_resource_limit_is_checked_before_generation(self):
+        source='app "Initial limit"\nrecord R:\n    x: int\n'+'\n'.join('state n'+str(i)+'=0' for i in range(6000))
+        self.assertLess(len(source),100000)
+        with self.assertRaisesRegex(ValueError,'Line 1: column 1: State exceeds'):
+            parse(source)

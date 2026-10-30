@@ -49,8 +49,8 @@ def navigation_functions(program):
 
 
 def generate_navigation(source, output, program):
-    target=generate(source,output,_program=replace(program,widgets=(("text",program.name),)))
-    base=target.read_text(encoding='utf-8').split('class MainActivity :',1)[0]
+    target=generate(source,output,_program=replace(program,widgets=(("text",program.name),)),_domain_only=True)
+    base=target.read_text(encoding='utf-8')
     imports='''import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.foundation.background

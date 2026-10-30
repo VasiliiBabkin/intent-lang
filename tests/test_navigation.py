@@ -68,7 +68,7 @@ class NavigationTests(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which('node'),'Node required')
     def test_python_javascript_session_conformance(self):
-        sequences=[(SOURCE,steps()),(SIMPLE,[('command','next_page')]*33+[('command','$back')]*34), (SIMPLE.replace('screen main:','rule n == 0\nscreen main:'),[('command','next_page'),('command','$back')])]
+        sequences=[(SOURCE,steps()),(SIMPLE,[('command','next_page')]*33+[('command','$back')]*34), (SIMPLE.replace('screen main:','rule n == 0\nscreen main:'),[('command','next_page'),('command','$back')]),((Path(__file__).parent/'fixtures/navigation_scalar.sdr').read_text(encoding='utf-8'),[('command','next_page')]*33+[('command','$back')]*34)]
         for source,sequence in sequences:
             code=generate(source).split('<script>')[1].split('</script>')[0]
             runner=r'''const vm=require('vm');const d=JSON.parse(require('fs').readFileSync(0,'utf8'));const c=vm.createContext({document:{querySelectorAll:()=>[],getElementById:()=>null}});vm.runInContext(d.code,c);const api=vm.runInContext('({initialSession,dispatchSession,editSession,selectItem,restoreSession,restoreSnapshot,signature,persistentKeys})',c);let s=api.initialSession();const out=d.steps.map(step=>{const before=s;if(step[0]==='command')s=api.dispatchSession(s,step[1]);else if(step[0]==='input')s=api.editSession(s,step[1],step[2]);else if(step[0]==='select')s=api.selectItem(s,...step.slice(1));else if(step[0]==='recreate')s=api.restoreSession(s.state,s.stack);else {const raw=JSON.stringify({schema:1,signature:api.signature,state:Object.fromEntries(api.persistentKeys.map(k=>[k,s.state[k]]))});s=api.initialSession(api.restoreSnapshot(raw));}return {state:s.state,stack:s.stack,accepted:s!==before};});process.stdout.write(JSON.stringify(out));'''
@@ -103,3 +103,12 @@ class NavigationTests(unittest.TestCase):
             path=Path(tmp)/'pages.sdr';path.write_text(SIMPLE,encoding='utf-8');output=io.StringIO()
             with contextlib.redirect_stdout(output): self.assertEqual(main(['run',str(path),'next_page','previous']),0)
             self.assertEqual(json.loads(output.getvalue()),{'state':{'n':1},'stack':['main']})
+
+    @unittest.skipUnless(shutil.which('node'),'Node required')
+    def test_restoration_validates_domain_before_stack(self):
+        p=parse(SOURCE);bad=p.states.copy();bad['selected']=True
+        with self.assertRaises(ValueError):restore_session(p,bad,('main',))
+        code=generate(SOURCE).split('<script>')[1].split('</script>')[0]
+        runner="const vm=require('vm');const c=vm.createContext({document:{querySelectorAll:()=>[],getElementById:()=>null}});vm.runInContext(require('fs').readFileSync(0,'utf8'),c);process.stdout.write(vm.runInContext('(()=>{try{restoreSession({...initialState,selected:true},[initialScreen]);return \"accepted\";}catch(_){return \"rejected\";}})()',c));"
+        result=subprocess.run(['node','-e',runner],input=code,text=True,capture_output=True,check=True)
+        self.assertEqual(result.stdout,'rejected')

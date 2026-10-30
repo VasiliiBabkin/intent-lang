@@ -10,8 +10,7 @@ STYLE = '''
 
 def generate_navigation(source, program):
     # Reuse the exact scalar/record/action/persistence adapter, not a parallel evaluator.
-    base = generate(source, _program=replace(program, widgets=(("text", program.name),)))
-    script = base.split('<script>',1)[1].split('</script>',1)[0].split('function showError(',1)[0]
+    script = generate(source, _program=replace(program, widgets=(("text", program.name),)), _domain_only=True)
     names={key:'values['+q(key)+']' for key in program.states}
     derived=[]
     for key,expr in program.derived.items():
@@ -78,7 +77,7 @@ PURE_RUNTIME = r'''
 function validStack(stack){return Array.isArray(stack)&&stack.length>=1&&stack.length<=32&&stack[0]===initialScreen&&stack.every(s=>typeof s==='string'&&screenNames.includes(s));}
 function normalizeSession(domain,stack){stack=[...stack];while(stack.length>1&&!screenVisible(domain,stack.at(-1)))stack.pop();return {state:domain,stack};}
 function initialSession(domain=initialState){if(!validateState(domain))throw Error('Invalid session');return {state:domain,stack:[initialScreen]};}
-function restoreSession(domain,stack){return validStack(stack)?normalizeSession(domain,stack):initialSession(domain);}
+function restoreSession(domain,stack){const initial=initialSession(domain);return validStack(stack)?normalizeSession(domain,stack):initial;}
 function dispatchSession(current,command){
  if(!validStack(current.stack)||!validateState(current.state))return current;
  let domain=current.state,stack=[...current.stack];

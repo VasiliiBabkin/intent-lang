@@ -36,6 +36,11 @@ jobs:
           python -m sedrava_cli build android tests/fixtures/navigation_pages.sdr --output build/navigation-pages
           python scripts/prepare_navigation_android_tests.py build/navigation-pages --source tests/fixtures/navigation_pages.sdr
           gradle -p build/navigation-pages --no-daemon :app:assembleDebug :app:testDebugUnitTest
+      - name: Scalar/text navigation and compiler-marker literals
+        run: |
+          python -m sedrava_cli build android tests/fixtures/navigation_scalar.sdr --output build/navigation-scalar
+          python scripts/prepare_navigation_android_tests.py build/navigation-scalar --source tests/fixtures/navigation_scalar.sdr
+          gradle -p build/navigation-scalar --no-daemon :app:assembleDebug :app:testDebugUnitTest
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -62,6 +67,7 @@ jobs:
             build/navigation-android/app/build/outputs/androidTest-results
             build/navigation-android/app/src
             build/navigation-web
+            build/navigation-scalar/app/build/reports/tests
             build/navigation-pages/app/build/reports/tests
             build/navigation-preferences.xml
             build/navigation-relaunch.*

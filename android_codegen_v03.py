@@ -43,7 +43,7 @@ def literal(value):
     return quoted(value) if type(value) is str else str(value).lower()
 
 
-def generate(source, output, _program=None):
+def generate(source, output, _program=None, _domain_only=False):
     program = _program or parse(source)
     if program.has_navigation and _program is None:
         from sedrava_navigation_android import generate_navigation
@@ -166,6 +166,9 @@ def generate(source, output, _program=None):
                 method = {int: "putInt", bool: "putBoolean", str: "putString"}[type(program.states[key])]
                 lines.append("    " + method + "(" + quoted(key) + ", state." + user[key] + ")")
             lines += ["  }.apply()", "}"]
+    if _domain_only:
+        target.write_text("\n".join(lines)+"\n",encoding="utf-8")
+        return target
     lines += ["class MainActivity : ComponentActivity() {", "  override fun onCreate(savedInstanceState: Bundle?) {", "    super.onCreate(savedInstanceState)",
               "    setContent { MaterialTheme { SedravaScreen() } }", "  }", "}", "@Composable fun SedravaScreen() {"]
     if program.persistent:

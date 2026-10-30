@@ -58,7 +58,7 @@ def statements(body, names, depth=4):
             raise ValueError("Unsupported statement")
     return result
 
-def generate(source, _program=None):
+def generate(source, _program=None, _domain_only=False):
     program = _program or parse(source)
     if program.has_navigation and _program is None:
         from sedrava_navigation_web import generate_navigation
@@ -107,7 +107,7 @@ def generate(source, _program=None):
             label, action = widget[1:]
             widgets.append(f'<button type="button" data-action="{html.escape(action, quote=True)}">{html.escape(label)}</button>')
     # No user-supplied text is inserted into executable JS without JSON encoding.
-    return "\n".join([
+    parts = [
         "<!doctype html>",
         '<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">',
         f"<title>{html.escape(program.name)}</title>",
@@ -182,7 +182,12 @@ def generate(source, _program=None):
         "render();",
         "if (restoreError) showError('Saved data rejected; defaults restored');",
         "</script></body></html>",
-    ]) + "\n"
+    ]
+    if _domain_only:
+        start=parts.index("<script>")+1
+        stop=next(i for i,line in enumerate(parts) if line.startswith("function showError(message)"))
+        return "\n".join(parts[start:stop])+"\n"
+    return "\n".join(parts)+"\n"
 
 if __name__ == "__main__":
     cli = argparse.ArgumentParser()

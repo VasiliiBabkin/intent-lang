@@ -26,14 +26,14 @@ saves the entire accepted session. Browser history does not restore old task dat
 Before edits: `main` at `cab7c97`, PR head `0a7e880`; all seven existing PR workflows
 were green. The original 121 Python tests passed unchanged.
 
-Local implementation checks so far:
+Local implementation checks (final-head CI is recorded separately in PR #15):
 
 | Check | Measured result |
 | --- | --- |
-| Python regression + navigation | 132 tests; final revision must pass CI |
+| Python regression + navigation | 133 tests; final revision must pass CI |
 | Python/generated JS | task CRUD and session trace; bounded-stack and rejected-rule traces agree |
 | Chromium | 21 scenarios passed, including app/browser Back, Forward, focus, deletion, reload, invalid input and 375px layout |
-| Android APK/JVM/Lint | task-manager APK, 2 JVM tests, Lint and instrumentation compilation passed; zero-domain-state fixture APK + 1 JVM oracle test passed |
+| Android APK/JVM/Lint | task-manager APK, 2 JVM tests, Lint and instrumentation compilation passed; zero-domain-state fixture APK + 1 JVM oracle test passed; scalar/text compiler-marker fixture adds another JVM oracle |
 | Android emulator | first integrated tree 8039e86 passed real Android 15 Back, unsaved accepted editing through rotation/recreation, deletion and cold-start/preferences checks; final revision awaits CI |
 | Physical device | unavailable; NOT tested for this increment |
 

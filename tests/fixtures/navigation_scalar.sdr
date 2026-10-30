@@ -1,0 +1,22 @@
+app "Scalar navigation"
+state n = 0
+state javascript = "function showError("
+state kotlin = "class MainActivity :"
+state unicode = "é é 😀"
+action bump: n = n + 1
+screen main:
+    text "Home"
+    input n label "Count"
+    display javascript
+    display kotlin
+    button "Next" -> next_page
+screen other:
+    text "Other"
+    value n
+    button "Again" -> next_page
+    button "Back" -> previous
+navigation:
+    initial main
+    action next_page -> other using bump
+    action previous -> pop
+test route: next_page, previous -> n == 1

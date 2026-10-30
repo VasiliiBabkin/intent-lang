@@ -86,7 +86,17 @@ class TaskList:
     @classmethod
     def restore(cls, raw):
         try:
-            obj = json.loads(raw)
+            if type(raw) is not str or len(raw) > 200_000:
+                raise CollectionError("invalid snapshot size")
+            def no_duplicate_keys(pairs):
+                result = {}
+                for key, value in pairs:
+                    if key in result:
+                        raise CollectionError("duplicate JSON key")
+                    result[key] = value
+                return result
+            obj = json.loads(raw, object_pairs_hook=no_duplicate_keys,
+                             parse_constant=lambda value: (_ for _ in ()).throw(CollectionError("invalid JSON constant")))
             if type(obj) is not dict or set(obj) != {"schema", "next_id", "items"}:
                 raise CollectionError("invalid snapshot")
             if type(obj["schema"]) is not int or obj["schema"] != 1:

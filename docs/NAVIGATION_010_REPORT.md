@@ -26,21 +26,31 @@ saves the entire accepted session. Browser history does not restore old task dat
 Before edits: `main` at `cab7c97`, PR head `0a7e880`; all seven existing PR workflows
 were green. The original 121 Python tests passed unchanged.
 
-Local implementation checks (final-head CI is recorded separately in PR #15):
+Measured checks for implementation tree `f54b65376e7b507c1471389e36907b45410d7cef` (2026-10-30):
 
 | Check | Measured result |
 | --- | --- |
-| Python regression + navigation | 133 tests; final revision must pass CI |
-| Python/generated JS | task CRUD and session trace; bounded-stack and rejected-rule traces agree |
+| Python regression + navigation | 133 tests passed on Python 3.10, 3.12 and 3.13 |
+| Python/generated JS | 26-step task/session trace and 67-step stack traces agree, including accepted/rejected outcomes and domain data |
 | Chromium | 21 scenarios passed, including app/browser Back, Forward, focus, deletion, reload, invalid input and 375px layout |
-| Android APK/JVM/Lint | task-manager APK, 2 JVM tests, Lint and instrumentation compilation passed; zero-domain-state fixture APK + 1 JVM oracle test passed; scalar/text compiler-marker fixture adds another JVM oracle |
-| Android emulator | first integrated tree 8039e86 passed real Android 15 Back, unsaved accepted editing through rotation/recreation, deletion and cold-start/preferences checks; final revision awaits CI |
+| Android APK/JVM/Lint | 3 APK builds passed; 4 navigation JVM tests passed (2 task manager + 1 empty-domain + 1 scalar/text), plus Lint, instrumentation compilation and signature/permission audit |
+| Android emulator | passed on Android 15 x86_64: system Back, unsaved accepted editing through rotation/recreation, deletion by ID and cold-start/preferences checks |
 | Physical device | unavailable; NOT tested for this increment |
 
-The first integrated tree passed [all navigation checks](https://github.com/VasiliiBabkin/sedrava/actions/runs/41028382852) and produced [APK/Web/evidence](https://github.com/VasiliiBabkin/sedrava/actions/runs/41028382852/artifacts/12965295337).
+The implementation tree passed all 8 PR workflows, including unchanged 0.9,
+text and records regressions. The report-only commit that follows changes no
+runtime code; its final HEAD and CI are recorded in PR #15.
 
-Final-head CI links, test counts and APK/Web artifacts are recorded in PR #15 after
-all checks finish. Earlier green runs do not establish later revisions.
+- [Navigation APK/JVM/Lint/emulator CI](https://github.com/VasiliiBabkin/sedrava/actions/runs/41031998829)
+- [Python matrix, Chromium and package verification](https://github.com/VasiliiBabkin/sedrava/actions/runs/41031998879)
+- [APK, standalone Web, JVM/Lint/device reports, actual preferences and cold-launch screenshot](https://github.com/VasiliiBabkin/sedrava/actions/runs/41031998829/artifacts/12965564038)
+- [Browser traces](https://github.com/VasiliiBabkin/sedrava/actions/runs/41031998879/artifacts/12966835719)
+
+The emulator force-stops the process, inspects real SharedPreferences (surviving
+record ID 2, next_id 3, title Second, done true), starts a new process and verifies
+the initial screen via UIAutomator. No physical-device results are claimed.
+The wheel/sdist pass Twine and module audits; a clean venv outside the checkout
+runs check/test/navigation run and both build commands using installed modules.
 
 ## Limits / Ограничения
 

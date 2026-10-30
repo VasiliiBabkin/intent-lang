@@ -1,4 +1,4 @@
-app "Scalar navigation"
+app "@? \"quoted\" $name & \n spaces"
 state n = 0
 state javascript = "function showError("
 state kotlin = "class MainActivity :"

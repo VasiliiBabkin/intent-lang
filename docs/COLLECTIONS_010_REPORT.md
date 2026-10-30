@@ -1,3 +1,5 @@
+> Historical increment evidence below. Current 0.10 Android builds use [independent application IDs](ANDROID_ID.en.md); [readiness report](RELEASE_READINESS_010_REPORT.md) supersedes the old shared-package limitation.
+
 > Historical report for the records increment. Multi-screen navigation is now implemented; see [navigation evidence](NAVIGATION_010_REPORT.md).
 
 # Records integration report / Отчёт о записях и коллекциях

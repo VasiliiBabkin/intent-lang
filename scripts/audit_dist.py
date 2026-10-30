@@ -8,7 +8,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 EXPECTED_MODULES = {
-    "sedrava.py", "sedrava_core.py", "sedrava_navigation.py", "sedrava_navigation_web.py", "sedrava_navigation_android.py", "sedrava_cli.py", "sedrava_records.py", "sedrava_records_codegen.py", "sedrava_collections.py",
+    "sedrava.py", "sedrava_android_identity.py", "sedrava_core.py", "sedrava_navigation.py", "sedrava_navigation_web.py", "sedrava_navigation_android.py", "sedrava_cli.py", "sedrava_records.py", "sedrava_records_codegen.py", "sedrava_collections.py",
     "android_codegen.py", "android_codegen_v03.py", "web_codegen.py",
 }
 LICENSE_MARKER = "Apache License"
@@ -30,6 +30,8 @@ def main():
     with zipfile.ZipFile(wheel_files[0]) as archive:
         names = archive.namelist()
         assert EXPECTED_MODULES.issubset(set(names)), "wheel missing Python modules"
+        for required in ('share/sedrava/LICENSE','share/sedrava/docs/BUILD.md','share/sedrava/docs/RELEASE_READINESS_010_CONTRACT.md','share/sedrava/examples/task_manager.sdr','share/sedrava/examples/task_manager_navigation.sdr'):
+            assert any(name.endswith('/'+required) for name in names), f'wheel missing {required}'
         licenses = [name for name in names if name.endswith("/LICENSE") or "/licenses/" in name and name.endswith("LICENSE")]
         assert licenses, "wheel missing LICENSE"
         assert LICENSE_MARKER in archive.read(licenses[0]).decode(), "incorrect LICENSE"

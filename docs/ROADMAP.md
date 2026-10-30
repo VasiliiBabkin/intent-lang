@@ -1,4 +1,4 @@
-> Current development increment: [first-class text](LANGUAGE_0_10_TEXT.md), [measured report](TEXT_010_REPORT.md). 0.9.0a1 is published; 0.10 remains unreleased and incomplete.
+> Current development increment: [first-class text](LANGUAGE_0_10_TEXT.md), [measured report](TEXT_010_REPORT.md). 0.9.0a1 is published; 0.10 remains unreleased; release-readiness evidence is being measured.
 
 # Sedrava — Roadmap / Дорожная карта
 
@@ -81,3 +81,13 @@ The planned physical Android 0.9 Lab acceptance tests passed, including accepted
 ## First 0.10 increment
 
 Text state/derive/equality/actions, inferred text input and persistence are implemented on `feature/010-string-core` with Python/JS/JVM and browser conformance. The records branch now integrates records, collections and a single-screen task manager; see [coverage](COLLECTIONS_010_REPORT.md). Guarded multi-screen navigation is implemented on the navigation branch; see [coverage](NAVIGATION_010_REPORT.md). The [Describe → Get contract](DESCRIBE_GET_010.md) remains the product gate for the full milestone.
+
+## Release-readiness increment / Подготовка RC
+
+- [x] Deterministic independent Android IDs, explicit overrides and escaped launcher titles.
+- [x] Installed wheel/sdist include offline examples and documentation; CLI checks run outside checkout.
+- [x] Responsive long-text/large-font checks and invalid-draft action states.
+- [ ] Physical-device acceptance for the new 0.10 APKs (unavailable in this environment).
+
+See [readiness report](RELEASE_READINESS_010_REPORT.md) for measured CI/emulator results and GO/NO-GO.
+Это техническая подготовка; релиз, тег, PyPI и развёртывание не выполнялись.

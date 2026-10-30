@@ -2,6 +2,7 @@
 import argparse
 import ast
 from pathlib import Path
+from sedrava_android_identity import application_id as resolve_id, prepare_identity, kotlin_path, write_title
 from sedrava_records import ListValue
 from sedrava_records_codegen import kt_support, kt_persistence
 from sedrava_core import parse, run, Assign, If, Require
@@ -43,17 +44,21 @@ def literal(value):
     return quoted(value) if type(value) is str else str(value).lower()
 
 
-def generate(source, output, _program=None, _domain_only=False):
+def generate(source, output, _program=None, _domain_only=False, application_id=None):
     program = _program or parse(source)
     if program.has_navigation and _program is None:
         from sedrava_navigation_android import generate_navigation
-        return generate_navigation(source, output, program)
+        return generate_navigation(source, output, program, application_id=application_id)
     run(program)
     if not program.widgets:
         raise ValueError("Missing screen main")
     output = Path(output)
-    scaffold('app "Scaffold"\nstate ready = false\naction start: ready = true\nscreen main:\n    text "Scaffold"\n    button "Start" -> start\n', output)
-    target = output / "app/src/main/java/org/sedrava/generated/MainActivity.kt"
+    package = resolve_id(program.name, application_id)
+    prepare_identity(output, package, program.name)
+    scaffold('app "Scaffold"\nstate ready = false\naction start: ready = true\nscreen main:\n    text "Scaffold"\n    button "Start" -> start\n', output, application_id=package)
+    prepare_identity(output, package, program.name)
+    write_title(output, program.name)
+    target = kotlin_path(output)
     # One pure state adapter supplies both Compose callbacks and JVM conformance.
     kinds = {int: "Int", bool: "Boolean", str: "String"}
     keys = list(program.states)
@@ -68,7 +73,7 @@ def generate(source, output, _program=None, _domain_only=False):
         return ", ".join(prefix + "." + user[key] for key in keys)
     guard = " && ".join(kt(rule, next_names) for rule in program.rules) or "true"
     lines = [
-        "package org.sedrava.generated",
+        "package " + package,
         "import android.os.Bundle",
         "import androidx.activity.ComponentActivity",
         "import androidx.activity.compose.setContent",
@@ -81,6 +86,8 @@ def generate(source, output, _program=None, _domain_only=False):
         "import androidx.compose.ui.Modifier",
         "import androidx.compose.ui.unit.dp",
         "import androidx.compose.ui.platform.LocalContext",
+        "import androidx.compose.ui.semantics.semantics",
+        "import androidx.compose.ui.semantics.heading",
         "import androidx.compose.foundation.text.KeyboardOptions",
         "import androidx.compose.ui.text.input.KeyboardType",
         "internal fun validText(value: String): Boolean {",
@@ -190,8 +197,9 @@ def generate(source, output, _program=None, _domain_only=False):
         lines.append('  var actionError by remember { mutableStateOf("") }')
     for key, expr in (program.derived or {}).items():
         lines.append("  val " + user[key] + " = " + kt(expr, user))
-    lines += ["  Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {",
+    lines += ["  Column(modifier = Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {",
               '    if (actionError.isNotEmpty()) Text(actionError, color = MaterialTheme.colorScheme.error)']
+    title_seen = False
     for widget in program.widgets:
         if widget[0] == "list":
             key, selected = widget[1:]
@@ -199,7 +207,10 @@ def generate(source, output, _program=None, _domain_only=False):
             if program.persistent: lines.append('            if (!persistState(prefs,next)) actionError = "Could not save state"')
             lines += ['          } else { actionError = "Selection rejected" }', '        }) { Text("Select / Выбрать") }', '      }', '    }']
         elif widget[0] == "text":
-            lines.append("    Text(" + quoted(widget[1]) + ", style = MaterialTheme.typography.headlineMedium)")
+            style = "bodyLarge" if title_seen else "headlineLarge"
+            semantics = "" if title_seen else ", modifier=Modifier.semantics { heading() }"
+            lines.append("    Text(" + quoted(widget[1]) + ", style = MaterialTheme.typography." + style + semantics + ")")
+            title_seen = True
         elif widget[0] == "value":
             lines.append("    Text(" + quoted(widget[1] + ": ") + " + " + user[widget[1]] + ".toString())")
         elif widget[0] in ("input_int", "input_text"):
@@ -221,7 +232,7 @@ def generate(source, output, _program=None, _domain_only=False):
             if program.persistent:
                 lines.append('          if (!persistState(prefs,next)) actionError = "Could not save state"' if (program.records or program.has_navigation) else "          persistState(prefs, next)")
             message = "Text must contain at most 1024 Unicode scalar values and satisfy the declared rules" if text else "Value does not satisfy the declared rules"
-            lines += ["        }", "      }, isError = error_" + key + ", supportingText = { if (error_" + key + ") Text(" + quoted(message) + ") }, label = { Text(" + quoted(key) + ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType." + ("Text" if text else "Number") + "))", "    }"]
+            lines += ["        }", "      }, isError = error_" + key + ", supportingText = { if (error_" + key + ") Text(" + quoted(message) + ") }, modifier = Modifier.fillMaxWidth(), label = { Text(" + quoted(key) + ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType." + ("Text" if text else "Number") + "))", "    }"]
         elif widget[0] == "show_text":
             lines.append("    if (" + user[widget[1]] + ") { Text(" + quoted(widget[2]) + ") }")
         else:
@@ -234,7 +245,7 @@ def generate(source, output, _program=None, _domain_only=False):
                 lines.append("        savedSnapshot = snapshotState(next, true)")
             if program.persistent:
                 lines.append('        actionError = if (persistState(prefs,next)) "" else "Could not save state"' if (program.records or program.has_navigation) else "        persistState(prefs, next)")
-            lines += [('' if (program.records or program.has_navigation) and program.persistent else '        actionError = ""'), '      } else { actionError = "Action rejected: constraints or arithmetic/value error" }', "    }) { Text(" + quoted(label) + ") }"]
+            lines += [('' if (program.records or program.has_navigation) and program.persistent else '        actionError = ""'), '      } else { actionError = "Action rejected: constraints or arithmetic/value error" }', "    }, modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)) { Text(" + quoted(label) + ") }"]
     lines += ["  }", "}"]
     target.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return target
@@ -242,6 +253,7 @@ def generate(source, output, _program=None, _domain_only=False):
 if __name__ == "__main__":
     cli = argparse.ArgumentParser()
     cli.add_argument("source")
+    cli.add_argument("--application-id")
     cli.add_argument("--output",default="build/generated-android")
     args = cli.parse_args()
-    print(generate(Path(args.source).read_text(encoding="utf-8"),args.output))
+    print(generate(Path(args.source).read_text(encoding="utf-8"),args.output, application_id=args.application_id))

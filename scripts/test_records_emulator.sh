@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Run inside android-emulator-runner, after generating the task manager test harness.
 set -euo pipefail
+sedrava_package=$(python -c "import json;print(json.load(open('build/tasks-android/sedrava-android.json'))['application_id'])")
 gradle -p build/tasks-android --no-daemon -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true :app:connectedDebugAndroidTest
-adb shell am force-stop org.sedrava.generated
-adb shell run-as org.sedrava.generated cat shared_prefs/sedrava_state.xml > build/tasks-preferences.xml
+adb shell am force-stop "$sedrava_package"
+adb shell run-as "$sedrava_package" cat shared_prefs/sedrava_state.xml > build/tasks-preferences.xml
 python - <<'PY'
 import json
 import xml.etree.ElementTree as ET
@@ -11,7 +12,7 @@ root = ET.parse('build/tasks-preferences.xml').getroot()
 snapshot = json.loads(next(node.text for node in root if node.attrib.get('name') == 'snapshot'))
 assert snapshot['state']['tasks'] == {'next_id': 3, 'items': [{'id': 2, 'title': 'restart persisted', 'done': False}]}
 PY
-adb shell am start -W -n org.sedrava.generated/.MainActivity
+adb shell am start -W -n "$sedrava_package"/.MainActivity
 relaunch_verified=0
 for attempt in $(seq 1 10); do
   adb shell uiautomator dump /sdcard/sedrava-ui.xml

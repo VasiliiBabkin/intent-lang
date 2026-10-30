@@ -86,11 +86,14 @@ def generate(source, _program=None, _domain_only=False):
         derived_lines.append("  derivedState[" + json_script(key) + "] = " + js_expr(expr, render_names) + ";")
         render_names[key] = "derivedState[" + json_script(key) + "]"
     widgets = []
+    title_seen = False
     for widget in program.widgets:
         if widget[0] == "list":
             widgets.append('<ul data-list="' + html.escape(widget[1], quote=True) + '" data-select="' + html.escape(widget[2], quote=True) + '"></ul>')
         elif widget[0] == "text":
-            widgets.append(f'<h1>{html.escape(widget[1])}</h1>')
+            tag = 'p' if title_seen else 'h1'
+            widgets.append(f'<{tag} class="intro-text">{html.escape(widget[1])}</{tag}>')
+            title_seen = True
         elif widget[0] == "value":
             key = html.escape(widget[1], quote=True)
             widgets.append(f'<p>{key}: <output data-state="{key}"></output></p>')
@@ -111,7 +114,8 @@ def generate(source, _program=None, _domain_only=False):
         "<!doctype html>",
         '<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">',
         f"<title>{html.escape(program.name)}</title>",
-        '<style>body{font:18px system-ui;max-width:38rem;margin:3rem auto;padding:0 1rem}button{padding:.7rem 1rem;margin:.25rem;border-radius:.5rem;cursor:pointer}output,h1,[data-show]{white-space:pre-wrap;overflow-wrap:anywhere}textarea{display:block;max-width:100%;width:100%;min-height:5rem}input[aria-invalid="true"],textarea[aria-invalid="true"]{outline:2px solid #b42318}small[role="alert"]{display:block;color:#b42318}small[hidden]{display:none}</style>',
+        '<style>*{box-sizing:border-box}body{font:1.125rem/1.6 system-ui;color:#203b35;background:#f4f3ee;max-width:42rem;margin:2rem auto;padding:0 1rem}button,input,textarea{font:inherit}button{padding:.7rem 1rem;margin:.25rem 0;border:1px solid #245d4e;border-radius:.75rem;cursor:pointer;color:white;background:#245d4e;min-height:48px;max-width:100%;white-space:normal;overflow-wrap:anywhere}button:hover{background:#194638}button:disabled{opacity:.55;cursor:not-allowed}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #a45115;outline-offset:3px}h1{font-family:Georgia,serif;font-size:clamp(2rem,6vw,3rem);line-height:1.15;font-weight:500}output,h1,p,[data-show]{white-space:pre-wrap;overflow-wrap:anywhere}label{display:block;margin:1rem 0;font-weight:600}input,textarea{display:block;width:100%;padding:.75rem;border:1px solid #a7b7a9;border-radius:.75rem;color:#203b35;background:white}textarea{min-height:6rem;resize:vertical}input[aria-invalid="true"],textarea[aria-invalid="true"]{outline:2px solid #b42318}small[role="alert"],#sedrava-error{display:block;color:#982c26}ul{padding-left:1.5rem;overflow-wrap:anywhere}li{margin:1rem 0}small[hidden],#sedrava-error[hidden]{display:none}</style>',
+
         "</head><body>",
         *widgets,
         '<p id="sedrava-error" role="alert" hidden></p>',

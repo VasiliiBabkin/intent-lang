@@ -1,6 +1,6 @@
 # Sedrava 0.10 — release-readiness engineering contract
 
-Status: **planned, not implemented**. Base: main after merged navigation PR #15. No tag, release, PyPI publication or site deployment is authorized.
+Status: **implemented on the readiness branch; final CI evidence is recorded in the report**. Base: main after merged navigation PR #15. No tag, release, PyPI publication or site deployment is authorized.
 
 ## Goal
 Make generated Web and Android apps safe to install side by side, predictable to build, usable, and ready for a measured 0.10 release-candidate review. Preserve all 0.9/0.10 semantics.
@@ -31,3 +31,9 @@ Make generated Web and Android apps safe to install side by side, predictable to
 - Update RU/EN quickstarts, README, language/build references, roadmap, changelog and known limitations after implementation.
 - Produce a release-readiness report with exact commands, results, artifacts, remaining blockers and a go/no-go recommendation.
 - Keep this PR draft until all checks pass. No merge, release, tag, PyPI publication or deployment without explicit user approval.
+
+## Adopted decisions / Принятые решения
+
+Default Android identity hashes the exact UTF-8 `app` title with SHA-256 (first 128 bits); identical titles deliberately share identity. Explicit `--application-id` fixes identity across renames. Namespace/package always match; maximum 255 lowercase ASCII characters with no Java/Kotlin keyword segments. See [EN](ANDROID_ID.en.md), [RU](ANDROID_ID.ru.md). This is a build setting, not a language semantic change.
+
+Navigation UIs disable domain-changing actions/selection while a visible draft is invalid; pure navigation and Back remain available, preserving earlier draft-discard behavior. Legacy single-screen semantics are retained. Android launcher names use string resources. Archive payloads and emitted sources are reproducible; timestamps/compression, transitive dependency immutability and release-signed APK byte identity are not promised.

@@ -8,6 +8,7 @@ except ModuleNotFoundError:  # Python 3.10 test-only backport
     import tomli as tomllib
 from android_codegen_v03 import generate
 from sedrava_cli import VERSION
+from sedrava_android_identity import application_id
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -25,9 +26,10 @@ class SedravaIdentityTests(unittest.TestCase):
             output = generate(source, directory)
             kotlin = output.read_text(encoding="utf-8")
             gradle = (pathlib.Path(directory) / "app/build.gradle.kts").read_text(encoding="utf-8")
-            self.assertIn("package org.sedrava.generated", kotlin)
-            self.assertIn('namespace = "org.sedrava.generated"', gradle)
-            self.assertIn('applicationId = "org.sedrava.generated"', gradle)
+            package = application_id("Workflow")
+            self.assertIn("package " + package, kotlin)
+            self.assertIn('namespace = "'+package+'"', gradle)
+            self.assertIn('applicationId = "'+package+'"', gradle)
             self.assertTrue(output.exists())
             manifest = (pathlib.Path(directory) / "app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
             self.assertIn("<intent-filter>", manifest)

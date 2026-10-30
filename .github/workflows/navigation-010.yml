@@ -1,7 +1,7 @@
 name: Navigation 0.10 Android and UI
 on:
   push:
-    branches: [feature/010-multiscreen-navigation]
+    branches: [feature/010-multiscreen-navigation, feature/010-release-readiness]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -38,9 +38,15 @@ jobs:
           gradle -p build/navigation-pages --no-daemon :app:assembleDebug :app:testDebugUnitTest
       - name: Scalar/text navigation and compiler-marker literals
         run: |
-          python -m sedrava_cli build android tests/fixtures/navigation_scalar.sdr --output build/navigation-scalar
+          python -m sedrava_cli build android tests/fixtures/navigation_scalar.sdr --output build/navigation-scalar --application-id com.example.sedrava.scalar
           python scripts/prepare_navigation_android_tests.py build/navigation-scalar --source tests/fixtures/navigation_scalar.sdr
           gradle -p build/navigation-scalar --no-daemon :app:assembleDebug :app:testDebugUnitTest
+      - name: Independent second app APK, JVM, Lint and UI harness
+        run: |
+          python -m sedrava_cli build android examples/task_manager.sdr --output build/tasks-android
+          python scripts/prepare_records_android_tests.py build/tasks-android
+          python scripts/prepare_records_ui_tests.py build/tasks-android
+          gradle -p build/tasks-android --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:assembleDebugAndroidTest
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -53,9 +59,14 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          script: bash scripts/test_navigation_emulator.sh
+          script: |
+            bash scripts/test_navigation_emulator.sh
+            bash scripts/test_records_emulator.sh
+            bash scripts/test_side_by_side.sh
       - name: Verify APK
-        run: python scripts/verify_apk.py build/navigation-android/app/build/outputs/apk/debug/app-debug.apk
+        run: |
+          python scripts/verify_apk.py build/navigation-android/app/build/outputs/apk/debug/app-debug.apk
+          python scripts/verify_apk.py build/tasks-android/app/build/outputs/apk/debug/app-debug.apk
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -66,9 +77,19 @@ jobs:
             build/navigation-android/app/build/test-results
             build/navigation-android/app/build/outputs/androidTest-results
             build/navigation-android/app/src
+            build/navigation-android/sedrava-android.json
+            build/tasks-android/sedrava-android.json
+            build/tasks-android/app/build/outputs/apk
+            build/tasks-android/app/build/reports
+            build/tasks-android/app/build/outputs/androidTest-results
+            build/tasks-android/app/build/test-results
+            build/side-by-side-*
+            build/tasks-relaunch.*
+            build/tasks-preferences.xml
             build/navigation-web
             build/navigation-scalar/app/build/reports/tests
             build/navigation-pages/app/build/reports/tests
+            build/navigation-font-scale.txt
             build/navigation-preferences.xml
             build/navigation-relaunch.*
           if-no-files-found: error

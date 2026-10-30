@@ -12,11 +12,16 @@ def verify(apk, sdk):
         result = subprocess.run([str(tools / tool), *arguments, str(apk)], check=True, capture_output=True, text=True)
         return result.stdout
     print(run('apksigner', 'verify', '--verbose'))
-    print(run('aapt', 'dump', 'badging'))
+    badging = run('aapt', 'dump', 'badging')
+    print(badging)
+    package_match = re.search(r"package: name='([^']+)'", badging)
+    if not package_match:
+        raise SystemExit('Missing APK application ID')
+    package = package_match[1]
     permissions = run('aapt', 'dump', 'permissions')
     print(permissions)
     used = set(re.findall(r"uses-permission: name='([^']+)'", permissions))
-    allowed = {'org.sedrava.generated.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'}
+    allowed = {package + '.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'}
     if used - allowed:
         raise SystemExit(f'Unexpected permissions: {sorted(used - allowed)}')
     if used:

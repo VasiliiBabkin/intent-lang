@@ -112,3 +112,11 @@ in the core and both generators. One `.sdr` file generates the two-screen task m
 - [Русское руководство](NAVIGATION_QUICKSTART.ru.md)
 - [Syntax and semantics](NAVIGATION_010_CONTRACT.md)
 - [Measured report](NAVIGATION_010_REPORT.md)
+
+## Release readiness / Подготовка к RC (unreleased 0.10)
+
+Independent deterministic Android IDs and `--application-id` are implemented.
+Независимые Android-приложения собираются с постоянным ID; название отделено от пакета.
+[English identity/build guide](ANDROID_ID.en.md) · [Русская инструкция](ANDROID_ID.ru.md).
+Wheel/sdist include examples, documentation and license under `sys.prefix/share/sedrava`.
+Дистрибутив содержит примеры, документацию и лицензию; публикация 0.10 не выполнялась.

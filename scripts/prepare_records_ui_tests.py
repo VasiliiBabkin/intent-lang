@@ -1,12 +1,15 @@
 """Add emulator Compose interaction/rotation checks to a generated task manager."""
-from pathlib import Path
 import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from sedrava_android_identity import project_identity, kotlin_path
+
 project=Path(sys.argv[1])
 gradle=project/'app/build.gradle.kts'
 text=gradle.read_text().replace('versionCode = 1;', 'testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"; versionCode = 1;')
 text+='\ndependencies { androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01")); androidTestImplementation("androidx.compose.ui:ui-test-junit4"); androidTestImplementation("androidx.test:runner:1.6.2"); androidTestImplementation("androidx.test.ext:junit:1.2.1"); debugImplementation("androidx.compose.ui:ui-test-manifest") }\n'
 gradle.write_text(text)
-path=project/'app/src/androidTest/java/org/sedrava/generated/RecordsUiTest.kt';path.parent.mkdir(parents=True,exist_ok=True)
+path=kotlin_path(project, 'androidTest', 'RecordsUiTest.kt');path.parent.mkdir(parents=True,exist_ok=True)
 path.write_text('''package org.sedrava.generated
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -41,5 +44,5 @@ class RecordsUiTest {
     ui.onNodeWithText("title: restart persisted · done: false").assertExists()
   }
 }
-''',encoding='utf-8')
+'''.replace('org.sedrava.generated', project_identity(project)),encoding='utf-8')
 print(path)

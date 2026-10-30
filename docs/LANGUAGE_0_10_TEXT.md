@@ -35,14 +35,14 @@ An action computes a candidate; all derives are checked after each assignment an
 
 A text draft commits immediately only if scalar/length/type/derived/rule checks pass. Invalid drafts remain editable with accessible error feedback. Empty drafts are validated too: they commit if allowed, otherwise remain rejected drafts. Whitespace-only text remains nonempty; the runtime does not trim it. There is no `maxlength` truncation in HTML or Compose. Accepted Android state uses `rememberSaveable`; rejected drafts are not promised to survive recreation.
 
-Only `persist` fields are saved. Wrong-type, oversized or surrogate-containing fields individually use defaults. The resulting snapshot is then checked as a whole; a rule/derive failure restores all defaults. Unknown keys are ignored, nonpersistent fields start from defaults, malformed Web JSON is ignored. Android uses the typed contents of `SharedPreferences.all`; malformed preference XML recovery belongs to Android itself. Storage is local, unencrypted and best effort as in 0.9. Generated apps still share an Android application ID; clear data when switching examples.
+Only `persist` fields are saved. Wrong-type, oversized or surrogate-containing fields individually use defaults. The resulting snapshot is then checked as a whole; a rule/derive failure restores all defaults. Unknown keys are ignored, nonpersistent fields start from defaults, malformed Web JSON is ignored. Android uses the typed contents of `SharedPreferences.all`; malformed preference XML recovery belongs to Android itself. Storage is local, unencrypted and best effort as in 0.9. Generated apps use deterministic per-title Android IDs; explicit overrides are supported.
 
 ## Explicit compatibility and platform boundaries
 
 - **Escaped legacy labels:** 0.9's regex labels treated backslashes literally. One uniform escape grammar is necessary to avoid contradictory meanings of the same literal in state and UI. In this development increment, labels containing backslashes must escape them: `text "C:\\temp"` displays `C:\temp`; `text "line\nnext"` now displays a newline. All published 0.9 examples retain their behavior. Migration is covered by `test_legacy_label_backslash_migration_is_explicit`; invalid escapes fail instead of being silently reinterpreted. No 0.9 tag or artifact is changed.
 - **Native editor line endings:** HTML textarea normalizes CR and CRLF in the *draft* to LF, per browser behavior. The runtime adds no additional normalization. Source/action/model/persisted strings retain CR, LF and exact equality; their display in an editor follows the platform's editor behavior. A Chromium conformance test checks both the native draft normalization and exact model acceptance of CR. This boundary is disclosed rather than claiming byte-identical native editing.
 - Android compilation, JVM state tests, signature checks and Lint do not establish Compose UI/rotation/device acceptance. See the [work report](TEXT_010_REPORT.md) for measured coverage.
-- Records and bounded lists are implemented in main since PR #14; see [syntax](RECORDS_COLLECTIONS_010.md). Named screens, responsive task cards and Back are implemented in the [navigation increment](NAVIGATION_010_CONTRACT.md). General toggles, custom themes/layout components and per-app package identity remain separate milestones. The full [Describe → Get target](DESCRIBE_GET_010.md) is not yet implemented.
+- Records and bounded lists are implemented in main since PR #14; see [syntax](RECORDS_COLLECTIONS_010.md). Named screens, responsive task cards and Back are implemented in the [navigation increment](NAVIGATION_010_CONTRACT.md). Per-app package identity is implemented; general toggles and custom themes/layout components remain separate milestones. The full [Describe → Get target](DESCRIBE_GET_010.md) is not yet implemented.
 
 ## Reproduce / Повторить
 
@@ -73,3 +73,11 @@ The test-preparation script adds only test sources; generated application code i
 
 Collection programs use strict whole-snapshot restoration; scalar-only programs retain
 the text restoration contract above. See [collection specification](RECORDS_COLLECTIONS_010.md).
+
+## Release readiness / Подготовка к RC (unreleased 0.10)
+
+Independent deterministic Android IDs and `--application-id` are implemented.
+Независимые Android-приложения собираются с постоянным ID; название отделено от пакета.
+[English identity/build guide](ANDROID_ID.en.md) · [Русская инструкция](ANDROID_ID.ru.md).
+Wheel/sdist include examples, documentation and license under `sys.prefix/share/sedrava`.
+Дистрибутив содержит примеры, документацию и лицензию; публикация 0.10 не выполнялась.

@@ -1,3 +1,5 @@
+> Historical increment evidence below. Current 0.10 Android builds use [independent application IDs](ANDROID_ID.en.md); [readiness report](RELEASE_READINESS_010_REPORT.md) supersedes the old shared-package limitation.
+
 # Navigation engineering report / Отчёт о навигации
 
 Branch `feature/010-multiscreen-navigation`, PR #15. Experimental, unreleased 0.10.

@@ -53,9 +53,7 @@ bash scripts/test_navigation_emulator.sh
 Test-preparation scripts add test sources/dependencies, not application Kotlin.
 The emulator scenario uses system Back, rotates/recreates the Activity, force-stops
 and restarts the app, checks the real preferences and captures the restored UI.
-Generated Android apps still share an application ID: clear data when switching
-examples. Navigation is not a domain-schema migration. Storage remains local and
-unencrypted. Physical-device results are separate from emulator/JVM results.
+Current Android builds use independent deterministic IDs; see [identity settings](ANDROID_ID.en.md).
 
 Run `python -m unittest discover -s tests -v` and
 `python scripts/test_web_browser.py` (Playwright/Chromium). CI and measured evidence

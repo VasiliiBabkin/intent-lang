@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
+sedrava_package=$(python -c "import json;print(json.load(open('build/navigation-android/sedrava-android.json'))['application_id'])")
+# Exercise native scalable text at 130%, including rotation/recreation and scrolling.
+adb shell settings put system font_scale 1.3
+trap 'adb shell settings put system font_scale 1.0' EXIT
+adb shell settings get system font_scale > build/navigation-font-scale.txt
 gradle -p build/navigation-android --no-daemon -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true :app:connectedDebugAndroidTest
-adb shell am force-stop org.sedrava.generated
-adb shell run-as org.sedrava.generated cat shared_prefs/sedrava_state.xml > build/navigation-preferences.xml
+adb shell am force-stop "$sedrava_package"
+adb shell run-as "$sedrava_package" cat shared_prefs/sedrava_state.xml > build/navigation-preferences.xml
 python - <<'PY'
 import json
 import xml.etree.ElementTree as ET
@@ -10,7 +15,7 @@ root=ET.parse('build/navigation-preferences.xml').getroot()
 saved=json.loads(next(node.text for node in root if node.attrib.get('name')=='snapshot'))
 assert saved['state']['tasks']=={'next_id':3,'items':[{'id':2,'title':'Second','done':True}]}, saved
 PY
-adb shell am start -W -n org.sedrava.generated/.MainActivity
+adb shell am start -W -n "$sedrava_package"/.MainActivity
 navigation_relaunch_verified=0
 for attempt in $(seq 1 10); do
   adb shell uiautomator dump /sdcard/navigation-ui.xml

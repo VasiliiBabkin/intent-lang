@@ -71,7 +71,7 @@ Input is a draft until accepted: trimmed ASCII `-?[0-9]+`, signed 32-bit range, 
 
 `persist` stores only accepted declared fields: Web `localStorage`, Android private `SharedPreferences`. Missing, malformed, wrong-type or out-of-range saved fields use defaults; if the resulting snapshot violates rules or overflows derives, the entire snapshot uses defaults. Persistent storage is optional on Web (blocked/quota errors are caught); Android uses asynchronous `apply`, so abrupt process/device failure can lose the last write. No encryption, migration API, transactional durability guarantee, cloud sync or secure-secret storage. The interpreter `run` starts from defaults each invocation and never reads UI storage.
 
-Web storage key includes URL pathname and app name; moving/renaming the app starts a separate snapshot. Serve over HTTP for repeatable browser persistence. All generated Android projects currently share application ID `org.sedrava.generated` and preferences name `sedrava_state`; installing another generated example replaces the previous app and may reuse compatible saved fields. Uninstall/clear app data before comparing examples. Production package identity and migrations are future work.
+Web storage key includes URL pathname and app name; moving/renaming the app starts a separate snapshot. Serve over HTTP for repeatable browser persistence. Historical 0.9 generators shared application ID `org.sedrava.generated` and preferences name `sedrava_state`; installing another generated example replaces the previous app and may reuse compatible saved fields. Uninstall/clear app data before comparing examples. The current 0.10 generator adds [per-app identity](ANDROID_ID.en.md); migrations remain unavailable.
 
 ## Diagnostics / Диагностика
 

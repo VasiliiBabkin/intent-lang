@@ -29,6 +29,9 @@ jobs:
       - run: python -m build
       - run: python -m twine check dist/*
       - run: python scripts/audit_dist.py
+      - run: python scripts/check_reproducible_dist.py
+        if: matrix.python == '3.12'
+      - run: python scripts/check_installed_dist.py
       - name: Install wheel outside source tree
         shell: bash
         run: |

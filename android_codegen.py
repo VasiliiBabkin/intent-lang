@@ -2,6 +2,7 @@
 from pathlib import Path
 import argparse
 import re
+from sedrava_android_identity import application_id as resolve_id, prepare_identity, kotlin_path, write_title
 from sedrava import parse, run
 
 IDENT = r"[A-Za-z_][A-Za-z_0-9]*"
@@ -59,12 +60,13 @@ def ui_parse(source, program):
         raise ValueError("Missing screen main:")
     return widgets
 
-def generate(source, output):
+def generate(source, output, application_id=None):
     program = parse('\n'.join(line for line in source.splitlines() if not line.strip().startswith("screen ") and not line.startswith("    ")))
     run(program)
     widgets = ui_parse(source, program)
     output = Path(output)
-    package = "org.sedrava.generated"
+    package = resolve_id(program.name, application_id)
+    prepare_identity(output, package, program.name)
     lines = [
         f"package {package}",
         "",
@@ -112,16 +114,19 @@ def generate(source, output):
             guard = " && ".join(conditions) if conditions else "true"
             lines.append(f"    Button(onClick = {{ if ({guard}) {target} = {literal} }}) {{ Text({kotlin_string(label)}) }}")
     lines += ["  }", "}"]
-    target = output / "app/src/main/java/org/sedrava/generated/MainActivity.kt"
+    target = kotlin_path(output)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("\n".join(lines) + "\n", encoding="utf-8")
     manifest = output / "app/src/main/AndroidManifest.xml"
     manifest.parent.mkdir(parents=True, exist_ok=True)
-    manifest.write_text('<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:label="Sedrava Demo" android:theme="@android:style/Theme.Material.Light.NoActionBar"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>\n', encoding="utf-8")
+    manifest.write_text('<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:label="@string/sedrava_app_name" android:theme="@android:style/Theme.Material.Light.NoActionBar"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>\n', encoding="utf-8")
+    write_title(output, program.name)
     (output / "settings.gradle.kts").write_text('pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }\ndependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }\nrootProject.name = "SedravaApp"\ninclude(":app")\n', encoding="utf-8")
     (output / "build.gradle.kts").write_text('plugins { id("com.android.application") version "8.9.2" apply false; id("org.jetbrains.kotlin.android") version "2.0.21" apply false; id("org.jetbrains.kotlin.plugin.compose") version "2.0.21" apply false }\n', encoding="utf-8")
     (output / "gradle.properties").write_text('org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8\nandroid.useAndroidX=true\n', encoding="utf-8")
-    (output / "app/build.gradle.kts").write_text('plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }\nandroid { namespace = "org.sedrava.generated"; compileSdk = 35\n defaultConfig { applicationId = "org.sedrava.generated"; minSdk = 26; targetSdk = 35; versionCode = 1; versionName = "0.10.0.dev0" }\n buildFeatures { compose = true }\n compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }\n kotlinOptions { jvmTarget = "17" }\n}\ndependencies { implementation(platform("androidx.compose:compose-bom:2024.12.01")); implementation("androidx.activity:activity-compose:1.9.3"); implementation("androidx.compose.material3:material3"); implementation("androidx.compose.ui:ui"); testImplementation("junit:junit:4.13.2") }\n', encoding="utf-8")
+    (output / "app/build.gradle.kts").write_text('plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }\nandroid { namespace = "PACKAGE_PLACEHOLDER"; compileSdk = 35\n defaultConfig { applicationId = "PACKAGE_PLACEHOLDER"; minSdk = 26; targetSdk = 35; versionCode = 1; versionName = "0.10.0.dev0" }\n buildFeatures { compose = true }\n compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }\n kotlinOptions { jvmTarget = "17" }\n}\ndependencies { implementation(platform("androidx.compose:compose-bom:2024.12.01")); implementation("androidx.activity:activity-compose:1.9.3"); implementation("androidx.compose.material3:material3"); implementation("androidx.compose.ui:ui"); testImplementation("junit:junit:4.13.2") }\n', encoding="utf-8")
+    gradle = output / "app/build.gradle.kts"
+    gradle.write_text(gradle.read_text(encoding="utf-8").replace("PACKAGE_PLACEHOLDER", package), encoding="utf-8")
     return target
 
 if __name__ == "__main__":

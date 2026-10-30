@@ -19,8 +19,26 @@ def application_id(name, explicit=None):
     return validate_application_id(explicit) if explicit is not None else 'org.sedrava.app.a' + hashlib.sha256(name.encode('utf-8')).hexdigest()[:32]
 
 
+def _unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError('duplicate identity metadata key')
+        result[key] = value
+    return result
+
+
 def project_identity(project):
-    return validate_application_id(json.loads((Path(project) / 'sedrava-android.json').read_text(encoding='utf-8'))['application_id'])
+    metadata = Path(project) / 'sedrava-android.json'
+    try:
+        if metadata.stat().st_size > 16384:
+            raise ValueError('identity metadata exceeds size limit')
+        data = json.loads(metadata.read_text(encoding='utf-8'), object_pairs_hook=_unique_object)
+        if type(data) is not dict or set(data) != {'schema', 'application_id', 'namespace', 'title'} or type(data['schema']) is not int or data['schema'] != 1 or type(data['title']) is not str or len(data['title']) > 1024 or any(0xD800 <= ord(c) <= 0xDFFF for c in data['title']) or data['namespace'] != data['application_id']:
+            raise ValueError('invalid identity metadata schema')
+        return validate_application_id(data['application_id'])
+    except (ValueError, OSError) as exc:
+        raise ValueError(f'Invalid Android project identity at {metadata}: {exc}; regenerate in a fresh output directory') from exc
 
 
 def kotlin_path(project, source_set='main', filename='MainActivity.kt'):

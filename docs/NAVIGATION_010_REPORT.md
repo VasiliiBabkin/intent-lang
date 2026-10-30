@@ -61,7 +61,7 @@ and navigation identifiers up to 64 ASCII characters. Initial screen is unguarde
 all screens must be statically reachable and navigation bindings used by controls.
 No route parameters, deep links, tabs, per-screen domain state, schema migrations,
 custom themes, general layout/component system or full accessibility certification.
-Android examples still share an application ID; local storage is unencrypted.
+At this historical increment Android examples shared an application ID (fixed by the readiness increment linked above); local storage remains unencrypted.
 Drafts may be discarded; full accepted data and stack survive valid recreation.
 Physical-device behavior is not established by an emulator or APK build.
 

@@ -75,6 +75,16 @@ class ReleaseReadinessTests(unittest.TestCase):
             with contextlib.redirect_stderr(io.StringIO()),self.assertRaises(SystemExit) as exc:main(['build','web',str(path),'--application-id','com.example.app'])
             self.assertEqual(exc.exception.code,2)
 
+    def test_corrupt_project_metadata_rejected_without_traceback_or_mutation(self):
+        for raw in ('{', '{}', '[]', '{"schema":true}', '{"schema":1,"schema":1}', ' '*16385):
+            with self.subTest(raw=raw[:40]),tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp);source=root/'app.sdr';source.write_text(SOURCE)
+                output=root/'android';output.mkdir();metadata=output/'sedrava-android.json';metadata.write_text(raw)
+                error=io.StringIO()
+                with contextlib.redirect_stderr(error):result=main(['build','android',str(source),'--output',str(output)])
+                self.assertEqual(result,1);self.assertIn('Invalid Android project identity',error.getvalue())
+                self.assertEqual(metadata.read_text(),raw);self.assertFalse((output/'app').exists())
+
     def test_duplicate_titles_explicit_identity_and_old_package_opt_in(self):
         self.assertEqual(application_id('Duplicate'),application_id('Duplicate'))
         with tempfile.TemporaryDirectory() as tmp:

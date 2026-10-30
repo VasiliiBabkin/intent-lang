@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from sedrava_android_identity import project_identity
+from scripts.emulator_ui import handle_launcher_dialog
 
 
 def run(*args):
@@ -41,6 +42,7 @@ def verify(project):
                 run('adb','shell','uiautomator','dump','/sdcard/storage-rejection.xml')
                 ui=run('adb','shell','cat','/sdcard/storage-rejection.xml')
                 (output/(str(index)+'-ui.xml')).write_text(ui)
+                if handle_launcher_dialog(ui,package):continue
                 seen_error |= 'original retained' in ui
                 seen_empty |= 'No tasks yet' in ui
                 if seen_error and seen_empty:break

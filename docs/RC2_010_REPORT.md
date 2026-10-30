@@ -60,6 +60,21 @@ SHA256SUMS without a circular self-hash. Local exact-inventory and remote roundt
 checks fail on substitution. The original rc1 kit's known ID/digest/source is
 checked read-only and recorded in the new manifest.
 
+## Recorded failed intermediate checks / Промежуточный отказ
+
+At SHA `5e85067655d1c15b3d63b0e37ed6150245da6e15`, records workflow
+[41143939647](https://github.com/VasiliiBabkin/sedrava/actions/runs/41143939647)
+passed both native tests and the saved-data assertion, but the cold UI scan failed.
+Its retained XML showed Android's **Quickstep isn't responding** system dialog,
+not the tested app; preferences still contained `restart persisted` with ID 2.
+The collector correctly refused GO. The driver now records XML/PNG/JSON and may
+close only that exact Android-owned launcher dialog on the disposable API35
+emulator (at most twice). It brings the existing tested Activity forward, without
+replaying an app action, resetting data or replacing model state. App/unknown
+ANRs fail and are never dismissed. A negative regression enforces this boundary.
+All required checks must pass again on the new final SHA; this failed run is not
+counted as success.
+
 ## Limits, risks and decision / Ограничения и решение
 
 Technical GO is conditional on the actual final CI manifest, not this source text.

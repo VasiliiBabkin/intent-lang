@@ -17,6 +17,7 @@ relaunch_verified=0
 for attempt in $(seq 1 10); do
   adb shell uiautomator dump /sdcard/sedrava-ui.xml
   adb shell cat /sdcard/sedrava-ui.xml > build/tasks-relaunch.xml
+  python scripts/emulator_ui.py build/tasks-relaunch.xml "$sedrava_package"
   if python -c "from pathlib import Path; raise SystemExit('restart persisted' not in Path('build/tasks-relaunch.xml').read_text())"; then
     relaunch_verified=1
     break

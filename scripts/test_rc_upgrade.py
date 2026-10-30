@@ -10,6 +10,7 @@ import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from scripts.verify_apk import verify
+from scripts.emulator_ui import handle_launcher_dialog
 from sedrava_version import VERSION, ANDROID_VERSION_CODE
 from sedrava_android_identity import project_identity
 
@@ -77,6 +78,8 @@ if __name__=='__main__':
         for _ in range(8):
             run('adb','shell','uiautomator','dump','/sdcard/rc-upgrade.xml')
             ui=run('adb','shell','cat','/sdcard/rc-upgrade.xml')
+            Path(str(prefix)+'-last-ui.xml').write_text(ui)
+            if handle_launcher_dialog(ui,package):continue
             if needle in ui:return ui
             run('adb','shell','input','swipe','500','750','500','250','200')
         raise AssertionError('Updated app UI did not contain '+needle)

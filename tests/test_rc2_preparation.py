@@ -51,3 +51,11 @@ class RC2Preparation(unittest.TestCase):
             old=metadata[key];metadata[key]=value
             with self.subTest(key=key),self.assertRaises(ValueError):check_rc1_immutable(api)
             metadata[key]=old
+
+    def test_only_known_launcher_dialog_can_be_dismissed(self):
+        from scripts.emulator_ui import launcher_close_point
+        raw="""<hierarchy><node text="Quickstep isn't responding" package="android"/><node text="Close app" package="android" bounds="[10,20][30,60]"/></hierarchy>"""
+        self.assertEqual(launcher_close_point(raw),(20,40))
+        self.assertIsNone(launcher_close_point('<hierarchy><node text="restart persisted"/></hierarchy>'))
+        for bad in (raw.replace('Quickstep','Sedrava Tasks'),raw.replace('package="android"','package="app"'),raw.replace('[10,20][30,60]','bad'),raw.replace('Close app','Wait')):
+            with self.subTest(bad=bad),self.assertRaises(ValueError):launcher_close_point(bad)

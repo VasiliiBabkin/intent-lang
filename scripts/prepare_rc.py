@@ -200,7 +200,7 @@ def test_evidence(api,runs,nav,records):
                 if job['name']=='chromium':summary['chromium']=count
                 elif m:=re.fullmatch(r'language-package \((3\.(?:10|12|13))\)',job['name']):summary['python'][m[1]]=count
                 else:raise ValueError('Unrecognized alpha test job')
-    if set(summary['python'])!={'3.10','3.12','3.13'} or min(summary['python'].values())<164 or (summary['chromium'] or 0)<26:raise ValueError('Regression coverage missing')
+    if set(summary['python'])!={'3.10','3.12','3.13'} or min(summary['python'].values())<165 or (summary['chromium'] or 0)<26:raise ValueError('Regression coverage missing')
     unit,device=native_cases(nav)
     summary['jvm_navigation']=unit;summary['emulator']=device
     if len(unit)<7 or len(device)<6:raise ValueError('Native test evidence incomplete')
@@ -215,6 +215,7 @@ def test_evidence(api,runs,nav,records):
     if cold.get('result')!='PASS' or len(cold.get('cases',[]))!=2 or any(any(c.get(k) is not True for k in ('cold_defaults','rejection_visible','original_retained')) for c in cold['cases']):
         raise ValueError('Cold-launch rejected storage evidence missing')
     summary['cold_storage_rejection']=cold
+    summary['emulator_system_dialogs']=[json.loads(data) for name,data in nav.items() if name.startswith('emulator-system-dialogs/') and name.endswith('.json')]
     return summary,ci
 
 

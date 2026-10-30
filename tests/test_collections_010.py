@@ -52,6 +52,13 @@ class CollectionTests(unittest.TestCase):
             with self.subTest(case=case), self.assertRaises(CollectionError):
                 TaskList.restore(case)
 
+    def test_duplicate_keys_and_payload_limit(self):
+        for raw in ('{"schema":1,"schema":1,"next_id":1,"items":[]}',
+                    '{"schema":1,"next_id":1,"items":[{"id":1,"id":1,"title":"x","done":false}]}',
+                    " " * 200001):
+            with self.subTest(raw=raw[:60]), self.assertRaises(CollectionError):
+                TaskList.restore(raw)
+
     def test_id_exhaustion(self):
         with self.assertRaises(CollectionError):
             TaskList(next_id=2**31 - 1).add("x")

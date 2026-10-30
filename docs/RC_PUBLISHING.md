@@ -4,11 +4,11 @@
 
 ## Read-only preparation / Подготовка без записи в реестр
 
-Use the existing release branch/PR. The [preparation workflow](../.github/workflows/rc-prepare.yml) runs on pull requests and can be started manually with an exact source SHA. It has only `contents: read` and `actions: read`, no stored checkout credentials, no package/release/token-write permissions, no secrets and no publication steps. Every action is pinned in [the reviewed pin inventory](../.github/action-pins.json). The old 0.9 attachment workflow is now an audit-only workflow; its historical publication remains documented in history.
+Use the existing release branch/PR. The [preparation workflow](../.github/workflows/rc-prepare.yml) runs on pull requests and can be started manually with an exact source SHA. For a manual dispatch, select a workflow ref whose head is the checked source SHA; an input SHA cannot silently mix a different workflow/source revision. It has only `contents: read` and `actions: read`, no stored checkout credentials, no package/release/token-write permissions, no secrets and no publication steps. Every action is pinned in [the reviewed pin inventory](../.github/action-pins.json). The old 0.9 attachment workflow is now an audit-only workflow; its historical publication remains documented in history.
 
-Eight same-SHA workflows must succeed: alpha (Python matrix/Chromium/distribution), CI, Compose, navigation, records, text, 0.9 reference, distribution verification. The collector verifies repository, SHA, successful jobs, immutable input artifact IDs and actual ZIP SHA-256 digests. It rejects expired/mismatched artifacts, dangerous paths/links, duplicate members, bounded archive expansion, local/private filenames and high-confidence secret patterns. It does not execute downloaded scripts. Wheel RECORD/metadata/source and sdist/source are checked; tested Web bytes must match generation from that checkout. APK signature, ID, version, development code 10001 and permissions are checked again.
+Eight mandatory same-SHA workflows, plus every additional applicable PR/push gate, must succeed: alpha (Python matrix/Chromium/distribution), CI, Compose, navigation, records, text, 0.9 reference, distribution verification. The collector verifies repository, SHA, successful jobs, immutable input artifact IDs and actual ZIP SHA-256 digests. It rejects expired/mismatched artifacts, dangerous paths/links, duplicate members, bounded archive expansion, local/private filenames and high-confidence secret patterns. It does not execute downloaded scripts. Wheel RECORD/metadata/source and sdist/source are checked; tested Web bytes must match generation from that checkout. APK signature, ID, version, development code 10001 and permissions are checked again.
 
-The kit contains wheel, sdist, two **debug** APKs, Web ZIP, actual test evidence, tool/dependency records, registry availability results, machine/human manifests and SHA256SUMS. The separate delivery artifact is emitted **after upload**, with the actual kit ID, URL and Actions ZIP digest. No guessed links/checksums or moving `latest` are used. Registry checks are observations at a recorded UTC time, not a reservation. TestPyPI is not a target and was unavailable from the local managed environment.
+The kit contains wheel, sdist, two **debug** APKs, Web ZIP, actual test evidence, tool/dependency records, registry availability results, machine/human manifests and SHA256SUMS. After upload the workflow really downloads the kit and compares the ZIP digest and every file. The separate delivery artifact is emitted only after this round trip, with the actual kit ID, URL and Actions ZIP digest. No guessed links/checksums or moving `latest` are used. Registry checks are observations at a recorded UTC time, not a reservation. TestPyPI is not a target and was unavailable from the local managed environment.
 
 Сборщик проверяет успешные прогоны именно того же SHA, затем использует неизменяемые проверенные байты, а не пересобирает их перед публикацией. В манифесте — реальные CI run/artifact ID, хеши файлов, результаты и инструменты. Отдельный delivery-файл связывает комплект с настоящим внешним digest после загрузки. Физическое устройство не проверялось; production-подписи нет.
 
@@ -62,7 +62,11 @@ The following are **documented future manual commands**, not an automated workfl
 # ONLY AFTER explicit owner approval; do not execute as preparation.
 python /trusted/reviewed/source/scripts/verify_rc_bundle.py /absolute/path/to/kit
 python /trusted/reviewed/source/scripts/check_rc_availability.py --output /tmp/rechecked-availability.json
-# Owner may create/push an annotated tag at the approved SHA, then:
+# Owner verifies manifest.git_sha, then (only after separate tag approval):
+git tag -a v0.10.0rc1 APPROVED_FULL_SHA -m 'Sedrava 0.10.0rc1 experimental RC'
+git rev-parse 'v0.10.0rc1^{}'         # must equal manifest.git_sha
+git push origin refs/tags/v0.10.0rc1
+# Only after the approved tag is verified:
 gh release create v0.10.0rc1 --repo VasiliiBabkin/sedrava --verify-tag --prerelease \
   --title 'Sedrava 0.10.0rc1 — experimental RC' \
   --notes-file /trusted/reviewed/source/docs/RELEASE_NOTES_0_10_0rc1.en.md \

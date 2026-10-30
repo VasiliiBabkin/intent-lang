@@ -28,3 +28,7 @@ No merge, tag, release, package publication or deployment is authorized by this 
 ## Adopted engineering decisions
 
 Single literal `sedrava_version.VERSION` supplies setuptools dynamic metadata, CLI and Android versionName. RC debug versionCode 10001 advances code 1; application IDs remain independent of compiler version. CI creates exact-SHA manifests and checksums from already tested immutable bytes, and records the actual kit artifact identity after upload. All preparation workflows are read-only and action-SHA pinned; even the historical attachment workflow has no publisher now. A real same-key development APK -> RC update is checked on emulator. The GitHub 0.9 wheel, not an invented PyPI version, is the tested rollback baseline.
+
+## Measured preparation result
+
+[Report](RC_010_REPORT.md): technical GO for controlled experimental RC review/publication, with no owner authorization given. The immutable CI kit contains final-SHA JSON/Markdown manifests, SHA256SUMS, test evidence and a literal final CI report; post-upload download/file equality is verified. The repository report preserves the measured implementation kit, while PR #17 identifies the final documentation commit and its separately regenerated complete kit.

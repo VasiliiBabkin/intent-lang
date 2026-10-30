@@ -103,3 +103,12 @@ class RecordsLanguage(unittest.TestCase):
         for field in ('id: int','title: int','nested: Task','true: bool','class: text'):
             with self.assertRaises(ValueError): parse(SOURCE.replace('    done: bool','    done: bool\n    '+field))
         with self.assertRaises(ValueError): parse(SOURCE.replace('    done: bool','\n'.join('    field'+str(i)+': int' for i in range(17))))
+
+    @unittest.skipUnless(shutil.which('node'),'Node required')
+    def test_public_restore_adapter_never_partially_applies_collection_data(self):
+        source=SOURCE.replace('persist tasks','persist tasks\npersist title')
+        p=parse(source);data=json.loads(serialize_state(p,p.states));data['state']['title']='partial';data['state']['tasks']={'next_id':True,'items':[]}
+        code=generate(source).split('<script>')[1].split('</script>')[0]
+        runner="const vm=require('vm');const data=JSON.parse(require('fs').readFileSync(0,'utf8'));const c=vm.createContext({document:{querySelectorAll:()=>[],getElementById:()=>null}});vm.runInContext(data.code,c);c.saved=data.raw;process.stdout.write(vm.runInContext('JSON.stringify(restoreState(saved))',c));"
+        result=subprocess.run(['node','-e',runner],input=json.dumps({'code':code,'raw':json.dumps(data)}),capture_output=True,text=True,check=True)
+        self.assertEqual(json.loads(result.stdout),{k:plain(v) for k,v in p.states.items()})

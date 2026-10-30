@@ -23,6 +23,9 @@ def snapshot(raw):
 
 if __name__=='__main__':
     sdk=Path(os.environ['ANDROID_HOME'])
+    properties={key:run('adb','shell','getprop',key).strip() for key in ('ro.build.version.sdk','ro.build.version.release','ro.product.model','ro.product.cpu.abi','ro.kernel.qemu')}
+    if properties['ro.build.version.sdk']!='35' or properties['ro.kernel.qemu']!='1':
+        raise SystemExit('Requires disposable API 35 emulator; no app was changed')
     before_apk=ROOT/'build/navigation-baseline/app/build/outputs/apk/debug/app-debug.apk'
     after_apk=ROOT/'build/navigation-android/app/build/outputs/apk/debug/app-debug.apk'
     package=project_identity(ROOT/'build/navigation-android')
@@ -57,7 +60,6 @@ if __name__=='__main__':
     Path(str(prefix)+'-after.xml').write_text(after)
     Path(str(prefix)+'-ui.xml').write_text(ui)
     with Path(str(prefix)+'.png').open('wb') as handle:subprocess.run(['adb','exec-out','screencap','-p'],stdout=handle,check=True)
-    properties={key:run('adb','shell','getprop',key).strip() for key in ('ro.build.version.sdk','ro.build.version.release','ro.product.model','ro.product.cpu.abi','ro.kernel.qemu')}
     assert properties['ro.build.version.sdk']=='35' and properties['ro.kernel.qemu']=='1'
     Path(str(prefix)+'.json').write_text(json.dumps({'baseline_sha':BASELINE,'baseline_apk':old,'rc_apk':new,'preserved_tasks':expected,'emulator':properties,'result':'PASS'},sort_keys=True,indent=2)+'\n')
     # Reset only this disposable emulator app for the independent existing lifecycle scenario.

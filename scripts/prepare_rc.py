@@ -73,11 +73,32 @@ def artifact(api,run,name,sha):
     return read_zip(raw),info,raw
 
 
+def checked_wheel_inventory(wheel):
+    # This project ships modules plus data, never install-time scripts or extensions.
+    from scripts.audit_dist import EXPECTED_MODULES
+    expected={name:(ROOT/name).read_bytes() for name in EXPECTED_MODULES}
+    data_root='sedrava-'+VERSION+'.data/data/share/sedrava/'
+    for name in ('README.md','CHANGELOG.md','LICENSE'):
+        expected[data_root+name]=(ROOT/name).read_bytes()
+    for directory,patterns in [('docs',('*.md',)),('examples',('*.sdr','README.md'))]:
+        for pattern in patterns:
+            for file in (ROOT/directory).glob(pattern):expected[data_root+directory+'/'+file.name]=file.read_bytes()
+    info='sedrava-'+VERSION+'.dist-info/'
+    metadata={info+name for name in ('licenses/LICENSE','METADATA','WHEEL','entry_points.txt','top_level.txt','RECORD')}
+    if set(wheel)!=set(expected)|metadata:raise ValueError('Unexpected/missing wheel inventory, including install-time scripts')
+    if any(wheel[name]!=data for name,data in expected.items()):raise ValueError('Wheel modules/data differ from checked source')
+    if wheel[info+'entry_points.txt'].strip()!=b'[console_scripts]\nsedrava = sedrava_cli:main':raise ValueError('Unexpected installed command')
+    meta=email.message_from_bytes(wheel[info+'METADATA'])
+    if meta.get_all('Requires-Dist',[])!=['tomli>=2; python_version < "3.11" and extra == "test"']:
+        raise ValueError('Unexpected runtime/optional dependency')
+
+
 def check_distributions(files):
     wheels=[n for n in files if n.endswith('.whl')];sdists=[n for n in files if n.endswith('.tar.gz')]
     if wheels!=['sedrava-'+VERSION+'-py3-none-any.whl'] or sdists!=['sedrava-'+VERSION+'.tar.gz']:
         raise ValueError('Unexpected distribution names/count/version')
     wheel=read_zip(files[wheels[0]]);sdist=read_sdist(files[sdists[0]])
+    checked_wheel_inventory(wheel)
     metadata_names=[n for n in wheel if n.endswith('.dist-info/METADATA')]
     source_metadata=[n for n in sdist if n=='sedrava-'+VERSION+'/PKG-INFO']
     if len(metadata_names)!=1 or len(source_metadata)!=1:raise ValueError('Missing package metadata')
@@ -203,9 +224,11 @@ def main():
     web,web_info,_=artifact(api,runs['alpha.yml'],'sedrava-web-examples',args.sha)
     traces,trace_info,trace_raw=artifact(api,runs['alpha.yml'],'sedrava-browser-traces',args.sha)
     summary,ci=test_evidence(api,runs,nav)
+    expected_web={}
     for source in sorted((ROOT/'examples').glob('*.sdr')):
         text=source.read_text(encoding='utf-8');program=parse(text)
-        if program.widgets and web.get(source.stem+'.html')!=generate(text).encode():raise ValueError('Tested Web bytes differ from checked source')
+        if program.widgets:expected_web[source.stem+'.html']=generate(text).encode()
+    if web!=expected_web:raise ValueError('Tested Web inventory/bytes differ from checked source')
     payload=check_distributions(dist)
     payload['web-examples.zip']=deterministic_zip(web)
     payload['chromium-traces.zip']=trace_raw

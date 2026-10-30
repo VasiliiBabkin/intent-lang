@@ -17,7 +17,7 @@ from sedrava_cli import VERSION as CLI_VERSION
 from android_codegen_v03 import generate
 from scripts.rc_archive import read_zip,read_sdist,inspect_payload,deterministic_zip,sha256
 from scripts.rc_api import SafeRedirect
-from scripts.prepare_rc import validate_run,artifact,write_bundle,verify_bundle
+from scripts.prepare_rc import validate_run,artifact,write_bundle,verify_bundle,checked_wheel_inventory
 from scripts.audit_release_security import audit
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -79,6 +79,9 @@ class RCPreparationTests(unittest.TestCase):
             previous=metadata[key];metadata[key]=value
             with self.subTest(key=key),self.assertRaises(ValueError):artifact(Api(),{'id':7},'evidence',SHA)
             metadata[key]=previous
+    def test_unexpected_install_time_wheel_script_is_rejected(self):
+        with self.assertRaisesRegex(ValueError,'inventory'):
+            checked_wheel_inventory({'sedrava-'+VERSION+'.data/scripts/sedrava':b'not reviewed code'})
     def test_cross_host_redirect_drops_token(self):
         req=urllib.request.Request('https://api.github.com/repos/x/y/actions/artifacts/42/zip',headers={'Authorization':'Bearer example'})
         redirected=SafeRedirect().redirect_request(req,None,302,'',{},'https://example.blob.core.windows.net/artifact')

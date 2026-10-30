@@ -140,13 +140,16 @@ def parse_expr(source, types):
     node = ReplaceLiterals().visit(node)
     if sum(1 for _ in ast.walk(node)) > MAX_AST_NODES:
         raise ValueError("Expression exceeds complexity limit")
-    # Normalize the signed minimum before evaluating its positive AST operand.
-    for parent in ast.walk(node):
-        for field, value in ast.iter_fields(parent):
-            if isinstance(value, ast.UnaryOp) and isinstance(value.op, ast.USub) and isinstance(value.operand, ast.Constant) and type(value.operand.value) is int and value.operand.value == -INT_MIN:
-                setattr(parent, field, ast.Constant(INT_MIN))
-    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Constant) and type(node.operand.value) is int and node.operand.value == -INT_MIN:
-        node = ast.Constant(INT_MIN)
+    # The signed minimum must fold in every AST position, including list-valued
+    # fields (call arguments and comparison operands), before range validation.
+    class SignedMinimum(ast.NodeTransformer):
+        def visit_UnaryOp(self, item):
+            self.generic_visit(item)
+            if (isinstance(item.op, ast.USub) and isinstance(item.operand, ast.Constant)
+                    and type(item.operand.value) is int and item.operand.value == -INT_MIN):
+                return ast.copy_location(ast.Constant(INT_MIN), item)
+            return item
+    node = SignedMinimum().visit(node)
     for item in ast.walk(node):
         if isinstance(item, ast.Constant):
             checked_value(item.value)

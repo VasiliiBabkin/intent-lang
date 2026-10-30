@@ -160,19 +160,25 @@ def generate(source, output, _program=None, _domain_only=False, application_id=N
               "  } catch (_: ArithmeticException) { state } catch (_: IllegalArgumentException) { state }", "}"]
     if (program.records or program.has_navigation):
         lines += kt_persistence(program, quoted, literal)
-    if (program.records or program.has_navigation) and program.persistent:
-        lines += ['private fun persistState(prefs: android.content.SharedPreferences, state: SedravaState): Boolean = try {',
-                  '  prefs.edit().putString("snapshot", snapshotState(state)).commit()',
-                  '} catch (_: Exception) { false }']
-    else:
-        if program.persistent:
-            lines += ["private fun persistState(prefs: android.content.SharedPreferences, state: SedravaState) {", "  prefs.edit().apply {"]
-            if (program.records or program.has_navigation):
-                lines.append('    putString("snapshot", snapshotState(state))')
-            for key in (() if (program.records or program.has_navigation) else program.persistent):
-                method = {int: "putInt", bool: "putBoolean", str: "putString"}[type(program.states[key])]
-                lines.append("    " + method + "(" + quoted(key) + ", state." + user[key] + ")")
-            lines += ["  }.apply()", "}"]
+    if program.persistent:
+        if not (program.records or program.has_navigation):
+            lines += ['internal fun savedStateValid(saved: Map<String, *>): Boolean {',
+                      '  val restored=restoreState(saved)',
+                      '  return saved.all { (key,value) -> when(key) {']
+            for key in program.persistent:
+                val=program.states[key]
+                lines.append('    '+quoted(key)+' -> value is '+kind(val)+' && value == restored.'+user[key])
+            lines += ['    else -> false', '  } }', '}']
+        condition = '(!prefs.contains("snapshot") || snapshotValid(prefs.all["snapshot"]))' if (program.records or program.has_navigation) else 'savedStateValid(prefs.all)'
+        lines += ['internal fun persistState(prefs: android.content.SharedPreferences, state: SedravaState): Boolean = try {',
+                  '  if (!'+condition+') false else prefs.edit().apply {']
+        if program.records or program.has_navigation:
+            lines.append('    putString("snapshot", snapshotState(state))')
+        else:
+            for key in program.persistent:
+                method={int:'putInt',bool:'putBoolean',str:'putString'}[type(program.states[key])]
+                lines.append('    '+method+'('+quoted(key)+', state.'+user[key]+')')
+        lines += ['  }.commit()', '} catch (_: Exception) { false }']
     if _domain_only:
         target.write_text("\n".join(lines)+"\n",encoding="utf-8")
         return target
@@ -192,9 +198,9 @@ def generate(source, output, _program=None, _domain_only=False, application_id=N
             continue
         lines.append("  var " + user[key] + " by rememberSaveable { mutableStateOf(restoredState." + user[key] + ") }")
     if (program.records or program.has_navigation) and program.persistent:
-        lines.append('  var actionError by remember { mutableStateOf(if (prefs.contains("snapshot") && !snapshotValid(prefs.all["snapshot"])) "Saved data rejected; defaults restored" else "") }')
+        lines.append('  var actionError by remember { mutableStateOf(if (prefs.contains("snapshot") && !snapshotValid(prefs.all["snapshot"])) "Saved data rejected; original retained; defaults shown" else "") }')
     else:
-        lines.append('  var actionError by remember { mutableStateOf("") }')
+        lines.append('  var actionError by remember { mutableStateOf('+('if (!savedStateValid(prefs.all)) "Saved data rejected; original retained; defaults shown" else ""' if program.persistent else '""')+') }')
     for key, expr in (program.derived or {}).items():
         lines.append("  val " + user[key] + " = " + kt(expr, user))
     lines += ["  Column(modifier = Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {",
@@ -230,7 +236,7 @@ def generate(source, output, _program=None, _domain_only=False, application_id=N
             if (program.records or program.has_navigation):
                 lines.append("          savedSnapshot = snapshotState(next, true)")
             if program.persistent:
-                lines.append('          if (!persistState(prefs,next)) actionError = "Could not save state"' if (program.records or program.has_navigation) else "          persistState(prefs, next)")
+                lines.append('          if (!persistState(prefs,next)) actionError = "Could not save state"' if (program.records or program.has_navigation) else '          if (!persistState(prefs,next)) actionError = "Could not save state; changes may be temporary"')
             message = "Text must contain at most 1024 Unicode scalar values and satisfy the declared rules" if text else "Value does not satisfy the declared rules"
             lines += ["        }", "      }, isError = error_" + key + ", supportingText = { if (error_" + key + ") Text(" + quoted(message) + ") }, modifier = Modifier.fillMaxWidth(), label = { Text(" + quoted(key) + ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType." + ("Text" if text else "Number") + "))", "    }"]
         elif widget[0] == "show_text":
@@ -244,8 +250,8 @@ def generate(source, output, _program=None, _domain_only=False, application_id=N
             if (program.records or program.has_navigation):
                 lines.append("        savedSnapshot = snapshotState(next, true)")
             if program.persistent:
-                lines.append('        actionError = if (persistState(prefs,next)) "" else "Could not save state"' if (program.records or program.has_navigation) else "        persistState(prefs, next)")
-            lines += [('' if (program.records or program.has_navigation) and program.persistent else '        actionError = ""'), '      } else { actionError = "Action rejected: constraints or arithmetic/value error" }', "    }, modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)) { Text(" + quoted(label) + ") }"]
+                lines.append('        actionError = if (persistState(prefs,next)) "" else "Could not save state"' if (program.records or program.has_navigation) else '        if (!persistState(prefs,next)) actionError = "Could not save state; changes may be temporary"')
+            lines += [('' if program.persistent else '        actionError = ""'), '      } else { actionError = "Action rejected: constraints or arithmetic/value error" }', "    }, modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)) { Text(" + quoted(label) + ") }"]
     lines += ["  }", "}"]
     target.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return target

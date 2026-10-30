@@ -50,7 +50,9 @@ fingerprint, all and only persistent keys, and lists containing `next_id` and
 ordered `items` (`id` plus exact declared fields). All fields, IDs, capacities,
 scalar types and final rules are checked before restoration. Wrong schema,
 unknown/missing fields, duplicate keys, malformed/oversized JSON reject the entire
-snapshot. No migrations; report rejection and retain defaults. Maximum encoded
+snapshot. No migrations; report rejection and show defaults. Rejected original
+data is retained and cannot be overwritten by subsequent edits. Back up before
+any manual reset; see [compatibility](COMPATIBILITY_010.md). Maximum encoded
 snapshot and full accepted state envelope: 200000 UTF-16 code units on every target.
 JSON numbers must use int32 integer syntax (no fraction/exponent).
 The full-state envelope bound is checked on the final candidate; intermediate

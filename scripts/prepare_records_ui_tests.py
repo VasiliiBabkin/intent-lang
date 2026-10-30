@@ -18,6 +18,16 @@ import org.junit.Rule
 import org.junit.Test
 class RecordsUiTest {
   @get:Rule val ui = createAndroidComposeRule<MainActivity>()
+  @Test fun rejectedSnapshotIsRetainedOnSave() {
+    val prefs=ui.activity.getSharedPreferences("audit_quarantine",android.content.Context.MODE_PRIVATE)
+    for(raw in listOf("{broken",snapshotState(SedravaState()).replace("\\\"schema\\\":1","\\\"schema\\\":2"))) {
+      prefs.edit().clear().putString("snapshot",raw).commit()
+      org.junit.Assert.assertEquals(SedravaState(),restoreState(prefs.all))
+      org.junit.Assert.assertFalse(persistState(prefs,SedravaState()))
+      org.junit.Assert.assertEquals(raw,prefs.getString("snapshot",null))
+    }
+    prefs.edit().clear().commit()
+  }
   @Test fun addEditCompleteRotateDeleteAndReject() {
     ui.onNodeWithText("No tasks yet / Список пуст").assertExists()
     ui.onNode(hasSetTextAction()).performTextReplacement("first 😀")

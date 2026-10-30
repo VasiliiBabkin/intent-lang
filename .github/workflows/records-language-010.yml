@@ -39,6 +39,10 @@ jobs:
           python -m sedrava_cli build android tests/fixtures/records_generic.sdr --output build/generic-android
           python scripts/prepare_records_android_tests.py build/generic-android --source tests/fixtures/records_generic.sdr
           gradle -p build/generic-android --no-daemon :app:assembleDebug :app:testDebugUnitTest
+      - name: Independent bounded Python-JavaScript-Kotlin boundary corpus
+        run: |
+          python scripts/prepare_stability_android_tests.py build/stability-android
+          gradle -p build/stability-android --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -61,6 +65,8 @@ jobs:
           path: |
             build/tasks-android/app/build/outputs/apk
             build/tasks-android/app/build/reports
+            build/stability-android/app/build/test-results
+            build/stability-android/app/build/reports
             build/tasks-android/app/build/test-results
             build/tasks-android/app/build/outputs/androidTest-results
             build/tasks-android/app/src

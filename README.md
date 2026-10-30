@@ -106,3 +106,5 @@ Measured RC readiness / Фактическая готовность RC: [report 
 [Release notes EN](docs/RELEASE_NOTES_0_10_0rc1.en.md) · [RU](docs/RELEASE_NOTES_0_10_0rc1.ru.md) · [Upgrade/rollback EN](docs/UPGRADE_0_10_0rc1.en.md) · [RU](docs/UPGRADE_0_10_0rc1.ru.md) · [RC report](docs/RC_010_REPORT.md).
 Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has been published.
 Установка — из проверенного локального wheel в отдельное окружение; автоматической миграции данных нет.
+
+Stability / стабильность: [audit](docs/STABILITY_AUDIT_010.md), [compatibility](docs/COMPATIBILITY_010.md), [release gates](docs/STABLE_RELEASE_GATES_010.md). Stabilization changes are not a new release; rc1 artifacts remain unchanged.

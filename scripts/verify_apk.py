@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import json
 
 
 def verify(apk, sdk):
@@ -18,6 +19,14 @@ def verify(apk, sdk):
     if not package_match:
         raise SystemExit('Missing APK application ID')
     package = package_match[1]
+    # Check actual APK identity against generator output, not only AndroidX permission names.
+    for parent in apk.resolve().parents:
+        metadata = parent / 'sedrava-android.json'
+        if metadata.is_file():
+            expected = json.loads(metadata.read_text(encoding='utf-8'))['application_id']
+            if package != expected:
+                raise SystemExit(f'APK identity mismatch: expected {expected}, found {package}')
+            break
     permissions = run('aapt', 'dump', 'permissions')
     print(permissions)
     used = set(re.findall(r"uses-permission: name='([^']+)'", permissions))

@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -67,6 +69,8 @@ jobs:
         run: |
           python scripts/verify_apk.py build/navigation-android/app/build/outputs/apk/debug/app-debug.apk
           python scripts/verify_apk.py build/tasks-android/app/build/outputs/apk/debug/app-debug.apk
+          python scripts/verify_apk.py build/navigation-scalar/app/build/outputs/apk/debug/app-debug.apk
+          sha256sum build/navigation-android/app/build/outputs/apk/debug/app-debug.apk build/tasks-android/app/build/outputs/apk/debug/app-debug.apk build/navigation-web/index.html > build/readiness-SHA256SUMS
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -87,6 +91,9 @@ jobs:
             build/tasks-relaunch.*
             build/tasks-preferences.xml
             build/navigation-web
+            build/readiness-SHA256SUMS
+            build/navigation-scalar/sedrava-android.json
+            build/navigation-scalar/app/build/outputs/apk
             build/navigation-scalar/app/build/reports/tests
             build/navigation-pages/app/build/reports/tests
             build/navigation-font-scale.txt

@@ -42,7 +42,8 @@ jobs:
         run: |
           python -m sedrava_cli build android tests/fixtures/navigation_scalar.sdr --output build/navigation-scalar --application-id com.example.sedrava.scalar
           python scripts/prepare_navigation_android_tests.py build/navigation-scalar --source tests/fixtures/navigation_scalar.sdr
-          gradle -p build/navigation-scalar --no-daemon :app:assembleDebug :app:testDebugUnitTest
+          python scripts/prepare_navigation_ui_tests.py build/navigation-scalar --scalar
+          gradle -p build/navigation-scalar --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:assembleDebugAndroidTest
       - name: Independent second app APK, JVM, Lint and UI harness
         run: |
           python -m sedrava_cli build android examples/task_manager.sdr --output build/tasks-android
@@ -63,6 +64,7 @@ jobs:
           disable-animations: true
           script: |
             bash scripts/test_navigation_emulator.sh
+            gradle -p build/navigation-scalar --no-daemon :app:connectedDebugAndroidTest
             bash scripts/test_records_emulator.sh
             bash scripts/test_side_by_side.sh
       - name: Verify APK
@@ -94,6 +96,7 @@ jobs:
             build/readiness-SHA256SUMS
             build/navigation-scalar/sedrava-android.json
             build/navigation-scalar/app/build/outputs/apk
+            build/navigation-scalar/app/build/outputs/androidTest-results
             build/navigation-scalar/app/build/reports/tests
             build/navigation-pages/app/build/reports/tests
             build/navigation-font-scale.txt

@@ -7,6 +7,7 @@ action bump: n = n + 1
 screen main:
     text "Home"
     input n label "Count"
+    input n label "Mirror count"
     display javascript
     display kotlin
     button "Next" -> next_page

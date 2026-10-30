@@ -64,3 +64,31 @@ class NavigationUiTest {
   }
 }
 '''.replace('org.sedrava.generated', project_identity(project)),encoding='utf-8');print(p)
+
+if '--scalar' in sys.argv:
+    p.write_text("""package PACKAGE
+import androidx.compose.ui.test.*
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import org.junit.Rule
+import org.junit.Test
+class ScalarUiTest {
+  @get:Rule val ui=createAndroidComposeRule<MainActivity>()
+  @Test fun repeatedEditorsDoNotEnableStaleActions() {
+    ui.onNodeWithText("Count",substring=false).assertExists()
+    val first=ui.onAllNodes(hasSetTextAction())[0]
+    val mirror=ui.onAllNodes(hasSetTextAction())[1]
+    first.performTextReplacement("12")
+    ui.waitForIdle()
+    mirror.assertTextContains("12")
+    first.performTextReplacement("1.5")
+    ui.onNodeWithText("Next").assertIsNotEnabled()
+    mirror.performTextReplacement("12") // Same accepted value must not clear another editor's error.
+    ui.onNodeWithText("Next").assertIsNotEnabled()
+    first.performTextReplacement("12")
+    ui.onNodeWithText("Next").assertIsEnabled()
+    ui.onNodeWithText("Next").performScrollTo().performClick()
+    ui.onNodeWithTag("screen-other").assertExists()
+    ui.onNodeWithText("n: 13").assertExists()
+  }
+}
+""".replace('PACKAGE',project_identity(project)),encoding='utf-8')

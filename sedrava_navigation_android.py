@@ -115,7 +115,8 @@ import androidx.compose.ui.semantics.contentDescription
                 continue
             if w.kind.startswith('input'):
                 key=args[0]; label=args[1] if len(args)>1 else key
-                ui += [pad+'NavigationInput('+q(key)+','+q(label)+','+names[key]+'.toString(),'+str(w.kind=='input_text').lower()+',onInvalid={ bad -> invalidFields=if(bad) invalidFields+'+q(key)+' else invalidFields-'+q(key)+' }) { value -> commit(editSession(session,'+q(key)+',value)) }']
+                ident=screen.name+':'+str(index)
+                ui += [pad+'NavigationInput('+q(key)+','+q(label)+','+names[key]+'.toString(),'+str(w.kind=='input_text').lower()+',onInvalid={ bad -> invalidFields=if(bad) invalidFields+'+q(ident)+' else invalidFields-'+q(ident)+' }) { value -> commit(editSession(session,'+q(key)+',value)) }']
             elif w.kind=='button':
                 binding=program.navigation.get(args[1]); allow_invalid=bool(binding and not binding.action)
                 ui += [pad+'Button(enabled='+('true' if allow_invalid else 'invalidFields.isEmpty()')+',onClick={ commit(dispatchSession(session,'+q(args[1])+')) },modifier=Modifier.fillMaxWidth().heightIn(min=48.dp),shape=RoundedCornerShape(14.dp)) { Text('+q(args[0])+') }']
@@ -138,7 +139,7 @@ import androidx.compose.ui.semantics.contentDescription
     ui += ['      } }','      Text("Offline by design. A little progress, every day.",style=MaterialTheme.typography.labelSmall,color=Color(0xFF526459))','    }','  }','}',
            '@Composable private fun NavigationInput(key: String,label: String,value: String,text: Boolean,onInvalid: (Boolean)->Unit,onValue: (Any?)->Boolean) {',
            '  var draft by remember(key) { mutableStateOf(value) };var invalid by remember(key) { mutableStateOf(false) }',
-           '  LaunchedEffect(value) { draft=value;invalid=false }',
+           '  LaunchedEffect(value) { draft=value;invalid=false;onInvalid(false) }',
            '  OutlinedTextField(value=draft,onValueChange={ raw -> draft=raw;val parsed:Any?=if(text) raw else raw.trim().takeIf { it.matches(Regex("-?[0-9]+")) }?.toIntOrNull();invalid=!onValue(parsed);onInvalid(invalid) },label={ Text(label) },isError=invalid,supportingText={ if(invalid)Text("Enter a valid value that satisfies the app rules.") },modifier=Modifier.fillMaxWidth().testTag("input-"+key),shape=RoundedCornerShape(14.dp),keyboardOptions=KeyboardOptions(keyboardType=if(text)KeyboardType.Text else KeyboardType.Number))',
            '}']
     target.write_text(base+navigation_functions(program)+'\n'.join(ui)+'\n',encoding='utf-8')

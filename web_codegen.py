@@ -15,8 +15,10 @@ def json_script(value, **kwargs):
 def js_expr(node, names):
     if isinstance(node, ast.Attribute): return '(' + js_expr(node.value, names) + ')[' + json_script(node.attr) + ']'
     if isinstance(node, ast.Call):
-        if hasattr(node, 'record_type'): return '({' + ','.join('[' + json_script(k.arg) + ']:' + js_expr(k.value, names) for k in node.keywords) + '})'
-        return 'collectionOp(' + json_script(node.func.id) + ',' + str(node.collection_type.capacity) + ',' + ','.join(js_expr(a, names) for a in node.args) + ')' 
+        if hasattr(node, 'record_type'):
+            fields = {k.arg: k.value for k in node.keywords}
+            return '({' + ','.join('[' + json_script(k) + ']:' + js_expr(fields[k], names) for k, _ in node.record_type.fields) + '})'
+        return 'collectionOp(' + json_script(node.func.id) + ',' + str(node.collection_type.capacity) + ',' + ','.join(js_expr(a, names) for a in node.args) + ')'
     if isinstance(node, ast.Constant):
         return json_script(node.value)
     if isinstance(node, ast.Name):
@@ -122,7 +124,7 @@ def generate(source):
         "function validText(value) { if (typeof value !== 'string') return false; let count = 0; for (const char of value) { const cp = char.codePointAt(0); if ((cp >= 0xD800 && cp <= 0xDFFF) || ++count > 1024) return false; } return true; }",
         "function validValue(value, initial) { return typeof value === typeof initial && (typeof value === 'string' ? validText(value) : typeof value === 'number' ? Number.isInteger(value) && value >= -2147483648 && value <= 2147483647 : typeof value === 'boolean'); }",
         "function checkResources(nextState) { if (JSON.stringify({schema:1,signature,state:nextState}).length > 200000) throw Error('State exceeds resource limit'); }" if program.records else "function checkResources(_) {}",
-        "function checkStateValues(nextState) { if (Object.keys(nextState).length !== Object.keys(initialState).length) throw Error('Invalid keys'); checkResources(nextState); for (const key of Object.keys(initialState)) { if (!Object.hasOwn(nextState, key) || !(Object.hasOwn(collectionTypes, key) ? validCollection(nextState[key], collectionTypes[key]) : validValue(nextState[key], initialState[key]))) throw new RangeError('Invalid Sedrava value'); } }",
+        "function checkStateValues(nextState) { if (Object.keys(nextState).length !== Object.keys(initialState).length) throw Error('Invalid keys'); for (const key of Object.keys(initialState)) { if (!Object.hasOwn(nextState, key) || !(Object.hasOwn(collectionTypes, key) ? validCollection(nextState[key], collectionTypes[key]) : validValue(nextState[key], initialState[key]))) throw new RangeError('Invalid Sedrava value'); } }",
         "function restoreState(saved) { const restored = { ...initialState }; if (saved && typeof saved === 'object' && !Array.isArray(saved)) { for (const key of persistentKeys) { if (Object.hasOwn(saved, key) && validValue(saved[key], initialState[key])) restored[key] = saved[key]; } } return validateState(restored) ? restored : { ...initialState }; }",
         "function editState(current, key, value) { if (!Object.hasOwn(initialState, key)) return current; const next = { ...current, [key]: value }; return validateState(next) ? next : current; }",
         "const actions = {",
@@ -132,7 +134,7 @@ def generate(source):
         *derived_lines,
         "}",
         "function validateState(nextState) {",
-        "  try { checkStateValues(nextState); const derivedState = { __proto__: null, ...nextState };",
+        "  try { checkResources(nextState); checkStateValues(nextState); const derivedState = { __proto__: null, ...nextState };",
         *derived_lines,
         "    return " + rules + "; } catch (_) { return false; }",
         "}",

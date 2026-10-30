@@ -6,7 +6,7 @@ ROOT=Path(__file__).resolve().parents[1]
 SOURCE=(ROOT/'examples/task_manager.sdr').read_text(encoding='utf-8')
 
 def steps():
-    return [('action','add'),('input','title','Привет 😀'),('action','add'),('input','title','second'),('action','add'),('input','selected',1),('action','complete'),('input','title','renamed é'),('action','rename'),('action','delete'),('input','selected',1),('action','complete'),('input','title','third'),('action','add'),('input','selected',3),('action','complete'),('input','title','😀'*1025),('input','title',''),('action','rename'),('roundtrip',)]
+    return [('action','add'),('input','title','Привет 😀'),('action','add'),('input','title','second'),('action','add'),('input','selected',1),('action','complete'),('input','title','renamed é'),('action','rename'),('action','delete'),('input','selected',1),('action','complete'),('input','title','third'),('action','add'),('input','selected',3),('action','complete'),('input','title','😀'*1025),('input','title',''),('action','rename'),('input','title','controls \b\f\n\r\t\x00'),('action','add'),('roundtrip',)]
 
 def trace(source=SOURCE, sequence=None):
     program=parse(source);state=program.states.copy();out=[]
@@ -18,7 +18,7 @@ def trace(source=SOURCE, sequence=None):
             else: candidate=restore_snapshot(program,serialize_state(program,state));accepted=True
             if accepted: state=candidate
         except ValueError: accepted=False
-        out.append({'state':{k:plain(v) for k,v in state.items()},'accepted':accepted})
+        out.append({'state':{k:plain(v) for k,v in state.items()},'accepted':accepted,'snapshot':serialize_state(program,state)})
         if not accepted: assert state==before
     return out
 
@@ -32,3 +32,9 @@ def invalid_snapshots():
     data=json.loads(raw);data['state']['tasks']['items']*=101;cases.append(json.dumps(data))
     data=json.loads(raw);data['signature']='old';cases.append(json.dumps(data))
     return cases
+
+
+def resource_source():
+    fields='\n'.join('    f'+str(i)+': text' for i in range(16))
+    record='Chunk('+','.join('f'+str(i)+'=label' for i in range(16))+')'
+    return ('app "Resource bound"\nrecord Chunk:\n'+fields+'\nstate items: list<Chunk>(max=100) = []\nstate selected = 0\nstate label = "'+'a'*1024+'"\npersist items\naction add: items = append(items, '+record+')\naction transient:\n    items = append(items, '+record+')\n    items = remove(items, next_id(items) - 1)\nscreen main:\n    list items select selected\n    button "Add" -> add\n')

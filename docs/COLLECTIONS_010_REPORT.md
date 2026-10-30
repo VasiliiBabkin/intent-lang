@@ -27,18 +27,22 @@ Local development evidence (2026-10-30):
 
 | Check | Result |
 | --- | --- |
-| Python suite including 0.9/text regressions | 118 tests passed |
+| Python suite including 0.9/text regressions | 119 tests passed |
 | Python/generated JavaScript oracle | passed, including accepted/rejected CRUD and strict snapshot corpus |
 | Real Chromium | 17 scenarios passed, including task CRUD, reload, capacity, corrupt storage and invalid input |
-| Kotlin/JVM emitted state functions | 3 JUnit tests passed with Kotlin 2.0.21; expanded snapshot corpus awaits rerun |
-| Wheel/sdist metadata and module audit | passed; clean install to be repeated after final changes |
-| Android APK, Gradle JVM tests, Lint | running; not yet claimed successful |
-| Compose emulator interaction/rotation | workflow added; not yet verified |
+| Kotlin/JVM emitted state functions | 3 task-manager + 1 generic-record JUnit tests passed; shared oracle includes Unicode/control text, int32, strict snapshots and canonical JSON |
+| Wheel/sdist metadata and module audit | passed; final clean wheel installation recorded in PR validation |
+| Android APK, Gradle JVM tests, Lint | passed locally (JDK 17, SDK 35, Gradle 8.11.1), including instrumentation compilation and signature/permission audit |
+| Compose emulator interaction/rotation | passed on Android 15 x86_64: CRUD, invalid input, orientation change and Activity recreation; force-stop/relaunch verification added in the follow-up |
 | Physical Android device | unavailable; NOT tested for this increment |
 
 The initial PR head `bba0695` had seven successful workflows. That evidence covers
-only the original reference increment, not this integration. Final-head CI links
-and artifacts will be recorded after the implementation checks complete.
+only the original reference increment, not this integration. The first integrated tree `1a058c0` passed all eight PR workflows, including the
+[Android emulator run](https://github.com/VasiliiBabkin/sedrava/actions/runs/41001733230).
+Its [APK, standalone Web and test evidence](https://github.com/VasiliiBabkin/sedrava/actions/runs/41001733230/artifacts/12954166109)
+are downloadable without a deployment. The PR description records final-head CI
+and artifacts after follow-up generic-record and process-relaunch checks.
+A green earlier tree does not establish the result for a later revision.
 
 ## Limits / Ограничения
 
@@ -57,3 +61,25 @@ No physical-device or accessibility certification is implied by JVM/APK checks.
 успешной. Публикация и слияние PR не выполняются.
 
 Guides: [English](RECORDS_QUICKSTART.en.md), [Русский](RECORDS_QUICKSTART.ru.md).
+
+## Reproduction / Повторение
+
+```sh
+python -m unittest discover -s tests -v
+python scripts/test_web_browser.py
+python -m sedrava_cli build android examples/task_manager.sdr --output build/tasks-android
+python scripts/prepare_records_android_tests.py build/tasks-android
+python scripts/prepare_records_ui_tests.py build/tasks-android
+gradle -p build/tasks-android --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:assembleDebugAndroidTest
+# With a running emulator / при запущенном эмуляторе:
+bash scripts/test_records_emulator.sh
+```
+
+The test-preparation scripts add test sources and test dependencies; they do not
+rewrite generated application Kotlin. Process relaunch checks inspect actual
+SharedPreferences after force-stop and verify restored text through UIAutomator.
+The additional generic fixture covers two record types, reordered constructor
+fields, int32 field limits, overflow rollback and nested capacity enforcement.
+Python/Web additionally test the full-state resource bound and a transaction that
+exceeds it temporarily but returns to a valid final candidate. The resource limit
+applies to accepted final state; declared capacities still apply to each operation.

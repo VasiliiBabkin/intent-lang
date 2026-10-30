@@ -27,8 +27,8 @@ Sedrava should turn concise, declarative descriptions into useful applications w
 | Version | Focus / Направление | Exit criteria / Результат |
 | --- | --- | --- |
 | **0.9** | Reliable foundations / Надёжная основа: checked arithmetic, persistence, numeric input, conditional widgets, diagnostics | Clear input validation feedback; Android/Web regression and conformance tests; device check |
-| **0.10** | Rich UI / Интерфейс: text fields, toggles, lists, cards, navigation, themes, responsive layout | Multi-screen example runs on Android and Web; accessibility basics |
-| **0.11** | Data / Данные: strings, collections, records, local data model | Type and persistence semantics specified; migration strategy; working sample |
+| **0.10** | Text, records, bounded collections and richer UI / Строки, записи, списки и интерфейс | Multi-screen example runs on Android and Web; accessibility basics |
+| **0.11** | Data / Данные: migrations, nested schemas, local data model | Type and persistence semantics specified; migration strategy; working sample |
 | **0.12** | Device capabilities / Устройство: files, notifications, permissions, camera | Explicit capability declarations, graceful unsupported-platform behavior |
 | **0.13** | App architecture / Архитектура: reusable components, modules, structured errors | Tested multi-file reference application |
 | **0.14** | Developer tools / Инструменты: editor integration, syntax highlighting, completion, preview, debugger | Documented, repeatable edit-build-preview workflow |

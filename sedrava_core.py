@@ -328,7 +328,7 @@ def parse(source):
             while i < len(lines) and lines[i][0] > 0:
                 d, field, n = lines[i]
                 f = re.fullmatch(r"([A-Za-z_][A-Za-z_0-9]*): (int|bool|text)", field)
-                if not f or d != 4 or f[1] == 'id' or f[1] in dict(fields): raise ValueError(f"Line {n}: column {d+1}: invalid record field")
+                if not f or d != 4 or f[1] in ('id', 'true', 'false') or keyword.iskeyword(f[1]) or f[1] in dict(fields): raise ValueError(f"Line {n}: column {d+1}: invalid record field")
                 fields.append((f[1], {'int': int, 'bool': bool, 'text': str}[f[2]]))
                 i += 1
             if not 1 <= len(fields) <= 16: raise ValueError(f"Line {number}: column 1: record field limit")
@@ -395,6 +395,7 @@ def parse(source):
                 elif m := re.fullmatch(r'text (.+)', item): widgets.append(("text", label(m[1], n, widget_depth + 6)))
                 elif m := re.fullmatch(r"value ([A-Za-z_][A-Za-z_0-9]*)", item):
                     if m[1] not in types: raise ValueError(f"Line {n}: unknown state")
+                    if types[m[1]] not in (int, bool, str): raise ValueError(f"Line {n}: column {widget_depth+1}: value requires a scalar; use list for collections")
                     widgets.append(("value", m[1]))
                 elif m := re.fullmatch(r'input ([A-Za-z_][A-Za-z_0-9]*)', item):
                     if m[1] not in states or type(states[m[1]]) not in (int, str):

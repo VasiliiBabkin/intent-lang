@@ -38,6 +38,9 @@ Text is at most 1024 Unicode scalar values; no trimming or normalization.
 At most 16 record declarations and 16 collection states; source and expression
 limits remain those of the text core.
 
+`value` displays scalars; use the list widget for collection display.
+Record values are collection elements or derived expressions, not standalone state.
+
 `list tasks select selected` renders ordered records and a Select button per row;
 `selected` must be an int state. Selection is validated like other input. Authors
 use ordinary inputs and actions for add/edit/delete; no target code is required.
@@ -49,7 +52,9 @@ scalar types and final rules are checked before restoration. Wrong schema,
 unknown/missing fields, duplicate keys, malformed/oversized JSON reject the entire
 snapshot. No migrations; report rejection and retain defaults. Maximum encoded
 snapshot and full accepted state envelope: 200000 UTF-16 code units on every target.
-JSON numbers must use integer syntax (no fraction/exponent). Scalar-only programs retain
+JSON numbers must use int32 integer syntax (no fraction/exponent).
+The full-state envelope bound is checked on the final candidate; intermediate
+list operations still enforce their declared capacities. Scalar-only programs retain
 the legacy restoration contract. Storage failure does not alter accepted state.
 
 Русский: записи имеют фиксированные типизированные поля; список хранит порядок и

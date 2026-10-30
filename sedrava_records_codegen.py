@@ -1,6 +1,6 @@
 """Shared collection backend metadata and portable Web runtime emission."""
 import json
-from sedrava_records import ListValue, fingerprint, plain
+from sedrava_records import ListValue, fingerprint
 
 
 def metadata(program):
@@ -102,7 +102,51 @@ def kt_support(program, quoted):
     return lines
 
 
-KT_JSON = '// Strict JSON for snapshots; bounded depth and payload, duplicate keys rejected.\ninternal class SdrJson(val raw: String) {\n  var i=0\n  fun ws() { while(i<raw.length && raw[i] in " \\r\\n\\t") i++ }\n  fun parse(): Any? { require(raw.length<=200000); val result=value(0); ws(); require(i==raw.length); return result }\n  fun value(depth: Int): Any? {\n    require(depth<=32); ws(); require(i<raw.length)\n    if(raw[i]==\'"\') return string()\n    if(raw[i]==\'{\') { i++; val out=linkedMapOf<String,Any?>(); ws(); if(i<raw.length && raw[i]==\'}\'){i++;return out}; while(true){ws();val key=string();ws();require(i<raw.length && raw[i++]==\':\' && !out.containsKey(key));out[key]=value(depth+1);ws();require(i<raw.length);val end=raw[i++];if(end==\'}\')return out;require(end==\',\')} }\n    if(raw[i]==\'[\') { i++; val out=mutableListOf<Any?>();ws();if(i<raw.length && raw[i]==\']\'){i++;return out};while(true){out.add(value(depth+1));ws();require(i<raw.length);val end=raw[i++];if(end==\']\')return out;require(end==\',\')} }\n    for((word,result) in listOf("true" to true,"false" to false,"null" to null)){if(raw.startsWith(word,i)){i+=word.length;return result}}\n    val match=Regex("-?(?:0|[1-9][0-9]*)").find(raw,i)\n    require(match!=null && match.range.first==i);i+=match.value.length\n    return match.value.toDouble()\n  }\n  fun string(): String {\n    require(i<raw.length && raw[i++]==\'"\');val out=StringBuilder()\n    while(i<raw.length){val c=raw[i++];if(c==\'"\')return out.toString();require(c.code>=32);if(c!=\'\\\\\'){out.append(c);continue};require(i<raw.length);when(val e=raw[i++]){\n      \'"\',\'\\\\\',\'/\' -> out.append(e)\n      \'b\' -> out.append(\'\\b\')\n      \'f\' -> out.append(\'\\u000c\')\n      \'n\' -> out.append(\'\\n\')\n      \'r\' -> out.append(\'\\r\')\n      \'t\' -> out.append(\'\\t\')\n      \'u\' -> {require(i+4<=raw.length);val hex=raw.substring(i,i+4);require(hex.all{it in "0123456789abcdefABCDEF"});out.append(hex.toInt(16).toChar());i+=4}\n      else -> throw IllegalArgumentException("Invalid JSON escape")\n    }}\n    throw IllegalArgumentException("Unterminated JSON string")\n  }\n}\ninternal fun sdrInt(value: Any?): Int { require(value is Number); val n=value.toDouble();require(n.isFinite() && n>=Int.MIN_VALUE.toDouble() && n<=Int.MAX_VALUE.toDouble() && n%1.0==0.0);return n.toInt() }\ninternal fun sdrString(value: Any?): String { require(value is String);return checkedText(value) }\ninternal fun sdrBool(value: Any?): Boolean { require(value is Boolean);return value }\ninternal fun sdrObject(value: Any?, keys: Set<String>): Map<*,*> { require(value is Map<*,*> && value.keys==keys);return value }\ninternal fun sdrEncode(value: Any?): String = when(value) {\n  null -> "null"\n  is String -> "\\"" + buildString { for(c in value) when(c){\'"\'->append("\\\\\\"");\'\\\\\'->append("\\\\\\\\");else->if(c.code<32)append("\\\\u%04x".format(c.code))else append(c)} } + "\\""\n  is Boolean, is Int -> value.toString()\n  is Map<*,*> -> value.entries.joinToString(",","{","}"){sdrEncode(it.key as String)+":"+sdrEncode(it.value)}\n  is List<*> -> value.joinToString(",","[","]"){sdrEncode(it)}\n  is SdrList<*> -> sdrEncode(mapOf("next_id" to value.next_id,"items" to value.items.map { mapOf("id" to it.id) + it.record.fields() }))\n  else -> throw IllegalArgumentException("Invalid JSON value")\n}\n'
+KT_JSON = r'''
+// Strict JSON for snapshots; bounded depth and payload, duplicate keys rejected.
+internal class SdrJson(val raw: String) {
+  var i=0
+  fun ws() { while(i<raw.length && raw[i] in " \r\n\t") i++ }
+  fun parse(): Any? { require(raw.length<=200000); val result=value(0); ws(); require(i==raw.length); return result }
+  fun value(depth: Int): Any? {
+    require(depth<=32); ws(); require(i<raw.length)
+    if(raw[i]=='"') return string()
+    if(raw[i]=='{') { i++; val out=linkedMapOf<String,Any?>(); ws(); if(i<raw.length && raw[i]=='}'){i++;return out}; while(true){ws();val key=string();ws();require(i<raw.length && raw[i++]==':' && !out.containsKey(key));out[key]=value(depth+1);ws();require(i<raw.length);val end=raw[i++];if(end=='}')return out;require(end==',')} }
+    if(raw[i]=='[') { i++; val out=mutableListOf<Any?>();ws();if(i<raw.length && raw[i]==']'){i++;return out};while(true){out.add(value(depth+1));ws();require(i<raw.length);val end=raw[i++];if(end==']')return out;require(end==',')} }
+    for((word,result) in listOf("true" to true,"false" to false,"null" to null)){if(raw.startsWith(word,i)){i+=word.length;return result}}
+    val match=Regex("-?(?:0|[1-9][0-9]*)").find(raw,i)
+    require(match!=null && match.range.first==i);i+=match.value.length
+    return match.value.toDouble()
+  }
+  fun string(): String {
+    require(i<raw.length && raw[i++]=='"');val out=StringBuilder()
+    while(i<raw.length){val c=raw[i++];if(c=='"')return out.toString();require(c.code>=32);if(c!='\\'){out.append(c);continue};require(i<raw.length);when(val e=raw[i++]){
+      '"','\\','/' -> out.append(e)
+      'b' -> out.append('\b')
+      'f' -> out.append('\u000c')
+      'n' -> out.append('\n')
+      'r' -> out.append('\r')
+      't' -> out.append('\t')
+      'u' -> {require(i+4<=raw.length);val hex=raw.substring(i,i+4);require(hex.all{it in "0123456789abcdefABCDEF"});out.append(hex.toInt(16).toChar());i+=4}
+      else -> throw IllegalArgumentException("Invalid JSON escape")
+    }}
+    throw IllegalArgumentException("Unterminated JSON string")
+  }
+}
+internal fun sdrInt(value: Any?): Int { require(value is Number); val n=value.toDouble();require(n.isFinite() && n>=Int.MIN_VALUE.toDouble() && n<=Int.MAX_VALUE.toDouble() && n%1.0==0.0);return n.toInt() }
+internal fun sdrString(value: Any?): String { require(value is String);return checkedText(value) }
+internal fun sdrBool(value: Any?): Boolean { require(value is Boolean);return value }
+internal fun sdrObject(value: Any?, keys: Set<String>): Map<*,*> { require(value is Map<*,*> && value.keys==keys);return value }
+internal fun sdrEncode(value: Any?): String = when(value) {
+  null -> "null"
+  is String -> "\"" + buildString { for(c in value) when(c){'"'->append("\\\"");'\\'->append("\\\\");'\b'->append("\\b");'\u000c'->append("\\f");'\n'->append("\\n");'\r'->append("\\r");'\t'->append("\\t");else->if(c.code<32)append("\\u%04x".format(c.code))else append(c)} } + "\""
+  is Boolean, is Int -> value.toString()
+  is Map<*,*> -> value.entries.joinToString(",","{","}"){sdrEncode(it.key as String)+":"+sdrEncode(it.value)}
+  is List<*> -> value.joinToString(",","[","]"){sdrEncode(it)}
+  is SdrList<*> -> sdrEncode(mapOf("next_id" to value.next_id,"items" to value.items.map { mapOf("id" to it.id) + it.record.fields() }))
+  else -> throw IllegalArgumentException("Invalid JSON value")
+}
+'''
 
 
 def kt_persistence(program, quoted, literal):

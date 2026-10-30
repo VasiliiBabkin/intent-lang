@@ -113,9 +113,14 @@ def restore_snapshot(program, raw):
             if key in result: raise ValueError('Duplicate JSON key')
             result[key] = value
         return result
+    def integer(token):
+        if len(token) > 11: raise ValueError('JSON integer overflow')
+        value = int(token)
+        if not -2147483648 <= value <= 2147483647: raise ValueError('JSON integer overflow')
+        return value
     try:
         if type(raw) is not str or len(raw.encode('utf-16-le')) // 2 > 200000: raise ValueError('Snapshot too large')
-        data = json.loads(raw, object_pairs_hook=pairs, parse_float=lambda _: (_ for _ in ()).throw(ValueError('Integer JSON required')), parse_constant=lambda _: (_ for _ in ()).throw(ValueError('Invalid JSON')))
+        data = json.loads(raw, object_pairs_hook=pairs, parse_int=integer, parse_float=lambda _: (_ for _ in ()).throw(ValueError('Integer JSON required')), parse_constant=lambda _: (_ for _ in ()).throw(ValueError('Invalid JSON')))
         if type(data) is not dict or set(data) != {'schema', 'signature', 'state'} or type(data['schema']) is not int or data['schema'] != 1 or data['signature'] != fingerprint(program): raise ValueError('Incompatible schema')
         if type(data['state']) is not dict or set(data['state']) != set(program.persistent): raise ValueError('Invalid saved keys')
         candidate = program.states.copy()

@@ -36,7 +36,7 @@ See [Russian guide](README.ru.md) and [example](../examples/workflow.sdr).
 
 ## Current limitations
 
-No user-defined functions, collections, modules, IO, async, standard library or production-level diagnostics. The web backend is experimental; equivalence across runtimes still needs end-to-end verification.
+No user-defined functions, modules, IO, async or standard library. Bounded record collections are experimental in the unreleased 0.10 branch. The web backend is experimental; equivalence across runtimes still needs end-to-end verification.
 
 ## Install from source
 

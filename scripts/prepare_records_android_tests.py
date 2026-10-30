@@ -10,11 +10,12 @@ from sedrava_core import parse
 from sedrava_records import fingerprint
 
 
-def prepare(project):
+def prepare(project, source=SOURCE):
     import json
-    program=parse(SOURCE)
+    program=parse(source)
+    sequence=steps() if source == SOURCE else [('action',a) for a in ('add','overflow','nested_capacity','mutate','delete','add')]+[('roundtrip',)]
     lines=['package org.sedrava.generated','import org.junit.Test','import org.junit.Assert.*','class RecordsStateTest {','  @Test fun pythonOracle() {','    var state=SedravaState()']
-    for i,(step,outcome) in enumerate(zip(steps(),trace())):
+    for i,(step,outcome) in enumerate(zip(sequence,trace(source,sequence))):
         lines.append('    val before_'+str(i)+'=state')
         if step[0]=='input':
             value=quoted(step[2]) if type(step[2]) is str else str(step[2])
@@ -24,7 +25,15 @@ def prepare(project):
         lines.append('    state='+expression)
         raw=json.dumps({'schema':1,'signature':fingerprint(program),'state':outcome['state']},ensure_ascii=False,separators=(',',':'))
         lines.append('    assertEquals("step '+str(i)+'", restoreSnapshot('+quoted(raw)+', true), state)')
+        lines.append('    assertEquals("canonical JSON '+str(i)+'", '+quoted(raw)+', snapshotState(state,true))')
         if step[0]!='roundtrip': lines.append(('    assertNotSame' if outcome['accepted'] else '    assertSame')+'(before_'+str(i)+',state)')
+    if source != SOURCE:
+        lines += ['  }', '}']
+        path=Path(project)/'app/src/test/java/org/sedrava/generated/RecordsStateTest.kt'
+        path.parent.mkdir(parents=True,exist_ok=True)
+        path.write_text('\n'.join(lines)+'\n',encoding='utf-8')
+        print(path)
+        return
     for bad in invalid_snapshots():
         if len(bad)>10000: continue  # huge constants exceed JVM class-file limits; runtime bounds checked below
         lines += ['    try { restoreSnapshot('+quoted(bad)+'); fail("Accepted invalid snapshot") } catch (_: IllegalArgumentException) {}']
@@ -32,4 +41,4 @@ def prepare(project):
     path=Path(project)/'app/src/test/java/org/sedrava/generated/RecordsStateTest.kt';path.parent.mkdir(parents=True,exist_ok=True);path.write_text('\n'.join(lines)+'\n',encoding='utf-8');print(path)
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('project');prepare(parser.parse_args().project)
+    parser=argparse.ArgumentParser();parser.add_argument('project');parser.add_argument('--source',type=Path);args=parser.parse_args();prepare(args.project,args.source.read_text(encoding='utf-8') if args.source else SOURCE)

@@ -31,6 +31,11 @@ jobs:
           python scripts/prepare_records_ui_tests.py build/tasks-android
       - name: APK, JVM conformance, Lint and instrumentation compilation
         run: gradle -p build/tasks-android --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:assembleDebugAndroidTest
+      - name: Generic record types, int32 fields and nested capacity conformance
+        run: |
+          python -m sedrava_cli build android tests/fixtures/records_generic.sdr --output build/generic-android
+          python scripts/prepare_records_android_tests.py build/generic-android --source tests/fixtures/records_generic.sdr
+          gradle -p build/generic-android --no-daemon :app:assembleDebug :app:testDebugUnitTest
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -43,7 +48,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          script: gradle -p build/tasks-android --no-daemon :app:connectedDebugAndroidTest
+          script: bash scripts/test_records_emulator.sh
       - name: Verify APK
         run: python scripts/verify_apk.py build/tasks-android/app/build/outputs/apk/debug/app-debug.apk
       - uses: actions/upload-artifact@v4
@@ -57,4 +62,8 @@ jobs:
             build/tasks-android/app/build/outputs/androidTest-results
             build/tasks-android/app/src
             build/tasks-web
+            build/tasks-preferences.xml
+            build/tasks-relaunch.*
+            build/generic-android/app/build/outputs/apk
+            build/generic-android/app/build/reports/tests
           if-no-files-found: error

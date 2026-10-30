@@ -7,14 +7,14 @@ from dataclasses import replace
 from sedrava_core import parse, edit_state, transition, valid_state
 from sedrava_records import ListValue, RecordValue, plain, serialize_state, restore_snapshot
 from web_codegen import generate
-from record_cases import SOURCE, steps, trace, invalid_snapshots
+from record_cases import SOURCE, steps, trace, invalid_snapshots, resource_source
 
 class RecordsLanguage(unittest.TestCase):
     def test_trace_and_identity(self):
         outcomes=trace()
         self.assertFalse(outcomes[0]['accepted'])
-        self.assertEqual([r['id'] for r in outcomes[-1]['state']['tasks']['items']],[2,3])
-        self.assertEqual(outcomes[-1]['state']['tasks']['next_id'],4)
+        self.assertEqual([r['id'] for r in outcomes[-1]['state']['tasks']['items']],[2,3,4])
+        self.assertEqual(outcomes[-1]['state']['tasks']['next_id'],5)
         self.assertTrue(outcomes[-1]['state']['tasks']['items'][1]['done'])
 
     def test_types_and_diagnostics(self):
@@ -53,10 +53,19 @@ class RecordsLanguage(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which('node'),'Node required')
     def test_python_web_conformance(self):
-        code=generate(SOURCE).split('<script>')[1].split('</script>')[0]
-        runner="""const vm=require('node:vm');const data=JSON.parse(require('fs').readFileSync(0,'utf8'));const c=vm.createContext({document:{querySelectorAll:()=>[],getElementById:()=>null}});vm.runInContext(data.code,c);let current=vm.runInContext('({...initialState})',c);const actions=vm.runInContext('actions',c);const edit=vm.runInContext('editState',c);let out=[];for(const step of data.steps){let accepted=false;try{if(step[0]==='roundtrip'){c.saved=JSON.stringify({schema:1,signature:vm.runInContext('signature',c),state:{tasks:current.tasks}});current=vm.runInContext('restoreSnapshot(saved)',c);accepted=true;}else{const next=step[0]==='input'?edit(current,step[1],step[2]):actions[step[1]](current);accepted=next!==current;current=next;}}catch(_){}out.push({state:current,accepted});}process.stdout.write(JSON.stringify(out));"""
-        result=subprocess.run(['node','-e',runner],input=json.dumps({'code':code,'steps':steps()}),text=True,capture_output=True,check=True)
-        self.assertEqual(json.loads(result.stdout),trace())
+        def check(source,sequence):
+            code=generate(source).split('<script>')[1].split('</script>')[0]
+            runner="""const vm=require('node:vm');const data=JSON.parse(require('fs').readFileSync(0,'utf8'));const c=vm.createContext({document:{querySelectorAll:()=>[],getElementById:()=>null}});vm.runInContext(data.code,c);let current=vm.runInContext('({...initialState})',c);const actions=vm.runInContext('actions',c);const edit=vm.runInContext('editState',c);let out=[];for(const step of data.steps){let accepted=false;try{if(step[0]==='roundtrip'){c.saved=JSON.stringify({schema:1,signature:vm.runInContext('signature',c),state:Object.fromEntries(vm.runInContext('persistentKeys',c).map(k=>[k,current[k]]))});current=vm.runInContext('restoreSnapshot(saved)',c);accepted=true;}else{const next=step[0]==='input'?edit(current,step[1],step[2]):actions[step[1]](current);accepted=next!==current;current=next;}}catch(_){}out.push({state:current,accepted,snapshot:JSON.stringify({schema:1,signature:vm.runInContext('signature',c),state:Object.fromEntries(vm.runInContext('persistentKeys',c).map(k=>[k,current[k]]))})});}process.stdout.write(JSON.stringify(out));"""
+            result=subprocess.run(['node','-e',runner],input=json.dumps({'code':code,'steps':sequence}),text=True,capture_output=True,check=True)
+            self.assertEqual(json.loads(result.stdout),trace(source,sequence))
+        check(SOURCE,steps())
+        generic=(Path(__file__).parent/'fixtures/records_generic.sdr').read_text(encoding='utf-8')
+        check(generic,[('action',a) for a in ('add','overflow','nested_capacity','mutate','delete','add')]+[('roundtrip',)])
+        sequence=[('action','add')]*15+[('action','transient')]
+        outcomes=trace(resource_source(),sequence)
+        self.assertTrue(any(not row['accepted'] for row in outcomes))
+        self.assertTrue(outcomes[-1]['accepted'])
+        check(resource_source(),sequence)
 
     @unittest.skipUnless(shutil.which('node'),'Node required')
     def test_restore_rejections_match_web(self):
@@ -80,3 +89,17 @@ class RecordsLanguage(unittest.TestCase):
             path.write_text('{bad',encoding='utf-8')
             self.assertEqual(main(['run',str(source),'--state-file',str(path)]),1)
             self.assertEqual(path.read_text(),'{bad')
+
+    def test_generic_records_limits_and_nested_capacity(self):
+        source=(Path(__file__).parent/'fixtures/records_generic.sdr').read_text(encoding='utf-8')
+        from sedrava_core import run
+        p=parse(source);self.assertEqual(run(p),1)
+        state,_=transition(p,p.states,'add')
+        for action in ('overflow','nested_capacity'):
+            with self.subTest(action=action),self.assertRaises(ValueError): transition(p,state,action)
+        self.assertFalse(state['changed']);self.assertEqual(state['tags'].next_id,2)
+        for capacity in ('0','101'):
+            with self.assertRaises(ValueError): parse(SOURCE.replace('max=100','max='+capacity))
+        for field in ('id: int','title: int','nested: Task','true: bool','class: text'):
+            with self.assertRaises(ValueError): parse(SOURCE.replace('    done: bool','    done: bool\n    '+field))
+        with self.assertRaises(ValueError): parse(SOURCE.replace('    done: bool','\n'.join('    field'+str(i)+': int' for i in range(17))))

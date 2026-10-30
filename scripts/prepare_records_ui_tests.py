@@ -36,6 +36,9 @@ class RecordsUiTest {
     ui.onNodeWithText("No tasks yet / Список пуст").assertExists()
     ui.activityRule.scenario.recreate()
     ui.onNodeWithText("No tasks yet / Список пуст").assertExists()
+    ui.onNode(hasSetTextAction()).performTextReplacement("restart persisted")
+    ui.onNodeWithText("Add / Добавить").performScrollTo().performClick()
+    ui.onNodeWithText("title: restart persisted · done: false").assertExists()
   }
 }
 ''',encoding='utf-8')

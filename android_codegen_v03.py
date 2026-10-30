@@ -11,7 +11,7 @@ def kt(node, names):
     if isinstance(node, ast.Attribute): return '(' + kt(node.value, names) + ').sdr_' + node.attr
     if isinstance(node, ast.Call):
         if hasattr(node, 'record_type'): return 'SdrRecord_' + node.record_type.name + '(' + ','.join('sdr_'+k.arg+'='+kt(k.value,names) for k in node.keywords) + ')'
-        return 'sdr_'+node.func.id+'('+','.join(kt(a,names) for a in node.args)+')' 
+        return 'sdr_'+node.func.id+'('+','.join(kt(a,names) for a in node.args)+')'
     if isinstance(node, ast.Constant):
         if type(node.value) is str: return quoted(node.value)
         return str(node.value).lower() if type(node.value) is bool else str(node.value)

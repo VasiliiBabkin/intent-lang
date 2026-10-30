@@ -18,6 +18,29 @@ import org.junit.Rule
 import org.junit.Test
 class RecordsUiTest {
   @get:Rule val ui = createAndroidComposeRule<MainActivity>()
+  @Test fun rejectedSnapshotIsRetainedOnSave() {
+    val prefs=ui.activity.getSharedPreferences("sedrava_state",android.content.Context.MODE_PRIVATE)
+    val original=prefs.getString("snapshot",null)
+    try {
+      for((index,raw) in listOf("{broken",snapshotState(SedravaState()).replace("\\\"schema\\\":1","\\\"schema\\\":2")).withIndex()) {
+        prefs.edit().clear().putString("snapshot",raw).commit()
+        ui.activityRule.scenario.recreate()
+        ui.onNodeWithText("Saved data rejected; original retained").assertExists()
+        ui.onNode(hasSetTextAction()).performTextReplacement("recovery edit $index")
+        ui.onNodeWithText("Add / Добавить").performScrollTo().performClick()
+        ui.onNodeWithText("title: recovery edit $index · done: false").assertExists()
+        org.junit.Assert.assertEquals(raw,prefs.getString("snapshot",null))
+        ui.activityRule.scenario.recreate()
+        ui.onNodeWithText("title: recovery edit $index · done: false").assertExists()
+        org.junit.Assert.assertEquals(raw,prefs.getString("snapshot",null))
+      }
+      prefs.edit().clear().putInt("legacy",7).commit()
+      org.junit.Assert.assertFalse(persistState(prefs,SedravaState()))
+      org.junit.Assert.assertEquals(7,prefs.getInt("legacy",0))
+    } finally {
+      prefs.edit().clear().apply { if(original!=null) putString("snapshot",original) }.commit()
+    }
+  }
   @Test fun addEditCompleteRotateDeleteAndReject() {
     ui.onNodeWithText("No tasks yet / Список пуст").assertExists()
     ui.onNode(hasSetTextAction()).performTextReplacement("first 😀")

@@ -18,3 +18,9 @@ Implemented: int32/bool/text, typed records, ordered bounded collections, atomic
 [Release notes EN](RELEASE_NOTES_0_10_0rc1.en.md) · [RU](RELEASE_NOTES_0_10_0rc1.ru.md) · [Upgrade/rollback EN](UPGRADE_0_10_0rc1.en.md) · [RU](UPGRADE_0_10_0rc1.ru.md) · [RC report](RC_010_REPORT.md).
 Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has been published.
 Установка — из проверенного локального wheel в отдельное окружение; автоматической миграции данных нет.
+
+## Stability audit / Аудит стабильности
+
+[Audit](STABILITY_AUDIT_010.md) · [Compatibility](COMPATIBILITY_010.md) · [Stable gates](STABLE_RELEASE_GATES_010.md). Rejected saved data is preserved; edits may remain temporary until recovery. Concurrent writers are last-writer-wins; no migration or power-cut certification. The audit recommends rc2 before stable 0.10.0.
+
+Отвергнутые данные защищены от перезаписи; перед ручным сбросом сделайте копию. Новые изменения могут оставаться в памяти. Рекомендуется rc2, а не немедленный стабильный выпуск.

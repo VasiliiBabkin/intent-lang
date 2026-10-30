@@ -10,6 +10,24 @@ from sedrava_core import MAX_SOURCE_CHARS, parse, run, resolve, transition
 
 from sedrava_version import VERSION
 
+def atomic_write_text(path, raw):
+    """Replace complete output only after a successful, flushed write."""
+    import os
+    import tempfile
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=path.parent, delete=False) as handle:
+            temporary = handle.name
+            handle.write(raw)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary and os.path.exists(temporary):
+            os.unlink(temporary)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="sedrava", description="Sedrava experimental compiler")
     parser.add_argument("--version", action="version", version=f"sedrava {VERSION}")
@@ -57,18 +75,7 @@ def main(argv=None):
                 if not accepted:
                     raise ValueError(f"Action {action}: invariant rejected; state unchanged")
             if args.state_file:
-                import os
-                import tempfile
-                raw = serialize_state(program, state)
-                args.state_file.parent.mkdir(parents=True, exist_ok=True)
-                temporary = None
-                try:
-                    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=args.state_file.parent, delete=False) as handle:
-                        temporary = handle.name
-                        handle.write(raw)
-                    os.replace(temporary, args.state_file)
-                finally:
-                    if temporary and os.path.exists(temporary): os.unlink(temporary)
+                atomic_write_text(args.state_file, serialize_state(program, state))
             result={k:plain(v) for k,v in resolve(state,program.derived).items()}
             if program.has_navigation: result={"state":result,"stack":list(session.stack)}
             print(json.dumps(result,ensure_ascii=False,sort_keys=True))
@@ -79,8 +86,9 @@ def main(argv=None):
             from web_codegen import generate
             output = args.output or Path("build/web/index.html")
             result = generate(source)
-            output.parent.mkdir(parents=True, exist_ok=True)
-            output.write_text(result, encoding="utf-8")
+            if output.resolve() == args.source.resolve():
+                raise ValueError("Web output must differ from the source file")
+            atomic_write_text(output, result)
             print(output)
         else:
             from android_codegen_v03 import generate

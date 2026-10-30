@@ -1,4 +1,4 @@
-> Current 0.9 alpha documentation / Актуальная документация: [Quick Start](QUICKSTART.md), [Language reference / Справочник](LANGUAGE_0_9.md), [Build / Сборка](BUILD.md), [FAQ](FAQ.md), [Limitations / Ограничения](KNOWN_LIMITATIONS.md), [Audit / Аудит](ALPHA_AUDIT.md). Older prototype commands below are historical.
+> Current Sedrava documentation / Актуальная документация: [Quick Start](QUICKSTART.md), [Language reference / Справочник](LANGUAGE_0_9.md), [Build / Сборка](BUILD.md), [FAQ](FAQ.md), [Limitations / Ограничения](KNOWN_LIMITATIONS.md), [Audit / Аудит](ALPHA_AUDIT.md). Older prototype commands below are historical.
 
 # Sedrava — документация на русском языке
 
@@ -8,17 +8,17 @@ Sedrava описывает состояние приложения, действ
 
 ## Быстрый старт
 
-Требуется Python 3.12 или новее. Для генерации веб-страницы сторонние пакеты не нужны.
+Требуется Python 3.10 или новее (CI: 3.10, 3.12, 3.13). Для генерации веб-страницы сторонние пакеты не нужны.
 
 ```bash
 python -m unittest discover -s tests -v
-python web_codegen.py examples/workflow.sdr --output build/web/index.html
+python -m sedrava_cli build web examples/workflow.sdr --output build/web/index.html
 ```
 
 Откройте `build/web/index.html` в браузере. Для Android:
 
 ```bash
-python android_codegen_v03.py examples/workflow.sdr --output build/generated-android
+python -m sedrava_cli build android examples/workflow.sdr --output build/generated-android
 ```
 
 Затем соберите проект с помощью Gradle и Android SDK. Готовая веб-страница не требует сервера.
@@ -94,7 +94,7 @@ sedrava build android examples/workflow.sdr --output build/generated-android
 
 ## Records and collections / Записи и коллекции (unreleased 0.10)
 
-The development branch integrates typed records and bounded ordered lists into `.sdr`,
+Current unreleased sources integrate typed records and bounded ordered lists into `.sdr`,
 with stable IDs, atomic actions, strict snapshots and generated Web/Compose UI.
 Записи и списки доступны в языке на ветке разработки; 0.10 не выпущена.
 
@@ -128,3 +128,5 @@ Measured RC readiness / Фактическая готовность RC: [report 
 [Release notes EN](RELEASE_NOTES_0_10_0rc1.en.md) · [RU](RELEASE_NOTES_0_10_0rc1.ru.md) · [Upgrade/rollback EN](UPGRADE_0_10_0rc1.en.md) · [RU](UPGRADE_0_10_0rc1.ru.md) · [RC report](RC_010_REPORT.md).
 Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has been published.
 Установка — из проверенного локального wheel в отдельное окружение; автоматической миграции данных нет.
+
+Stability / стабильность: [audit](STABILITY_AUDIT_010.md), [compatibility](COMPATIBILITY_010.md), [stable gates](STABLE_RELEASE_GATES_010.md). Исправления аудита требуют нового rc2; подготовленные артефакты rc1 не меняются.

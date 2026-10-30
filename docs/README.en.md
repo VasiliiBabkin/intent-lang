@@ -1,4 +1,4 @@
-> Current 0.9 alpha documentation / Актуальная документация: [Quick Start](QUICKSTART.md), [Language reference / Справочник](LANGUAGE_0_9.md), [Build / Сборка](BUILD.md), [FAQ](FAQ.md), [Limitations / Ограничения](KNOWN_LIMITATIONS.md), [Audit / Аудит](ALPHA_AUDIT.md). Older prototype commands below are historical.
+> Current Sedrava documentation / Актуальная документация: [Quick Start](QUICKSTART.md), [Language reference / Справочник](LANGUAGE_0_9.md), [Build / Сборка](BUILD.md), [FAQ](FAQ.md), [Limitations / Ограничения](KNOWN_LIMITATIONS.md), [Audit / Аудит](ALPHA_AUDIT.md). Older prototype commands below are historical.
 
 # Sedrava documentation (English)
 
@@ -8,23 +8,23 @@ Sedrava describes application state, actions, invariants and executable tests. I
 
 ## Quick start
 
-Python 3.10+ (CI uses Python 3.12/3.13):
+Python 3.10+ (CI checks 3.10, 3.12 and 3.13):
 
 ```sh
 python -m unittest discover -s tests -v
-python web_codegen.py examples/workflow.sdr --output build/web/index.html
+python -m sedrava_cli build web examples/workflow.sdr --output build/web/index.html
 ```
 
 Open `build/web/index.html` in a browser. Android generation:
 
 ```sh
-python android_codegen_v03.py examples/workflow.sdr --output build/generated-android
+python -m sedrava_cli build android examples/workflow.sdr --output build/generated-android
 ```
 
 ## Language elements
 
 - `app "Name"`: application name.
-- `state name = value`: integer or boolean state.
+- `state name = value`: integer, boolean or text state.
 - `action name:`: assignments and `if` / `else` blocks.
 - `rule expression`: invariant, checked after an action.
 - `test name: action, action -> expression`: independent test starting from initial state.
@@ -36,7 +36,7 @@ See [Russian guide](README.ru.md) and [example](../examples/workflow.sdr).
 
 ## Current limitations
 
-No user-defined functions, modules, IO, async or standard library. Bounded record collections are experimental in the unreleased 0.10 branch. The web backend is experimental; equivalence across runtimes still needs end-to-end verification.
+No user-defined functions, modules, IO, async or standard library. Text, bounded records/collections and navigation are implemented in the unreleased 0.10 sources. Bounded Python/JavaScript/Kotlin conformance and real browser/emulator scenarios are tested; this is not exhaustive equivalence or a stable-support claim. See the [stability audit](STABILITY_AUDIT_010.md) and [compatibility contract](COMPATIBILITY_010.md).
 
 ## Install from source
 
@@ -54,7 +54,7 @@ The `sedrava` distribution is not published on PyPI.
 
 ## Records and collections / Записи и коллекции (unreleased 0.10)
 
-The development branch integrates typed records and bounded ordered lists into `.sdr`,
+Current unreleased sources integrate typed records and bounded ordered lists into `.sdr`,
 with stable IDs, atomic actions, strict snapshots and generated Web/Compose UI.
 Записи и списки доступны в языке на ветке разработки; 0.10 не выпущена.
 
@@ -88,3 +88,5 @@ Measured RC readiness / Фактическая готовность RC: [report 
 [Release notes EN](RELEASE_NOTES_0_10_0rc1.en.md) · [RU](RELEASE_NOTES_0_10_0rc1.ru.md) · [Upgrade/rollback EN](UPGRADE_0_10_0rc1.en.md) · [RU](UPGRADE_0_10_0rc1.ru.md) · [RC report](RC_010_REPORT.md).
 Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has been published.
 Установка — из проверенного локального wheel в отдельное окружение; автоматической миграции данных нет.
+
+Stability / стабильность: [audit](STABILITY_AUDIT_010.md), [compatibility](COMPATIBILITY_010.md), [stable gates](STABLE_RELEASE_GATES_010.md). Исправления аудита требуют нового rc2; подготовленные артефакты rc1 не меняются.

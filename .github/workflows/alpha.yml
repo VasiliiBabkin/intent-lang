@@ -24,7 +24,11 @@ jobs:
         with:
           node-version: '22'
       - run: python -m pip install ".[test]"
-      - run: python -m unittest discover -s tests -v
+      - name: Full Python regression with retained audit evidence
+        shell: bash
+        run: |
+          mkdir -p build/stability
+          python -m unittest discover -s tests -v 2>&1 | tee build/stability/python.log
       - run: python scripts/check_docs.py
       - run: python scripts/audit_release_security.py
       - run: python -m pip install -r requirements-rc.txt
@@ -37,6 +41,13 @@ jobs:
       - run: python scripts/check_installed_dist.py
       - run: python scripts/check_upgrade_rollback.py --output dist/UPGRADE_ROLLBACK.json
       - run: python scripts/record_rc_tools.py dist/BUILD_TOOLS.json
+      - name: Bind stability report to actual SHA and Python results
+        run: python scripts/write_stability_evidence.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sedrava-stability-python-${{ matrix.python }}
+          if-no-files-found: error
+          path: build/stability/*
       - name: Install wheel outside source tree
         shell: bash
         run: |

@@ -59,6 +59,10 @@ function restoreSnapshot(raw) {
   return candidate;
 }
 function saveSnapshot() {
+  // Never replace rejected data with defaults or a new session's edits.
+  if (restoreError) throw Error('Saved data rejected; original retained');
+  const previous = localStorage.getItem(storageKey);
+  if (previous !== null) restoreSnapshot(previous);
   const saved=Object.fromEntries(persistentKeys.map(k=>[k,state[k]]));
   const raw=JSON.stringify({schema:1,signature,state:saved});
   if(raw.length>200000)throw Error('Snapshot too large');

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased stability audit / Аудит стабильности
+
+- Preserve rejected saved data on Web/Android instead of overwriting it with defaults or new edits.
+- Accept int32 minimum in all expression positions; retain overflow rejection.
+- Write CLI Web outputs atomically and protect source/output collisions.
+- Give repeated scalar editors separate accessible error messages.
+- Add bounded Python/JavaScript/Kotlin differential evidence and rc1-source update checks.
+- No version, schema or Android identity change; rc1 artifacts unchanged. Recommend rc2.
+
 ## 0.10.0.dev0 — unreleased text increment
 
 - First-class immutable text state, derived aliases/booleans, exact equality, assignments, rules/tests and CLI JSON.

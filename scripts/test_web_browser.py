@@ -68,6 +68,41 @@ class BrowserAlpha(unittest.TestCase):
     def state(self, name):
         return self.page.locator(f'output[data-state="{name}"]').inner_text()
 
+    def test_stability_duplicate_scalar_editors_have_distinct_errors(self):
+        source='app "Duplicate scalar editors"\nstate n = 0\nrule n >= 0\naction reset: n = 0\nscreen main:\n    input n\n    input n\n    button "Reset" -> reset\n'
+        self.open(source)
+        fields=self.page.locator('[data-input]')
+        ids=[fields.nth(i).get_attribute('aria-describedby') for i in range(2)]
+        self.assertEqual(len(set(ids)),2)
+        fields.nth(1).fill('-1')
+        self.assertTrue(self.page.locator('#'+ids[1]).is_visible())
+        self.assertFalse(self.page.locator('#'+ids[0]).is_visible())
+
+    def test_stability_rejected_snapshot_survives_edits_and_reload(self):
+        for filename in ('task_manager.sdr','task_manager_navigation.sdr','text_profile.sdr'):
+            self.open((ROOT/'examples'/filename).read_text(encoding='utf-8'))
+            self.page.evaluate("localStorage.setItem(storageKey,'{broken')")
+            self.page.reload()
+            self.assertTrue(self.page.locator('#sedrava-error').is_visible())
+            field=self.page.locator('[data-input]').first
+            field.fill('new accepted draft')
+            self.assertEqual(self.page.evaluate('localStorage.getItem(storageKey)'),'{broken')
+            self.assertTrue(self.page.locator('#sedrava-error').is_visible())
+            self.page.reload()
+            self.assertEqual(self.page.evaluate('localStorage.getItem(storageKey)'),'{broken')
+
+    def test_stability_schema_mismatch_is_not_destroyed_by_actions(self):
+        self.open((ROOT/'examples/task_manager_navigation.sdr').read_text(encoding='utf-8'))
+        self.page.get_by_label('New task',exact=True).fill('original task')
+        self.page.get_by_role('button',name='Add task',exact=True).click()
+        raw=self.page.evaluate("localStorage.getItem(storageKey).replace('\"schema\":1','\"schema\":2')")
+        self.page.evaluate('(raw)=>localStorage.setItem(storageKey,raw)',raw)
+        self.page.reload()
+        self.page.get_by_label('New task',exact=True).fill('replacement')
+        self.page.get_by_role('button',name='Add task',exact=True).click()
+        self.assertEqual(self.page.evaluate('localStorage.getItem(storageKey)'),raw)
+        self.assertIn('original task',raw)
+
     def test_readiness_invalid_draft_blocks_actions_and_recovers(self):
         self.open((ROOT/'examples/task_manager_navigation.sdr').read_text(encoding='utf-8'))
         page=self.page;field=page.get_by_label('New task',exact=True)

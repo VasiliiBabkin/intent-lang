@@ -1,0 +1,39 @@
+app "Stability boundaries"
+record Entry:
+    title: text
+    score: int
+    done: bool
+state entries: list<Entry>(max=3) = []
+state title = ""
+state selected = 0
+state edge = -2147483648
+state touched = false
+persist entries
+persist edge
+rule edge >= -2147483648
+rule edge <= 0
+action add:
+    entries = append(entries, Entry(title=title, score=edge, done=false))
+    edge = edge + 1
+action remove:
+    touched = true
+    entries = remove(entries, selected)
+action missing_min:
+    touched = true
+    entries = remove(entries, -2147483648)
+action overflow:
+    touched = true
+    edge = 2147483647
+    edge = edge + 1
+action invariant:
+    touched = true
+    edge = 1
+action minimum:
+    edge = -2147483648
+screen main:
+    text "Boundary audit"
+    input title
+    list entries select selected
+    value edge
+    button "Add" -> add
+    button "Remove" -> remove

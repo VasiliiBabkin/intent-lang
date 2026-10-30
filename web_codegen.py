@@ -87,7 +87,8 @@ def generate(source, _program=None, _domain_only=False):
         render_names[key] = "derivedState[" + json_script(key) + "]"
     widgets = []
     title_seen = False
-    for widget in program.widgets:
+    input_seen = set()
+    for widget_index, widget in enumerate(program.widgets):
         if widget[0] == "list":
             widgets.append('<ul data-list="' + html.escape(widget[1], quote=True) + '" data-select="' + html.escape(widget[2], quote=True) + '"></ul>')
         elif widget[0] == "text":
@@ -99,10 +100,14 @@ def generate(source, _program=None, _domain_only=False):
             widgets.append(f'<p>{key}: <output data-state="{key}"></output></p>')
         elif widget[0] == "input_text":
             key = html.escape(widget[1], quote=True)
-            widgets.append(f'<label>{key}: <textarea data-input="{key}" aria-describedby="error-{key}" aria-invalid="false"></textarea></label><small id="error-{key}" role="alert" hidden>Text must contain at most 1024 Unicode scalar values and satisfy the declared rules</small>')
+            error_id = "error-" + key + ("-" + str(widget_index) if key in input_seen else "")
+            input_seen.add(key)
+            widgets.append(f'<label>{key}: <textarea data-input="{key}" aria-describedby="{error_id}" aria-invalid="false"></textarea></label><small id="{error_id}" role="alert" hidden>Text must contain at most 1024 Unicode scalar values and satisfy the declared rules</small>')
         elif widget[0] == "input_int":
             key = html.escape(widget[1], quote=True)
-            widgets.append(f'<label>{key}: <input type="number" step="1" min="-2147483648" max="2147483647" data-input="{key}" aria-describedby="error-{key}"></label><small id="error-{key}" role="alert" hidden>Value does not satisfy the declared rules</small>')
+            error_id = "error-" + key + ("-" + str(widget_index) if key in input_seen else "")
+            input_seen.add(key)
+            widgets.append(f'<label>{key}: <input type="number" step="1" min="-2147483648" max="2147483647" data-input="{key}" aria-describedby="{error_id}"></label><small id="{error_id}" role="alert" hidden>Value does not satisfy the declared rules</small>')
         elif widget[0] == "show_text":
             key = html.escape(widget[1], quote=True)
             widgets.append(f'<p data-show="{key}" hidden>{html.escape(widget[2])}</p>')
@@ -123,10 +128,10 @@ def generate(source, _program=None, _domain_only=False):
         f"const initialState = JSON.parse({json_script(initial)});",
         "const storageKey = 'sedrava:' + (typeof location !== 'undefined' ? location.pathname : '/') + ':' + " + json_script(program.name) + ";",
         "const persistentKeys = " + json_script(list(program.persistent)) + ";",
-        js_runtime(program, json_script) if (program.records or program.has_navigation) else "const collectionTypes = {};",
+        js_runtime(program, json_script) if (program.records or program.has_navigation) else "const collectionTypes = {}; function legacySnapshotValid(saved) { return saved !== null && typeof saved === 'object' && !Array.isArray(saved) && Object.keys(saved).every(k => persistentKeys.includes(k) && validValue(saved[k],initialState[k])) && validateState({...initialState,...saved}); } function saveSnapshot() { if(restoreError) throw Error('Rejected saved data retained'); const previous=localStorage.getItem(storageKey); if(previous!==null && !legacySnapshotValid(JSON.parse(previous))) throw Error('Rejected saved data retained'); localStorage.setItem(storageKey,JSON.stringify(Object.fromEntries(persistentKeys.map(k=>[k,state[k]])))); }",
         "let restoreError = false;",
         "let state = { ...initialState };",
-        ("try { const raw = localStorage.getItem(storageKey); if (raw !== null) state = restoreSnapshot(raw); } catch (_) { restoreError = true; }" if (program.records or program.has_navigation) else "try { const saved = JSON.parse((typeof localStorage !== 'undefined' ? localStorage.getItem(storageKey) : null) || '{}'); state = restoreState(saved); } catch (_) { /* unavailable or corrupt storage */ }"),
+        ("try { const raw = localStorage.getItem(storageKey); if (raw !== null) state = restoreSnapshot(raw); } catch (_) { restoreError = true; }" if (program.records or program.has_navigation) else "try { const raw=typeof localStorage !== 'undefined' ? localStorage.getItem(storageKey) : null; if(raw!==null){ const saved=JSON.parse(raw); state=restoreState(saved); restoreError=!legacySnapshotValid(saved); } } catch (_) { restoreError=true; }"),
         "function checkedInt(n) { if (!Number.isInteger(n) || n < -2147483648 || n > 2147483647) throw new RangeError('Sedrava integer overflow'); return n; }",
         "function validText(value) { if (typeof value !== 'string') return false; let count = 0; for (const char of value) { const cp = char.codePointAt(0); if ((cp >= 0xD800 && cp <= 0xDFFF) || ++count > 1024) return false; } return true; }",
         "function validValue(value, initial) { return typeof value === typeof initial && (typeof value === 'string' ? validText(value) : typeof value === 'number' ? Number.isInteger(value) && value >= -2147483648 && value <= 2147483647 : typeof value === 'boolean'); }",
@@ -161,7 +166,7 @@ def generate(source, _program=None, _domain_only=False):
         "    if (!action) throw new Error('Unknown action');",
         "    try { const next = action(state); showError(next === state ? 'Action rejected by declared rules' : ''); state = next; }",
         "    catch (error) { showError('Action rejected: ' + error.message); return; }" if (program.records or program.has_navigation) else "    catch (_) { showError('Action rejected: integer overflow or invalid value'); return; }",
-        "    try { saveSnapshot(); } catch (_) { showError('Could not save state'); }" if (program.records or program.has_navigation) else "    try { const saved = {}; for (const key of persistentKeys) saved[key] = state[key]; localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) { /* storage is optional */ }",
+        "    try { saveSnapshot(); } catch (_) { showError('Could not save state; previous data retained'); }",
         "    render(true);",
         "  });",
         "});",
@@ -172,11 +177,11 @@ def generate(source, _program=None, _domain_only=False):
         "  if (isText ? validText(raw) : (raw !== '' && /^-?[0-9]+$/.test(raw) && Number.isInteger(parsed) && parsed >= -2147483648 && parsed <= 2147483647)) {",
         "    const nextState = { ...state, [key]: isText ? raw : parsed };",
         "    accepted = validateState(nextState);",
-        "    if (accepted) { state = nextState; try { saveSnapshot(); } catch (_) { showError('Could not save state'); } render(); }" if (program.records or program.has_navigation) else "    if (accepted) { state = nextState; try { const saved = {}; for (const name of persistentKeys) saved[name] = state[name]; if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) {} render(); }",
+        "    if (accepted) { state = nextState; try { saveSnapshot(); } catch (_) { showError('Could not save state; previous data retained'); } render(); }",
         "  }",
         "  const invalid = (isText || raw !== '') && !accepted;",
         "  el.setAttribute('aria-invalid', String(invalid));",
-        "  const error = document.getElementById('error-' + key);",
+        "  const error = document.getElementById(el.getAttribute('aria-describedby'));",
         "  if (error) error.hidden = !invalid;",
         "}",
         "document.querySelectorAll('[data-input]').forEach(el => {",
@@ -184,7 +189,7 @@ def generate(source, _program=None, _domain_only=False):
         "  el.addEventListener('blur', () => { if (typeof initialState[el.dataset.input] !== 'string' && el.value.trim() === '') el.value = String(state[el.dataset.input]); validateInput(el); });",
         "});",
         "render();",
-        "if (restoreError) showError('Saved data rejected; defaults restored');",
+        "if (restoreError) showError('Saved data rejected; original retained');",
         "</script></body></html>",
     ]
     if _domain_only:

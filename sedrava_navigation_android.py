@@ -82,7 +82,7 @@ import androidx.compose.ui.semantics.contentDescription
         '  val prefs=remember { context.getSharedPreferences("sedrava_state",android.content.Context.MODE_PRIVATE) }',
         '  val restored=remember { restoreState(prefs.all) }',
         '  var session by rememberSaveable(stateSaver=sessionSaver(restored)) { mutableStateOf(initialSession(restored)) }',
-        '  var error by remember { mutableStateOf(if(prefs.contains("snapshot") && !snapshotValid(prefs.all["snapshot"])) "Saved data could not be restored." else "") }',
+        '  var error by remember { mutableStateOf(if(prefs.all.isNotEmpty() && !snapshotValid(prefs.all["snapshot"])) "Saved data rejected; original retained." else "") }',
         '  var invalidFields by remember { mutableStateOf(setOf<String>()) }',
         '  val commit: (SdrSession)->Boolean = { next ->',
         '    if(next===session) { error="Could not complete this action. Check the task, title and list capacity.";false } else {',

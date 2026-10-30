@@ -27,7 +27,7 @@ class CollectionTests(unittest.TestCase):
 
     def test_unicode_and_invalid_titles(self):
         self.assertEqual(len(TaskList().add("😀" * 1024).items[0].title), 1024)
-        for title in ("😀" * 1025, "\\ud800", "", "  "):
+        for title in ("😀" * 1025, chr(0xD800), "", "  "):
             with self.subTest(title=repr(title)), self.assertRaises(CollectionError):
                 TaskList().add(title)
 

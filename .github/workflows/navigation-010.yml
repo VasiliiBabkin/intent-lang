@@ -103,6 +103,7 @@ jobs:
             build/navigation-android/app/src
             build/navigation-android/sedrava-android.json
             build/tasks-android/sedrava-android.json
+            build/storage-rejection
             build/tasks-android/app/build/outputs/apk
             build/tasks-android/app/build/reports
             build/tasks-android/app/build/outputs/androidTest-results

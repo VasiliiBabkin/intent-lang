@@ -63,6 +63,7 @@ jobs:
         with:
           name: sedrava-records-task-manager-apk-web-evidence
           path: |
+            build/storage-rejection
             build/tasks-android/app/build/outputs/apk
             build/tasks-android/app/build/reports
             build/stability-android/app/build/test-results

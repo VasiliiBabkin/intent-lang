@@ -24,3 +24,4 @@ for attempt in $(seq 1 10); do
 done
 test "$relaunch_verified" = 1
 adb exec-out screencap -p > build/tasks-relaunch.png
+python scripts/test_storage_rejection_emulator.py build/tasks-android

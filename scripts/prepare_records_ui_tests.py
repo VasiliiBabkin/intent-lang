@@ -19,17 +19,27 @@ import org.junit.Test
 class RecordsUiTest {
   @get:Rule val ui = createAndroidComposeRule<MainActivity>()
   @Test fun rejectedSnapshotIsRetainedOnSave() {
-    val prefs=ui.activity.getSharedPreferences("audit_quarantine",android.content.Context.MODE_PRIVATE)
-    for(raw in listOf("{broken",snapshotState(SedravaState()).replace("\\\"schema\\\":1","\\\"schema\\\":2"))) {
-      prefs.edit().clear().putString("snapshot",raw).commit()
-      org.junit.Assert.assertEquals(SedravaState(),restoreState(prefs.all))
+    val prefs=ui.activity.getSharedPreferences("sedrava_state",android.content.Context.MODE_PRIVATE)
+    val original=prefs.getString("snapshot",null)
+    try {
+      for((index,raw) in listOf("{broken",snapshotState(SedravaState()).replace("\\\"schema\\\":1","\\\"schema\\\":2")).withIndex()) {
+        prefs.edit().clear().putString("snapshot",raw).commit()
+        ui.activityRule.scenario.recreate()
+        ui.onNodeWithText("Saved data rejected; original retained; defaults shown").assertExists()
+        ui.onNode(hasSetTextAction()).performTextReplacement("recovery edit $index")
+        ui.onNodeWithText("Add / Добавить").performScrollTo().performClick()
+        ui.onNodeWithText("title: recovery edit $index · done: false").assertExists()
+        org.junit.Assert.assertEquals(raw,prefs.getString("snapshot",null))
+        ui.activityRule.scenario.recreate()
+        ui.onNodeWithText("title: recovery edit $index · done: false").assertExists()
+        org.junit.Assert.assertEquals(raw,prefs.getString("snapshot",null))
+      }
+      prefs.edit().clear().putInt("legacy",7).commit()
       org.junit.Assert.assertFalse(persistState(prefs,SedravaState()))
-      org.junit.Assert.assertEquals(raw,prefs.getString("snapshot",null))
+      org.junit.Assert.assertEquals(7,prefs.getInt("legacy",0))
+    } finally {
+      prefs.edit().clear().apply { if(original!=null) putString("snapshot",original) }.commit()
     }
-    prefs.edit().clear().putInt("legacy",7).commit()
-    org.junit.Assert.assertFalse(persistState(prefs,SedravaState()))
-    org.junit.Assert.assertEquals(7,prefs.getInt("legacy",0))
-    prefs.edit().clear().commit()
   }
   @Test fun addEditCompleteRotateDeleteAndReject() {
     ui.onNodeWithText("No tasks yet / Список пуст").assertExists()

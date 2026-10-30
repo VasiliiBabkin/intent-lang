@@ -46,7 +46,12 @@ There is no open-ended fuzzing, external fuzz corpus or claim of exhaustive proo
 Compatibility tests vary defaults/actions versus field types/capacity/persist
 flags. See [actual storage compatibility](COMPATIBILITY_010.md). Fault injection
 covers failed replacement, not actual power cuts or process kills during kernel
-writes. Native tests use real preferences and real emulator UI; no fake emulator
+writes. Native tests recreate the actual Activity after corrupting its preferences,
+accept edits/actions, and verify that the original remains unchanged while the
+accepted volatile session survives recreation. Separate guarded emulator checks
+force-stop/cold-launch malformed and incompatible snapshots, inspect the real UI
+and saved bytes, then restore the original fixture data in finally.
+Native tests use real preferences and real emulator UI; no fake emulator
 or in-memory model is reported as a device test.
 
 ## Verification record / Доказательства

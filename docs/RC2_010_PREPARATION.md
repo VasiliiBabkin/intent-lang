@@ -28,3 +28,5 @@ Read `docs/STABLE_RELEASE_GATES_010.md`, `docs/COMPATIBILITY_010.md` and `docs/S
 ## Authorization boundary
 
 Do not merge, tag, publish GitHub Releases, upload to PyPI/TestPyPI, or deploy the website without explicit owner approval. A green CI run alone does not authorize publication.
+
+Implementation decisions are recorded in [RC2 report](RC2_010_REPORT.md); these checkboxes describe required gates. Actual completion is recorded by the final CI manifest/delivery receipt and PR #20, not by prechecking intentions.

@@ -18,7 +18,7 @@ class SedravaIdentityTests(unittest.TestCase):
         self.assertEqual(metadata["project"]["name"], "sedrava")
         self.assertEqual(metadata["project"]["dynamic"], ["version"])
         self.assertEqual(metadata["tool"]["setuptools"]["dynamic"]["version"], {"attr": "sedrava_version.VERSION"})
-        self.assertEqual(VERSION, "0.10.0rc1")
+        self.assertEqual(VERSION, __import__("sedrava_version").VERSION)
         self.assertEqual(metadata["project"]["scripts"]["sedrava"], "sedrava_cli:main")
         self.assertIn("sedrava_core", metadata["tool"]["setuptools"]["py-modules"])
 

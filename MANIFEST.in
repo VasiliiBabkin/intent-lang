@@ -1,5 +1,5 @@
 include requirements-rc.txt .github/action-pins.json
-include LICENSE README.md CONTRIBUTING.md CODE_OF_CONDUCT.md CHANGELOG.md
+include LICENSE DEDICATION.md README.md CONTRIBUTING.md CODE_OF_CONDUCT.md CHANGELOG.md
 recursive-include docs *.md
 recursive-include examples *.sdr *.md
 recursive-include scripts *.py *.sh

@@ -19,7 +19,7 @@ def check(archive, folder):
     def run(*args):
         subprocess.run(list(map(str,args)),cwd=folder,env=env,check=True)
     run(python,'-m','pip','install','--no-cache-dir',archive)
-    run(python,'-c',"import pathlib,sys,sedrava_core,sedrava_android_identity;assert pathlib.Path(sedrava_core.__file__).is_relative_to(sys.prefix);assert (pathlib.Path(sys.prefix)/'share/sedrava/docs/BUILD.md').is_file();assert (pathlib.Path(sys.prefix)/'share/sedrava/LICENSE').is_file()")
+    run(python,'-c',"import pathlib,sys,sedrava_core,sedrava_android_identity;assert pathlib.Path(sedrava_core.__file__).is_relative_to(sys.prefix);assert (pathlib.Path(sys.prefix)/'share/sedrava/docs/BUILD.md').is_file();assert (pathlib.Path(sys.prefix)/'share/sedrava/LICENSE').is_file();assert (pathlib.Path(sys.prefix)/'share/sedrava/DEDICATION.md').is_file()")
     run(cli,'--version')
     result=subprocess.run([str(cli),'--version'],cwd=folder,env=env,capture_output=True,text=True,check=True)
     assert result.stdout.strip()=='sedrava '+VERSION

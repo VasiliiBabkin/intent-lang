@@ -1,12 +1,12 @@
 # Controlled experimental RC procedure / Контролируемая подготовка и публикация
 
-**Preparation is authorized; publication is not. / Разрешена подготовка, но не публикация.** Version `0.10.0rc1`, Python package `sedrava`, future tag name `v0.10.0rc1` (not created). The RC is not a stable 0.10 release.
+**Preparation is authorized; publication is not. / Разрешена подготовка, но не публикация.** Version `0.10.0rc2`, Python package `sedrava`, future tag name `v0.10.0rc2` (not created). The RC is not a stable 0.10 release.
 
 ## Read-only preparation / Подготовка без записи в реестр
 
 Use the existing release branch/PR. The [preparation workflow](../.github/workflows/rc-prepare.yml) runs on pull requests and can be started manually with an exact source SHA. For a manual dispatch, select a workflow ref whose head is the checked source SHA; an input SHA cannot silently mix a different workflow/source revision. It has only `contents: read` and `actions: read`, no stored checkout credentials, no package/release/token-write permissions, no secrets and no publication steps. Every action is pinned in [the reviewed pin inventory](../.github/action-pins.json). The old 0.9 attachment workflow is now an audit-only workflow; its historical publication remains documented in history.
 
-Eight mandatory same-SHA workflows, plus every additional applicable PR/push gate, must succeed: alpha (Python matrix/Chromium/distribution), CI, Compose, navigation, records, text, 0.9 reference, distribution verification. The collector verifies repository, SHA, successful jobs, immutable input artifact IDs and actual ZIP SHA-256 digests. It rejects expired/mismatched artifacts, dangerous paths/links, duplicate members, bounded archive expansion, local/private filenames and high-confidence secret patterns. It does not execute downloaded scripts. Wheel RECORD/metadata/source and sdist/source are checked; tested Web bytes must match generation from that checkout. APK signature, ID, version, development code 10001 and permissions are checked again.
+Eight mandatory same-SHA workflows, plus every additional applicable PR/push gate, must succeed: alpha (Python matrix/Chromium/distribution), CI, Compose, navigation, records, text, 0.9 reference, distribution verification. The collector verifies repository, SHA, successful jobs, immutable input artifact IDs and actual ZIP SHA-256 digests. It rejects expired/mismatched artifacts, dangerous paths/links, duplicate members, bounded archive expansion, local/private filenames and high-confidence secret patterns. It does not execute downloaded scripts. Wheel RECORD/metadata/source and sdist/source are checked; tested Web bytes must match generation from that checkout. APK signature, ID, version, development code 10002 and permissions are checked again.
 
 The kit contains wheel, sdist, two **debug** APKs, Web ZIP, actual test evidence, tool/dependency records, registry availability results, machine/human manifests and SHA256SUMS. After upload the workflow really downloads the kit and compares the ZIP digest and every file. The separate delivery artifact is emitted only after this round trip, with the actual kit ID, URL and Actions ZIP digest. No guessed links/checksums or moving `latest` are used. Registry checks are observations at a recorded UTC time, not a reservation. TestPyPI is not a target and was unavailable from the local managed environment.
 
@@ -63,22 +63,26 @@ The following are **documented future manual commands**, not an automated workfl
 python /trusted/reviewed/source/scripts/verify_rc_bundle.py /absolute/path/to/kit
 python /trusted/reviewed/source/scripts/check_rc_availability.py --output /tmp/rechecked-availability.json
 # Owner verifies manifest.git_sha, then (only after separate tag approval):
-git tag -a v0.10.0rc1 APPROVED_FULL_SHA -m 'Sedrava 0.10.0rc1 experimental RC'
-git rev-parse 'v0.10.0rc1^{}'         # must equal manifest.git_sha
-git push origin refs/tags/v0.10.0rc1
+git tag -a v0.10.0rc2 APPROVED_FULL_SHA -m 'Sedrava 0.10.0rc2 experimental RC'
+git rev-parse 'v0.10.0rc2^{}'         # must equal manifest.git_sha
+git push origin refs/tags/v0.10.0rc2
 # Only after the approved tag is verified:
-gh release create v0.10.0rc1 --repo VasiliiBabkin/sedrava --verify-tag --prerelease \
-  --title 'Sedrava 0.10.0rc1 — experimental RC' \
+gh release create v0.10.0rc2 --repo VasiliiBabkin/sedrava --verify-tag --prerelease \
+  --title 'Sedrava 0.10.0rc2 — experimental RC' \
   --notes-file /trusted/reviewed/source/docs/RELEASE_NOTES_0_10_0rc1.en.md \
-  /absolute/path/to/kit/sedrava-0.10.0rc1-py3-none-any.whl \
-  /absolute/path/to/kit/sedrava-0.10.0rc1.tar.gz \
-  /absolute/path/to/kit/task_manager_navigation-0.10.0rc1-debug.apk \
-  /absolute/path/to/kit/task_manager-0.10.0rc1-debug.apk \
+  /absolute/path/to/kit/sedrava-0.10.0rc2-py3-none-any.whl \
+  /absolute/path/to/kit/sedrava-0.10.0rc2.tar.gz \
+  /absolute/path/to/kit/task_manager_navigation-0.10.0rc2-debug.apk \
+  /absolute/path/to/kit/task_manager-0.10.0rc2-debug.apk \
   /absolute/path/to/kit/web-examples.zip /absolute/path/to/kit/SHA256SUMS \
   /absolute/path/to/kit/manifest.json /absolute/path/to/kit/manifest.md
 # ONLY if PyPI publication is separately approved and identity/name access confirmed:
-python -m twine check /absolute/path/to/kit/sedrava-0.10.0rc1-py3-none-any.whl /absolute/path/to/kit/sedrava-0.10.0rc1.tar.gz
-python -m twine upload /absolute/path/to/kit/sedrava-0.10.0rc1-py3-none-any.whl /absolute/path/to/kit/sedrava-0.10.0rc1.tar.gz
+python -m twine check /absolute/path/to/kit/sedrava-0.10.0rc2-py3-none-any.whl /absolute/path/to/kit/sedrava-0.10.0rc2.tar.gz
+python -m twine upload /absolute/path/to/kit/sedrava-0.10.0rc2-py3-none-any.whl /absolute/path/to/kit/sedrava-0.10.0rc2.tar.gz
 ```
 
 No `twine upload`, Git tag, GitHub release, TestPyPI upload, PR merge or site deployment is part of any preparation workflow. TestPyPI would require a new explicit target approval and a fresh availability check; it is not included above. [Installation/rollback EN](UPGRADE_0_10_0rc1.en.md) · [RU](UPGRADE_0_10_0rc1.ru.md).
+
+## Current RC2 / Текущий RC2
+
+For version 0.10.0rc2 use the **new** kit and delivery receipt for PR #20 final SHA, not the historical rc1 IDs/hashes. [Notes](RELEASE_NOTES_0_10_0rc2.en.md), [upgrade/rollback](UPGRADE_0_10_0rc2.en.md), [report](RC2_010_REPORT.md). The immutable kit now also includes records-test-evidence.zip and RC2_010_REPORT.md. No publication is performed by preparation.

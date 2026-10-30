@@ -100,3 +100,9 @@ Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has be
 Установка — из проверенного локального wheel в отдельное окружение; автоматической миграции данных нет.
 
 The complete two-APK RC kit is assembled by [the read-only preparation workflow](../.github/workflows/rc-prepare.yml) from successful same-SHA producer artifacts; use [the controlled procedure](RC_PUBLISHING.md), not the historical one-APK compatibility helper, for RC delivery.
+
+## 0.10.0rc2 preparation / Подготовка RC2 (not published)
+
+[Release notes EN](RELEASE_NOTES_0_10_0rc2.en.md) · [RU](RELEASE_NOTES_0_10_0rc2.ru.md) · [Upgrade/rollback EN](UPGRADE_0_10_0rc2.en.md) · [RU](UPGRADE_0_10_0rc2.ru.md) · [RC2 report](RC2_010_REPORT.md).
+Current source version: **0.10.0rc2**, Android versionCode **10002**. This is a separately prepared experimental candidate, not stable 0.10.0 or a publication. The original rc1 kit remains immutable.
+Текущая версия исходников — 0.10.0rc2, код Android — 10002. Публикация требует отдельного решения владельца; физическое устройство не проверено.

@@ -76,4 +76,5 @@ jobs:
             build/tasks-relaunch.*
             build/generic-android/app/build/outputs/apk
             build/generic-android/app/build/reports/tests
+            build/generic-android/app/build/test-results
           if-no-files-found: error

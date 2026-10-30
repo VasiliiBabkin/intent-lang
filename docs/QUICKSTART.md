@@ -1,6 +1,6 @@
 # Quick Start / Быстрый старт
 
-For the current unreleased sources: [unreleased first-class text guide](LANGUAGE_0_10_TEXT.md). Published baseline: 0.9.0a1; prepared experimental candidate: 0.10.0rc1, not a published 0.10.
+For the current unreleased sources: [unreleased first-class text guide](LANGUAGE_0_10_TEXT.md). Published baseline: 0.9.0a1; current experimental candidate: 0.10.0rc2, not a published 0.10.
 
 **Describe the application; get the application. / Опиши приложение — получи приложение.**
 
@@ -92,3 +92,9 @@ Measured RC readiness / Фактическая готовность RC: [report 
 [Release notes EN](RELEASE_NOTES_0_10_0rc1.en.md) · [RU](RELEASE_NOTES_0_10_0rc1.ru.md) · [Upgrade/rollback EN](UPGRADE_0_10_0rc1.en.md) · [RU](UPGRADE_0_10_0rc1.ru.md) · [RC report](RC_010_REPORT.md).
 Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has been published.
 Установка — из проверенного локального wheel в отдельное окружение; автоматической миграции данных нет.
+
+## 0.10.0rc2 preparation / Подготовка RC2 (not published)
+
+[Release notes EN](RELEASE_NOTES_0_10_0rc2.en.md) · [RU](RELEASE_NOTES_0_10_0rc2.ru.md) · [Upgrade/rollback EN](UPGRADE_0_10_0rc2.en.md) · [RU](UPGRADE_0_10_0rc2.ru.md) · [RC2 report](RC2_010_REPORT.md).
+Current source version: **0.10.0rc2**, Android versionCode **10002**. This is a separately prepared experimental candidate, not stable 0.10.0 or a publication. The original rc1 kit remains immutable.
+Текущая версия исходников — 0.10.0rc2, код Android — 10002. Публикация требует отдельного решения владельца; физическое устройство не проверено.

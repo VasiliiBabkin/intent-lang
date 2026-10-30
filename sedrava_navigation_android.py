@@ -91,15 +91,16 @@ import androidx.compose.ui.semantics.contentDescription
     ui += ['      true','    }','  }',
            '  BackHandler(enabled=session.stack.size>1) { commit(dispatchSession(session,"\\$back")) }',
            '  val active=session.stack.last();val focus=remember { FocusRequester() }; val focusManager=LocalFocusManager.current',
-           '  LaunchedEffect(active) { focusManager.clearFocus(force=true);focus.requestFocus() }',
+           '  LaunchedEffect(session.stack) { focusManager.clearFocus(force=true);focus.requestFocus() }',
            '  Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {',
            '    Column(Modifier.widthIn(max=800.dp).fillMaxWidth().align(Alignment.TopCenter).verticalScroll(rememberScrollState()).padding(24.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {',
            '      Text('+q(program.name)+',style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary,fontWeight=FontWeight.Bold)',
            '      if(error.isNotEmpty()) Text(error,color=MaterialTheme.colorScheme.error,modifier=Modifier.testTag("action-error"))',
            '      key(active) { when(active) {']
     for screen in program.screens.values():
-        title=next((w.args[0] for w in screen.widgets if w.kind=='text'),screen.name)
-        subtitle=next((w.args[0] for w in screen.widgets[1:] if w.kind=='text'),None)
+        texts=[w for w in screen.widgets if w.kind=='text']
+        title=texts[0].args[0] if texts else screen.name
+        subtitle=texts[1].args[0] if len(texts)>1 else None
         ui += ['        '+q(screen.name)+' -> {',
                '          Text('+q(title)+',fontFamily=FontFamily.Serif,fontSize=38.sp,lineHeight=42.sp,modifier=Modifier.testTag('+q('screen-'+screen.name)+').focusRequester(focus).focusable().semantics { heading() })']
         if subtitle: ui.append('          Text('+q(subtitle)+',color=Color(0xFF657970),style=MaterialTheme.typography.bodyLarge)')
@@ -107,14 +108,16 @@ import androidx.compose.ui.semantics.contentDescription
                '            Column(Modifier.fillMaxWidth().padding(20.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {']
         for index,w in enumerate(screen.widgets):
             args=w.args;pad='              '
-            if w.kind=='text': continue
+            if w.kind=='text':
+                if w not in texts[:2]: ui.append(pad+'Text('+q(args[0])+')')
+                continue
             if w.kind.startswith('input'):
                 key=args[0]; label=args[1] if len(args)>1 else key
                 ui += [pad+'NavigationInput('+q(key)+','+q(label)+','+names[key]+'.toString(),'+str(w.kind=='input_text').lower()+') { value -> commit(editSession(session,'+q(key)+',value)) }']
             elif w.kind=='button':
                 ui += [pad+'Button(onClick={ commit(dispatchSession(session,'+q(args[1])+')) },modifier=Modifier.fillMaxWidth().heightIn(min=48.dp),shape=RoundedCornerShape(14.dp)) { Text('+q(args[0])+') }']
             elif w.kind=='display':
-                ui += [pad+'Text(try { '+kt(args[0],names)+'.toString() } catch (_: IllegalArgumentException) { "Unavailable" },style=MaterialTheme.typography.headlineSmall,fontFamily=FontFamily.Serif)']
+                ui += [pad+'Text(try { '+kt(args[0],names)+'.toString() } catch (_: IllegalArgumentException) { "Unavailable" } catch (_: ArithmeticException) { "Unavailable" },style=MaterialTheme.typography.headlineSmall,fontFamily=FontFamily.Serif)']
             elif w.kind=='value': ui += [pad+'Text('+q(args[0]+': ')+'+'+names[args[0]]+'.toString())']
             elif w.kind=='show_text': ui += [pad+'if('+names[args[0]]+') Text('+q(args[1])+',color=Color(0xFF61766A))']
             elif w.kind in ('list','list_open'):

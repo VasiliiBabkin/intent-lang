@@ -68,6 +68,66 @@ class BrowserAlpha(unittest.TestCase):
     def state(self, name):
         return self.page.locator(f'output[data-state="{name}"]').inner_text()
 
+    def test_navigation_numeric_editing_and_additional_text(self):
+        source='''app "Numeric pages"
+state n = 0
+derive positive = n > 0
+screen main:
+    text "One\\nTwo"
+    text "Subtitle"
+    text "More\\ntext"
+    input n label "Count"
+    value n
+    show positive : text "Positive value"
+    button "Next" -> open_page
+screen other:
+    text "Other"
+    value n
+    display n * n
+    button "Back" -> previous
+navigation:
+    initial main
+    action open_page -> other
+    action previous -> pop
+'''
+        self.open(source);page=self.page;field=page.get_by_label('Count',exact=True)
+        self.assertEqual(page.locator('h1').text_content(),'One\nTwo')
+        self.assertEqual(page.get_by_text('More\ntext',exact=True).count(),1)
+        self.assertEqual(page.locator('h1').evaluate('(el)=>getComputedStyle(el).whiteSpace'),'pre-wrap')
+        native_editor=field.element_handle()
+        field.fill('12');self.assertEqual(page.evaluate('session.state.n'),12)
+        self.assertTrue(native_editor.evaluate('(el)=>el.isConnected'))
+        self.assertTrue(page.get_by_text('Positive value',exact=True).is_visible())
+        self.assertEqual(field.input_value(),'12');self.assertEqual(page.evaluate('document.activeElement.id'),field.get_attribute('id'))
+        field.fill('1.5');self.assertEqual(field.get_attribute('aria-invalid'),'true');self.assertEqual(page.evaluate('session.state.n'),12)
+        page.get_by_role('button',name='Next',exact=True).click()
+        self.assertEqual(page.locator('main').get_attribute('data-screen'),'other')
+        self.assertIn('n: 12',page.locator('main').inner_text())
+        page.get_by_role('button',name='Back',exact=True).click()
+        page.wait_for_function("document.querySelector('main').dataset.screen==='main' && !document.querySelector('main').inert")
+        page.get_by_label('Count',exact=True).fill('-0')
+        self.assertEqual(page.get_by_label('Count',exact=True).input_value(),'-0')
+        page.get_by_label('Count',exact=True).press('End');page.get_by_label('Count',exact=True).press('1')
+        self.assertEqual(page.evaluate('session.state.n'),-1)
+        self.assertFalse(page.get_by_text('Positive value',exact=True).is_visible())
+        self.assertEqual(page.get_by_label('Count',exact=True).input_value(),'-01')
+        page.get_by_label('Count',exact=True).fill('2147483647')
+        page.get_by_role('button',name='Next',exact=True).click()
+        self.assertEqual(page.evaluate('session.state.n'),2147483647)
+        self.assertIn('Unavailable',page.locator('main').inner_text())
+
+    def test_navigation_repeated_screen_keeps_keyboard_focus(self):
+        self.open((ROOT/'tests/fixtures/navigation_pages.sdr').read_text(encoding='utf-8'))
+        page=self.page
+        page.get_by_role('button',name='Next',exact=True).click()
+        page.get_by_role('button',name='Again',exact=True).focus();page.keyboard.press('Enter')
+        self.assertEqual(page.evaluate('session.stack'),['main','other','other'])
+        self.assertEqual(page.evaluate('document.activeElement.tagName'),'H1')
+        page.get_by_role('button',name='Back',exact=True).click()
+        page.wait_for_function("session.stack.length===2 && !document.querySelector('main').inert")
+        self.assertEqual(page.locator('main').get_attribute('data-screen'),'other')
+        self.assertEqual(page.evaluate('document.activeElement.tagName'),'H1')
+
     def test_navigation_crud_browser_history_focus_and_reload(self):
         self.open((ROOT/'examples/task_manager_navigation.sdr').read_text(encoding='utf-8'))
         page=self.page
@@ -83,6 +143,7 @@ class BrowserAlpha(unittest.TestCase):
         page.get_by_role('button',name='Save title',exact=True).click()
         page.get_by_role('button',name='Toggle completion',exact=True).click()
         self.assertIn('Completed',page.locator('main').inner_text())
+        self.assertTrue(page.get_by_role('button',name='Toggle completion',exact=True).evaluate('(el)=>el===document.activeElement'))
         page.go_back()
         page.wait_for_function("document.querySelector('main').dataset.screen==='main'")
         self.assertEqual(page.evaluate('document.activeElement.tagName'),'H1')

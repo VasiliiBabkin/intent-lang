@@ -32,10 +32,12 @@ Local implementation checks so far:
 | --- | --- |
 | Python regression + navigation | 132 tests; final revision must pass CI |
 | Python/generated JS | task CRUD and session trace; bounded-stack and rejected-rule traces agree |
-| Chromium | 19 scenarios passed, including app/browser Back, Forward, focus, deletion, reload, invalid input and 375px layout |
-| Android APK/JVM/Lint | initial task-manager build passed; expanded saver/instrumentation and scalar-only fixture checks running |
-| Android emulator | workflow added; not yet claimed successful |
+| Chromium | 21 scenarios passed, including app/browser Back, Forward, focus, deletion, reload, invalid input and 375px layout |
+| Android APK/JVM/Lint | task-manager APK, 2 JVM tests, Lint and instrumentation compilation passed; zero-domain-state fixture APK + 1 JVM oracle test passed |
+| Android emulator | first integrated tree 8039e86 passed real Android 15 Back, unsaved accepted editing through rotation/recreation, deletion and cold-start/preferences checks; final revision awaits CI |
 | Physical device | unavailable; NOT tested for this increment |
+
+The first integrated tree passed [all navigation checks](https://github.com/VasiliiBabkin/sedrava/actions/runs/41028382852) and produced [APK/Web/evidence](https://github.com/VasiliiBabkin/sedrava/actions/runs/41028382852/artifacts/12965295337).
 
 Final-head CI links, test counts and APK/Web artifacts are recorded in PR #15 after
 all checks finish. Earlier green runs do not establish later revisions.
@@ -58,3 +60,11 @@ Physical-device behavior is not established by an emulator or APK build.
 не выполняются.
 
 Guides: [English](NAVIGATION_QUICKSTART.en.md), [Русский](NAVIGATION_QUICKSTART.ru.md).
+
+
+Follow-up browser hardening covers repeated-screen focus, numeric drafts including
+`-0` → `-01`, native editor DOM continuity, reactive conditional text and safe
+view-expression overflow. Active editors are retained during accepted input;
+transitions restore heading focus and ordinary actions retain button focus.
+The reference layout was visually inspected at desktop and mobile sizes; this is
+not a claim of WCAG certification or physical-device acceptance.

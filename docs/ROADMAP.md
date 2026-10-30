@@ -4,7 +4,7 @@
 
 **Status / Статус:** development plan, not a release commitment.  
 **Published package / Опубликованный пакет:** historical `intent-lng` 0.7 series; Sedrava has not been published on PyPI.  
-**Active work / Текущая разработка:** Sedrava 0.9.0a1 is published on GitHub; 0.10 text work is an unreleased development increment.
+**Active work / Текущая разработка:** Sedrava 0.9.0a1 is published on GitHub; 0.10 text/records/navigation work is an unreleased development increment.
 
 ## Vision / Видение
 

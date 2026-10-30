@@ -410,7 +410,7 @@ def parse(source):
             screen_name, guard_name = m[1], m[2]
             if screen_name in screens: raise ValueError(f"Line {number}: column 8: duplicate screen {screen_name}")
             if len(screens) >= MAX_SCREENS: raise ValueError(f"Line {number}: column 8: screen limit")
-            guard = expression(guard_name, types, number, line.find(guard_name)+1) if guard_name else None
+            guard = expression(guard_name, types, number, m.start(2)+1) if guard_name else None
             if guard is not None and type_of(guard,types) is not bool: raise ValueError(f"Line {number}: column 8: screen guard must be bool")
             screen_start = len(widgets)
             i += 1

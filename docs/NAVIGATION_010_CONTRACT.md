@@ -79,8 +79,9 @@ completion. Old single-screen syntax remains unchanged.
 Web history stores only bounded screen stacks, never domain snapshots. Back and
 Forward re-evaluate guards against current shared data, so they do not undo edits
 or resurrect deleted records. Stale/foreign history metadata is replaced safely.
-Browser Back at the root can leave the document; the language `pop` at root is a
-successful no-op. Navigation and pending browser traversal are serialized.
+Browser Back at the root can leave the document; Android system Back at root is
+not intercepted and belongs to the host Activity lifecycle. The language `pop` at
+root is a successful no-op. Navigation and pending browser traversal are serialized.
 Reload and cold launch start at the declared initial screen and restore only
 `persist` domain fields. Android rotation/recreation retains all accepted domain
 fields and the stack together; invalid saved navigation falls back to initial.
@@ -92,3 +93,10 @@ of the domain persistence schema. These boundaries are deliberate, not migration
 возвращает к ближайшему допустимому экрану. Стек ограничен 32 элементами. История
 браузера не отменяет изменения задач. Перезагрузка/холодный запуск открывают начальный
 экран; поворот и пересоздание Activity сохраняют принятое состояние и стек.
+
+
+Presentation uses the first two `text` widgets as title/subtitle; further text
+widgets stay in the content area. `display` errors show `Unavailable` without
+mutating data; screen guards should protect record-dependent displays. Numeric
+editors validate explicit decimal syntax and int32 bounds. Navigation to repeated
+screen names is allowed and restores keyboard focus just like a different screen.

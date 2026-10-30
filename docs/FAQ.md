@@ -1,4 +1,4 @@
-> This checkout includes the [unreleased text increment](LANGUAGE_0_10_TEXT.md). Historical 0.9 restrictions below apply to the published baseline; text state/input is now supported on this development branch. Lists/navigation remain future work.
+> This checkout includes the [unreleased text increment](LANGUAGE_0_10_TEXT.md). Historical 0.9 restrictions below apply to the published baseline; text state/input is now supported on this development branch. Records, bounded lists and navigation are also implemented in the unreleased development increment; see [navigation](NAVIGATION_010_CONTRACT.md).
 
 # FAQ and troubleshooting / Вопросы и устранение ошибок
 

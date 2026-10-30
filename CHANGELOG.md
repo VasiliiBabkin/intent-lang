@@ -35,3 +35,14 @@ This is Sedrava's first candidate; historical Intent 0.7 and abandoned Sedrava 0
 - Generated selectable lists in Web and Compose; offline task manager from one source file.
 - Python/JS/Kotlin oracle, Chromium CRUD and Android test harnesses; see
   [measured results](docs/COLLECTIONS_010_REPORT.md). No release or publication.
+
+## Unreleased 0.10 navigation / Многоэкранность
+
+- Named screens, explicit initial screen, bounded push/pop stack and bool guards.
+- Atomic navigation bindings with domain actions; selected stable ID preserved;
+  missing/deleted records cannot leave an invalid details screen active.
+- Web Back/Forward, keyboard focus and responsive cards; native Compose Back and
+  complete accepted-session recreation. Cold launch/reload start at initial.
+- One two-screen task manager source, shared Python/JS/Kotlin oracles, browser and
+  emulator harnesses. [Measured evidence](docs/NAVIGATION_010_REPORT.md).
+- Навигация реализована в ядре и генераторах; 0.10 не выпущена.

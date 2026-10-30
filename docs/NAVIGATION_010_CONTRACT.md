@@ -1,12 +1,12 @@
 # Sedrava 0.10 multi-screen navigation — implementation contract
 
-**Status:** proposed; no navigation syntax implemented by this document. Baseline: merged records/collections PR #14.
+**Status:** normative, experimental implementation on the navigation development branch; not a released 0.10. Baseline: merged records/collections PR #14. Measured coverage: [report](NAVIGATION_010_REPORT.md).
 
 ## Objective / Цель
 
 A single `.sdr` source generates a task list screen and a task-detail screen for offline Web and Android. Screens share one accepted domain state; navigation has deterministic semantics and requires no author-written JavaScript, Kotlin or Android navigation controller.
 
-## Proposed grammar (subject to parser validation)
+## Navigation grammar / Грамматика
 
 ```sdr
 app "Tasks"
@@ -23,9 +23,9 @@ navigation:
     action back -> pop
 ```
 
-**Not executable yet.** The compiler must distinguish domain actions from navigation commands and reject ambiguous names.
+This grammar is accepted by the compiler. Domain actions and navigation commands have distinct names; conflicts are rejected.
 
-## Normative behavior to implement
+## Normative behavior / Семантика
 
 1. Named screens are unique; `main` remains the implicit initial screen for legacy programs. Explicit initial screen is allowed only when declared.
 2. Navigation stack is nonempty, bounded (suggested maximum 32), and stores screen IDs, never mutable widget instances. Opening a screen pushes it; `pop` returns to the previous screen; popping the root is a deterministic no-op.
@@ -45,7 +45,7 @@ navigation:
 - Create `examples/task_manager_navigation.sdr` using real collection CRUD on two screens, generated unchanged for both targets.
 - Test Python 3.10/3.12/3.13, Chromium and Android; compare state and navigation traces across platforms.
 - Update README, roadmap, changelog and bilingual quickstarts after implementation, not before.
-- Keep the PR draft until all evidence is recorded. No merge, tag, release, PyPI publish or deployment.
+- Keep the PR draft for review; record the final evidence in PR #15. No merge, tag, release, PyPI publish or deployment.
 
 ## Non-goals
 
@@ -54,3 +54,41 @@ Nested records, schema migrations, routing parameters, deep links, tabs, animati
 ## Acceptance / Приёмка
 
 The reference source compiles unchanged to a usable standalone Web app and Android APK; actual Web/Android interactions and back-stack semantics match the Python oracle; existing tests pass. Unsupported checks must be reported as unavailable, never as passed.
+
+## Adopted implementation decisions / Принятые решения
+
+The grammar above is retained. Optional `using domain_action` on a navigation
+binding performs a domain action and push/pop in one transaction. `screen details
+when chosen:` is a bool guard; the initial screen must be unguarded. A false/failed
+guard rejects entry atomically. After accepted data edits/removal, invalid active
+screens are popped until a valid screen is found. Shared selection is ordinary
+int state; deleting a selected row never substitutes another row.
+
+Bounds: 32 screens, 64 navigation bindings, 32 stack entries including root;
+identifiers at most 64 ASCII identifier characters. Navigation command names
+cannot collide with states/derives/records/domain actions/screens. All screens
+must be reachable from initial via declared screen controls; every navigation
+binding must be used by a screen control. `pop` is reserved as a target.
+
+Additional presentation: `display <scalar expression>`, `input title label "Title"`,
+and `list tasks select selected open open_details title title status done`.
+List opening atomically selects the stable ID and invokes the navigation binding;
+optional title/status refer to text/bool record fields. The status role means
+completion. Old single-screen syntax remains unchanged.
+
+Web history stores only bounded screen stacks, never domain snapshots. Back and
+Forward re-evaluate guards against current shared data, so they do not undo edits
+or resurrect deleted records. Stale/foreign history metadata is replaced safely.
+Browser Back at the root can leave the document; the language `pop` at root is a
+successful no-op. Navigation and pending browser traversal are serialized.
+Reload and cold launch start at the declared initial screen and restore only
+`persist` domain fields. Android rotation/recreation retains all accepted domain
+fields and the stack together; invalid saved navigation falls back to initial.
+Drafts are not promised to survive transitions/recreation. Navigation is not part
+of the domain persistence schema. These boundaries are deliberate, not migrations.
+
+Русский: `using` объединяет изменение данных и переход в атомарную операцию.
+Охраняемый экран недоступен без существующей выбранной записи; удаление записи
+возвращает к ближайшему допустимому экрану. Стек ограничен 32 элементами. История
+браузера не отменяет изменения задач. Перезагрузка/холодный запуск открывают начальный
+экран; поворот и пересоздание Activity сохраняют принятое состояние и стек.

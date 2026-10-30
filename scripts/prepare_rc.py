@@ -200,7 +200,7 @@ def test_evidence(api,runs,nav,records):
                 if job['name']=='chromium':summary['chromium']=count
                 elif m:=re.fullmatch(r'language-package \((3\.(?:10|12|13))\)',job['name']):summary['python'][m[1]]=count
                 else:raise ValueError('Unrecognized alpha test job')
-    if set(summary['python'])!={'3.10','3.12','3.13'} or min(summary['python'].values())<159 or (summary['chromium'] or 0)<26:raise ValueError('Regression coverage missing')
+    if set(summary['python'])!={'3.10','3.12','3.13'} or min(summary['python'].values())<164 or (summary['chromium'] or 0)<26:raise ValueError('Regression coverage missing')
     unit,device=native_cases(nav)
     summary['jvm_navigation']=unit;summary['emulator']=device
     if len(unit)<7 or len(device)<6:raise ValueError('Native test evidence incomplete')
@@ -320,6 +320,7 @@ def main():
     run_id=os.environ['GITHUB_RUN_ID'];repo=api.repo
     if not run_id.isdigit():raise ValueError('Actual Actions build ID required')
     manifest={'schema':1,'version':VERSION,'package_name':'sedrava','git_sha':args.sha,'status':'GO_FOR_OWNER_REVIEW','publication_authorized':False,
+              'stable_release':{'status':'NOT_ASSESSED','owner_observation_window':'not specified or performed','physical_device':'unavailable; not tested'},
               'created_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
               'build':{'run_id':int(run_id),'attempt':int(os.environ['GITHUB_RUN_ATTEMPT']),'url':'https://github.com/'+repo+'/actions/runs/'+run_id},
               'ci':ci,'source_artifacts':[dist_info,nav_info,web_info,trace_info,records_info],'tests':summary,'apk':apk_results,'availability':availability,'rc1_kit':rc1_kit,
@@ -331,6 +332,7 @@ def main():
             'Python tests: '+json.dumps(summary['python'],sort_keys=True),
             'Chromium scenarios: '+str(summary['chromium']),
             'Main-workflow JVM tests: '+str(len(summary['jvm_navigation'])),
+            'Records and independent-boundary JVM tests: '+str(len(summary['jvm_records_boundaries'])),
             'Emulator scenarios including baseline UI seed/update: '+str(len(summary['emulator'])),
             'Real development code 1 -> RC code '+str(ANDROID_VERSION_CODE)+' same-key update: PASS',
             'Real rc1 code 10001 -> rc2 code '+str(ANDROID_VERSION_CODE)+' same-ID/key update, cold restart and rejected-data retention: PASS',

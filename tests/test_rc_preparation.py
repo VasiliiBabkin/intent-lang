@@ -17,7 +17,7 @@ from sedrava_cli import VERSION as CLI_VERSION
 from android_codegen_v03 import generate
 from scripts.rc_archive import read_zip,read_sdist,inspect_payload,deterministic_zip,sha256
 from scripts.rc_api import SafeRedirect
-from scripts.prepare_rc import validate_run,artifact,write_bundle,verify_bundle,checked_wheel_inventory
+from scripts.prepare_rc import validate_run,artifact,write_bundle,verify_bundle,checked_wheel_inventory,verify_uploaded_kit
 from scripts.audit_release_security import audit
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -82,6 +82,15 @@ class RCPreparationTests(unittest.TestCase):
     def test_unexpected_install_time_wheel_script_is_rejected(self):
         with self.assertRaisesRegex(ValueError,'inventory'):
             checked_wheel_inventory({'sedrava-'+VERSION+'.data/scripts/sedrava':b'not reviewed code'})
+    def test_uploaded_kit_roundtrip_is_bound_to_source_run_and_bytes(self):
+        files={'data.txt':b'checked bytes'};raw=deterministic_zip(files)
+        metadata={'expired':False,'workflow_run':{'head_sha':SHA,'id':7},'digest':'sha256:'+sha256(raw)}
+        class Api:
+            def get(self,path,**kwargs):return raw if path.endswith('/zip') else metadata
+        result=verify_uploaded_kit(Api(),42,SHA,7,sha256(raw),files)
+        self.assertTrue(result['download_roundtrip_verified'])
+        with self.assertRaises(ValueError):verify_uploaded_kit(Api(),42,SHA,7,sha256(raw),{'data.txt':b'changed'})
+        with self.assertRaises(ValueError):verify_uploaded_kit(Api(),42,SHA,8,sha256(raw),files)
     def test_cross_host_redirect_drops_token(self):
         req=urllib.request.Request('https://api.github.com/repos/x/y/actions/artifacts/42/zip',headers={'Authorization':'Bearer example'})
         redirected=SafeRedirect().redirect_request(req,None,302,'',{},'https://example.blob.core.windows.net/artifact')

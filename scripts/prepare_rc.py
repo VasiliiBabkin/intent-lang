@@ -213,11 +213,25 @@ def verify_bundle(output):
     return manifest
 
 
+def verify_uploaded_kit(api,artifact_id,source_sha,run_id,expected_digest,local_files):
+    meta=api.get('/actions/artifacts/'+str(artifact_id))
+    expected_digest=expected_digest.removeprefix('sha256:')
+    if meta.get('expired') or meta.get('workflow_run',{}).get('head_sha')!=source_sha or meta.get('workflow_run',{}).get('id')!=run_id or meta.get('digest')!='sha256:'+expected_digest:
+        raise ValueError('Uploaded kit metadata does not bind the exact source/run/digest')
+    raw=api.get('/actions/artifacts/'+str(artifact_id)+'/zip',binary=True)
+    if sha256(raw)!=expected_digest or read_zip(raw)!=local_files:
+        raise ValueError('Downloaded kit differs from checked local files')
+    return {'artifact_zip_sha256':expected_digest,'download_roundtrip_verified':True}
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--sha',required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--timeout',type=int,default=1800);args=p.parse_args()
     if not re.fullmatch(r'[0-9a-f]{40}',args.sha):raise ValueError('Full source SHA required')
     if subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()!=args.sha or subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip():raise ValueError('Checkout must be clean and match exact source SHA')
-    api=GitHub('VasiliiBabkin/sedrava');runs=wait_gates(api,args.sha,args.timeout)
+    api=GitHub('VasiliiBabkin/sedrava')
+    own_run=api.get('/actions/runs/'+os.environ['GITHUB_RUN_ID'])
+    if own_run.get('head_sha')!=args.sha:raise ValueError('Dispatch on a ref whose head is the checked SHA; do not mix workflow and source revisions')
+    runs=wait_gates(api,args.sha,args.timeout)
     availability=check_availability(api)
     dist,dist_info,_=artifact(api,runs['alpha.yml'],'sedrava-alpha-distributions',args.sha)
     nav,nav_info,_=artifact(api,runs['navigation-010.yml'],'sedrava-navigation-apk-web-evidence',args.sha)

@@ -55,8 +55,9 @@ jobs:
           path: build/rc-candidate/*
           if-no-files-found: error
           retention-days: 90
-      - name: Record actual immutable delivery identity (no guessed artifact links)
+      - name: Download and verify the immutable delivery (no guessed artifact links)
         env:
+          GH_TOKEN: ${{ github.token }}
           KIT_ID: ${{ steps.kit.outputs.artifact-id }}
           KIT_URL: ${{ steps.kit.outputs.artifact-url }}
           KIT_DIGEST: ${{ steps.kit.outputs.artifact-digest }}
@@ -65,12 +66,16 @@ jobs:
           import hashlib,json,os
           from pathlib import Path
           from sedrava_version import VERSION
+          from scripts.rc_api import GitHub
+          from scripts.prepare_rc import verify_uploaded_kit
           kit=Path('build/rc-candidate')
           data={'schema':1,'version':VERSION,'git_sha':os.environ['CHECKED_SHA'],
                 'run_id':int(os.environ['GITHUB_RUN_ID']),'artifact_id':int(os.environ['KIT_ID']),
                 'artifact_url':os.environ['KIT_URL'],'artifact_zip_sha256':os.environ['KIT_DIGEST'],
                 'sha256sums_sha256':hashlib.sha256((kit/'SHA256SUMS').read_bytes()).hexdigest(),
                 'status':'GO_FOR_OWNER_REVIEW','publication_authorized':False}
+          result=verify_uploaded_kit(GitHub('VasiliiBabkin/sedrava'),data['artifact_id'],data['git_sha'],data['run_id'],data['artifact_zip_sha256'],{p.name:p.read_bytes() for p in kit.iterdir()})
+          data.update(result)
           Path('build/rc-delivery.json').write_text(json.dumps(data,sort_keys=True,indent=2)+'\n')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
               out.write('## Experimental RC kit — not published\n\n'+json.dumps(data,indent=2)+'\n')

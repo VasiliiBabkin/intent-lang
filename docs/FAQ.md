@@ -24,7 +24,7 @@
 
 **Gradle cannot download dependencies?** Verify network/proxy/CA configuration for the JVM as well as the shell. Do not disable TLS verification. First builds need Google/Maven/Gradle repositories. Generated projects can later build with cached dependencies; offline success is not guaranteed on a fresh machine.
 
-**Android example unexpectedly has old state?** Generated examples share an application ID. Clear app data or uninstall before switching examples. Persistence migrations and unique package configuration remain future work.
+**Android example unexpectedly has old state?** Current builds use deterministic title-derived IDs. Identical titles deliberately share an ID; use distinct `--application-id` values for independent apps. Older binaries used a shared ID. Data migrations remain unavailable. See [Android identity](ANDROID_ID.en.md).
 
 **No data after browser reload?** Serve via HTTP at the same origin/path/name. Browser privacy settings, storage quota and private browsing can prevent persistence. No durability promise is made for blocked storage.
 

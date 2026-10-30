@@ -41,10 +41,7 @@ adb install -r build/tasks-android/app/build/outputs/apk/debug/app-debug.apk
 Select a task, change completion/title, rotate and relaunch. Accepted full state
 is saved for recreation; only `persist` fields survive process relaunch. Invalid
 drafts are not promised to survive recreation. Storage is local and unencrypted.
-Generated Android examples still share an application ID: clear data before
-switching apps. Schema mismatch rejects the entire saved snapshot and reports an
-error; no migrations or partial recovery are provided. Keep backups before
-changing persistent declarations. A failed storage write must be reported.
+Current Android builds use independent deterministic IDs; see [identity settings](ANDROID_ID.en.md).
 
 Validation: `python -m unittest discover -s tests -v`,
 `python scripts/test_web_browser.py` (Playwright + Chromium). JVM oracle tests

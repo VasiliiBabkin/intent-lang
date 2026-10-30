@@ -45,8 +45,7 @@ class Reference09Tests(unittest.TestCase):
     def test_android_contract(self):
         from tempfile import TemporaryDirectory
         with TemporaryDirectory() as folder:
-            generate_android(SOURCE, folder)
-            kt = (Path(folder) / "app/src/main/java/org/sedrava/generated/MainActivity.kt").read_text(encoding="utf-8")
+            kt = generate_android(SOURCE, folder).read_text(encoding="utf-8")
             manifest = (Path(folder) / "app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
             for token in ("OutlinedTextField", "getSharedPreferences", "isError", "Add progress", "Restore defaults"):
                 self.assertIn(token, kt)

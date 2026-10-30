@@ -9,11 +9,13 @@ from sedrava_core import parse
 from sedrava_records import fingerprint
 from android_codegen_v03 import quoted as q
 
+from sedrava_android_identity import project_identity, kotlin_path
+
 
 def prepare(project, source=SOURCE):
     program=parse(source)
     sequence=steps() if source==SOURCE else [('command','next_page')]*33+[('command','$back')]*34
-    lines=['package org.sedrava.generated','import org.junit.Test','import org.junit.Assert.*','class NavigationStateTest {','  @Test fun pythonOracle() {','    assertEquals(listOf("main"),restoreSessionSnapshot(emptyList(),SedravaState()).stack)', '    var session=initialSession()']
+    lines=['package '+project_identity(project),'import org.junit.Test','import org.junit.Assert.*','class NavigationStateTest {','  @Test fun pythonOracle() {','    assertEquals(listOf("main"),restoreSessionSnapshot(emptyList(),SedravaState()).stack)', '    var session=initialSession()']
     for i,(step,outcome) in enumerate(zip(sequence,trace(source,sequence))):
         lines.append('    val before_'+str(i)+'=session')
         if step[0]=='command': expression='dispatchSession(session,'+q(step[1])+')'
@@ -28,9 +30,9 @@ def prepare(project, source=SOURCE):
         lines.append(('    assertNotSame' if outcome['accepted'] else '    assertSame')+'("atomic '+str(i)+'",before_'+str(i)+',session)')
     if source!=SOURCE:
         lines += ['  }','}']
-        path=Path(project)/'app/src/test/java/org/sedrava/generated/NavigationStateTest.kt';path.parent.mkdir(parents=True,exist_ok=True);path.write_text('\n'.join(lines)+'\n',encoding='utf-8');print(path);return
+        path=kotlin_path(project, 'test', 'NavigationStateTest.kt');path.parent.mkdir(parents=True,exist_ok=True);path.write_text('\n'.join(lines)+'\n',encoding='utf-8');print(path);return
     lines += ['  }','  @Test fun stackOverflowAndMissingRecordAreAtomic() {','    var session=initialSession()','    session=editSession(session,"new_title","one")','    session=dispatchSession(session,"add_task")','    session=selectItem(session,"tasks","selected",1,"open_details")','    repeat(30) { session=dispatchSession(session,"open_details") }','    assertEquals(32,session.stack.size)','    session=editSession(session,"title","unsaved accepted edit")','    val before=session','    assertSame(before,dispatchSession(before,"open_details"))','    assertEquals("unsaved accepted edit",before.state.sdr_title)','    assertSame(before,selectItem(before,"tasks","selected",999,"open_details"))','    assertEquals(listOf("main"),restoreSession(before.state,listOf("bad")).stack)','    session=dispatchSession(session,"delete_task")','    assertEquals(listOf("main"),session.stack)','    assertTrue(session.state.sdr_tasks.items.isEmpty())','  }','}']
-    path=Path(project)/'app/src/test/java/org/sedrava/generated/NavigationStateTest.kt';path.parent.mkdir(parents=True,exist_ok=True);path.write_text('\n'.join(lines)+'\n',encoding='utf-8');print(path)
+    path=kotlin_path(project, 'test', 'NavigationStateTest.kt');path.parent.mkdir(parents=True,exist_ok=True);path.write_text('\n'.join(lines)+'\n',encoding='utf-8');print(path)
 
 if __name__=='__main__':
     import argparse

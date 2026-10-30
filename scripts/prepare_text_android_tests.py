@@ -25,12 +25,14 @@ def kotlin(value):
         return 'listOf<Any?>(' + ', '.join(map(kotlin, value)) + ')'
     return 'mapOf<String, Any?>(' + ', '.join(quoted(k) + ' to ' + kotlin(v) for k, v in value.items()) + ')'
 
+from sedrava_android_identity import project_identity, kotlin_path
+
 
 def prepare(project, source):
     program = parse(source)
     steps = operations(source)
     expected = trace(program, steps)
-    lines = ['package org.sedrava.generated', 'import org.junit.Assert.*', 'import org.junit.Test',
+    lines = ['package '+project_identity(project), 'import org.junit.Assert.*', 'import org.junit.Test',
              'class TextStateTest {', '  @Test fun pythonOracleActionsInputsAndRestore() {',
              '    var state = SedravaState()']
     for i, (step, outcome) in enumerate(zip(steps, expected)):
@@ -62,7 +64,7 @@ def prepare(project, source):
               '    assertTrue(validText("\\uD83D\\uDE00"))',
               '    assertNotEquals("é", "é")',
               '  }', '}']
-    path = project / 'app/src/test/java/org/sedrava/generated/TextStateTest.kt'
+    path = kotlin_path(project, 'test', 'TextStateTest.kt')
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
     print(f'{path}: {len(steps)} Python-oracle steps + Unicode scalar boundary test')

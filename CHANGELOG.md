@@ -46,3 +46,13 @@ This is Sedrava's first candidate; historical Intent 0.7 and abandoned Sedrava 0
 - One two-screen task manager source, shared Python/JS/Kotlin oracles, browser and
   emulator harnesses. [Measured evidence](docs/NAVIGATION_010_REPORT.md).
 - Навигация реализована в ядре и генераторах; 0.10 не выпущена.
+
+## Unreleased 0.10 — release readiness / Подготовка RC
+
+- Deterministic Android identity and validated `--application-id`; matching namespace, Kotlin package, tests and permission audit. Независимая установка приложений, стабильные ID и строковые ресурсы названия.
+- Responsive long titles/cards, larger fonts, stronger secondary-text contrast, accessible status descriptions and invalid-draft action blocking in navigation apps; pure navigation remains available.
+- CLI validates generated Web before creating output directories; project identity collisions reject before changing files.
+- Wheel bundles documentation/examples/license; clean wheel and sdist checks run outside checkout.
+- Side-by-side emulator installation and update-data-retention checks; 0.10 remains unreleased.
+
+- Resource escaping also covers XML-illegal Unicode scalars; duplicate Compose editors track errors independently. Эмулятор подтвердил совместную установку двух APK и сохранение данных при повторной установке; [готовность RC](docs/RELEASE_READINESS_010_REPORT.md) измерена без публикации.

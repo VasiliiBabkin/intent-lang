@@ -50,10 +50,11 @@ Verify/install with SDK tools (replace `$ANDROID_HOME` syntax with your shell's 
 "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging build/reference-09-android/app/build/outputs/apk/debug/app-debug.apk
 "$ANDROID_HOME/build-tools/35.0.0/aapt" dump permissions build/reference-09-android/app/build/outputs/apk/debug/app-debug.apk
 adb install -r build/reference-09-android/app/build/outputs/apk/debug/app-debug.apk
-adb shell am start -n org.sedrava.generated/.MainActivity
+# Read PACKAGE from build/reference-09-android/sedrava-android.json:
+adb shell am start -n PACKAGE/.MainActivity
 ```
 
-Generated sources request no permissions. SDK/AndroidX may contribute manifest metadata; inspect the merged APK rather than assuming source manifest is the full result. Debug APKs are test artifacts, not production signing keys. All generated examples share an application ID: uninstall/clear data before switching examples. Follow [device checklist](REFERENCE_09.md) for input, actions, persistence, rotation and recovery. APK compilation does **not** constitute a UI test.
+Generated sources request no permissions. SDK/AndroidX may contribute manifest metadata; inspect the merged APK rather than assuming source manifest is the full result. Debug APKs are test artifacts, not production signing keys. Generated examples have title-derived IDs; explicit IDs are supported. See the identity guides below. Follow [device checklist](REFERENCE_09.md) for input, actions, persistence, rotation and recovery. APK compilation does **not** constitute a UI test.
 
 ## CI artifacts and repeatability
 
@@ -81,3 +82,13 @@ in the core and both generators. One `.sdr` file generates the two-screen task m
 - [Русское руководство](NAVIGATION_QUICKSTART.ru.md)
 - [Syntax and semantics](NAVIGATION_010_CONTRACT.md)
 - [Measured report](NAVIGATION_010_REPORT.md)
+
+## Release readiness / Подготовка к RC (unreleased 0.10)
+
+Independent deterministic Android IDs and `--application-id` are implemented.
+Независимые Android-приложения собираются с постоянным ID; название отделено от пакета.
+[English identity/build guide](ANDROID_ID.en.md) · [Русская инструкция](ANDROID_ID.ru.md).
+Wheel/sdist include examples, documentation and license under `sys.prefix/share/sedrava`.
+Дистрибутив содержит примеры, документацию и лицензию; публикация 0.10 не выполнялась.
+
+Measured RC readiness / Фактическая готовность RC: [report / отчёт](RELEASE_READINESS_010_REPORT.md).

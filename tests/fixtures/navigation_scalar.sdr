@@ -1,4 +1,4 @@
-app "Scalar navigation"
+app "@? \"quoted\" $name & \n spaces"
 state n = 0
 state javascript = "function showError("
 state kotlin = "class MainActivity :"
@@ -7,6 +7,7 @@ action bump: n = n + 1
 screen main:
     text "Home"
     input n label "Count"
+    input n label "Mirror count"
     display javascript
     display kotlin
     button "Next" -> next_page

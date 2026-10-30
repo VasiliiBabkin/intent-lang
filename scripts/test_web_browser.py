@@ -68,6 +68,42 @@ class BrowserAlpha(unittest.TestCase):
     def state(self, name):
         return self.page.locator(f'output[data-state="{name}"]').inner_text()
 
+    def test_readiness_invalid_draft_blocks_actions_and_recovers(self):
+        self.open((ROOT/'examples/task_manager_navigation.sdr').read_text(encoding='utf-8'))
+        page=self.page;field=page.get_by_label('New task',exact=True)
+        field.fill('accepted');field.fill('😀'*1025)
+        self.assertTrue(page.get_by_role('button',name='Add task',exact=True).is_disabled())
+        self.assertEqual(page.evaluate('session.state.tasks.items.length'),0)
+        self.assertTrue(page.get_by_role('alert').filter(has_text='Enter a valid').is_visible())
+        field.fill('corrected');page.get_by_role('button',name='Add task',exact=True).click()
+        page.get_by_role('button',name='Open corrected',exact=True).click()
+        page.get_by_label('Task title',exact=True).fill('😀'*1025)
+        self.assertTrue(page.get_by_role('button',name='Save title',exact=True).is_disabled())
+        self.assertTrue(page.get_by_role('button',name='Back to tasks',exact=True).is_enabled())
+        page.get_by_role('button',name='Back to tasks',exact=True).click()
+        page.wait_for_function("session.stack.length===1 && !traversing")
+        self.assertTrue(page.get_by_role('button',name='Add task',exact=True).is_enabled())
+        self.assertEqual(page.evaluate('session.state.tasks.items[0].title'),'corrected')
+
+    def test_readiness_large_fonts_long_content_and_status_description(self):
+        source=(ROOT/'examples/task_manager_navigation.sdr').read_text(encoding='utf-8')
+        self.open(source.replace('Daybook · Tasks','Задачи'+('X'*120)))
+        page=self.page;page.set_viewport_size({'width':320,'height':640})
+        page.add_style_tag(content=':root{font-size:200%}')
+        title='LongTitle'+('a'*1015)
+        page.get_by_label('New task',exact=True).fill(title)
+        page.get_by_role('button',name='Add task',exact=True).click()
+        button=page.get_by_role('button',name='Open '+title,exact=True)
+        self.assertEqual(page.locator('#'+button.get_attribute('aria-describedby')).inner_text(),'In progress')
+        self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'),320)
+        button.click();page.get_by_role('button',name='Toggle completion',exact=True).click()
+        page.get_by_role('button',name='Back to tasks',exact=True).click()
+        page.wait_for_function("session.stack.length===1 && !traversing")
+        button=page.get_by_role('button',name='Open '+title,exact=True)
+        self.assertEqual(page.locator('#'+button.get_attribute('aria-describedby')).inner_text(),'Completed')
+        self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'),320)
+        self.assertFalse(self.errors,self.errors)
+
     def test_navigation_numeric_editing_and_additional_text(self):
         source='''app "Numeric pages"
 state n = 0

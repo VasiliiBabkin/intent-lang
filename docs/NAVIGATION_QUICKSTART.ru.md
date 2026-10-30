@@ -52,8 +52,8 @@ bash scripts/test_navigation_emulator.sh
 
 Скрипты добавляют только тесты и зависимости тестовой сборки. Сценарий проверяет
 системный Back, поворот, пересоздание, остановку процесса и новый запуск, настоящий
-SharedPreferences и восстановленный интерфейс. Примеры пока имеют общий Android
-application ID: очищайте данные при смене примера. Миграций и шифрования нет.
+SharedPreferences и восстановленный интерфейс. Примеры имеют независимые постоянные
+Android ID; см. [настройки сборки](ANDROID_ID.ru.md). Миграций и шифрования нет.
 
 Регрессия: `python -m unittest discover -s tests -v`; браузер:
 `python scripts/test_web_browser.py` (Playwright/Chromium). Фактические проверки

@@ -1,6 +1,10 @@
 """Add JVM tests to a generated Lab project; no emulator/UI acceptance implied."""
-import argparse
+import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import argparse
+
+from sedrava_android_identity import project_identity, kotlin_path
 
 TEST = '''package org.sedrava.generated
 import org.junit.Assert.*
@@ -27,7 +31,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('project', type=Path)
     args = parser.parse_args()
-    path = args.project / 'app/src/test/java/org/sedrava/generated/LabStateTest.kt'
+    path = kotlin_path(args.project, 'test', 'LabStateTest.kt')
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(TEST, encoding='utf-8')
+    path.write_text(TEST.replace('org.sedrava.generated', project_identity(args.project)), encoding='utf-8')
     print(path)

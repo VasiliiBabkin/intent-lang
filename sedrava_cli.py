@@ -26,7 +26,10 @@ def main(argv=None):
     build.add_argument("target", choices=("web", "android"))
     build.add_argument("source", type=Path)
     build.add_argument("--output", type=Path)
+    build.add_argument("--application-id", help="Stable Android package identity (lowercase reverse-domain name)")
     args = parser.parse_args(argv)
+    if args.command == "build" and args.application_id is not None and args.target != "android":
+        parser.error("--application-id is only supported for build android")
     try:
         if args.source.stat().st_size > MAX_SOURCE_CHARS * 4:
             raise ValueError("Source exceeds size limit")
@@ -75,13 +78,14 @@ def main(argv=None):
         elif args.target == "web":
             from web_codegen import generate
             output = args.output or Path("build/web/index.html")
+            result = generate(source)
             output.parent.mkdir(parents=True, exist_ok=True)
-            output.write_text(generate(source), encoding="utf-8")
+            output.write_text(result, encoding="utf-8")
             print(output)
         else:
             from android_codegen_v03 import generate
             output = args.output or Path("build/generated-android")
-            print(generate(source, output))
+            print(generate(source, output, application_id=args.application_id))
         return 0
     except (OSError, ValueError, AssertionError, RecursionError) as exc:
         message = str(exc)

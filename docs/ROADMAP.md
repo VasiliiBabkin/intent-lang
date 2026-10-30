@@ -91,3 +91,7 @@ Text state/derive/equality/actions, inferred text input and persistence are impl
 
 See [readiness report](RELEASE_READINESS_010_REPORT.md) for measured CI/emulator results and GO/NO-GO.
 Это техническая подготовка; релиз, тег, PyPI и развёртывание не выполнялись.
+
+## First experimental RC preparation / Подготовка первого RC
+
+Version `0.10.0rc1` is prepared, not published. Same-SHA read-only artifact assembly, version agreement, checksums, published-0.9 rollback and a real Android update gate are implemented. See [report](RC_010_REPORT.md) and [controlled publication procedure](RC_PUBLISHING.md). A technical GO does not grant owner authorization.

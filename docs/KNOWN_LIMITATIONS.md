@@ -12,3 +12,9 @@ Implemented: int32/bool/text, typed records, ordered bounded collections, atomic
 - Emulator checks are bounded scenarios, not every Android/device configuration. Historical physical-device acceptance covers 0.9 only; new 0.10 APKs have **not** been tested on a physical device. Debug certificates differ between machines. See [readiness evidence](RELEASE_READINESS_010_REPORT.md).
 
 Русский: строки, записи, списки, навигация и независимые Android ID реализованы. Холодный запуск открывает начальный экран; поворот сохраняет принятое состояние. Хранение не зашифровано, миграций нет. Одинаковые названия дают одинаковый ID; используйте [явный ID](ANDROID_ID.ru.md) для независимых приложений. Нет произвольной вёрстки и полной сертификации доступности. Новые APK проверяются эмулятором; физическое устройство для 0.10 недоступно. Версия ещё не выпущена.
+
+## 0.10.0rc1 preparation / Подготовка RC (not published)
+
+[Release notes EN](RELEASE_NOTES_0_10_0rc1.en.md) · [RU](RELEASE_NOTES_0_10_0rc1.ru.md) · [Upgrade/rollback EN](UPGRADE_0_10_0rc1.en.md) · [RU](UPGRADE_0_10_0rc1.ru.md) · [RC report](RC_010_REPORT.md).
+Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has been published.
+Установка — из проверенного локального wheel в отдельное окружение; автоматической миграции данных нет.

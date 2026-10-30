@@ -1,4 +1,4 @@
-name: Attach verified Sedrava alpha release assets
+name: Audit historical Sedrava alpha assets (no publication)
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ on:
         default: '40893365715'
 
 permissions:
-  contents: write
+  contents: read
   actions: read
 
 concurrency:
@@ -32,7 +32,7 @@ jobs:
   attach:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
       - name: Verify tag, release and successful source runs
@@ -76,13 +76,8 @@ jobs:
           actual = {p.name for p in Path('.').iterdir() if p.is_file() and p.name != 'SHA256SUMS'}
           assert actual == expected, (actual, expected)
           PY
-      - name: Attach assets and update public release notes
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.tag }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh release upload "$TAG" release-assets/* --repo "$GITHUB_REPOSITORY" --clobber
-          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file docs/RELEASE_PUBLIC_0_9_0a1.md --prerelease
-          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json url,assets -q '{url: .url, assets: [.assets[].name]}'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: historical-09-audited-assets
+          path: release-assets/*
+          if-no-files-found: error

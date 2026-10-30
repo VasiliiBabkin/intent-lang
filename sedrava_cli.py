@@ -8,7 +8,7 @@ from pathlib import Path
 from sedrava_records import plain, serialize_state, restore_snapshot
 from sedrava_core import MAX_SOURCE_CHARS, parse, run, resolve, transition
 
-VERSION = "0.10.0.dev0"
+from sedrava_version import VERSION
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="sedrava", description="Sedrava experimental compiler")

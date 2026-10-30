@@ -7,6 +7,8 @@ import tempfile
 import venv
 
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
+from sedrava_version import VERSION
 
 def check(archive, folder):
     venv.EnvBuilder(with_pip=True).create(folder)
@@ -19,7 +21,9 @@ def check(archive, folder):
     run(python,'-m','pip','install','--no-cache-dir',archive)
     run(python,'-c',"import pathlib,sys,sedrava_core,sedrava_android_identity;assert pathlib.Path(sedrava_core.__file__).is_relative_to(sys.prefix);assert (pathlib.Path(sys.prefix)/'share/sedrava/docs/BUILD.md').is_file();assert (pathlib.Path(sys.prefix)/'share/sedrava/LICENSE').is_file()")
     run(cli,'--version')
-    for name in ('task_manager','task_manager_navigation'):
+    result=subprocess.run([str(cli),'--version'],cwd=folder,env=env,capture_output=True,text=True,check=True)
+    assert result.stdout.strip()=='sedrava '+VERSION
+    for name in ('reference_09','text_profile','task_manager','task_manager_navigation'):
         source=folder/'share/sedrava/examples'/f'{name}.sdr'
         run(cli,'check',source);run(cli,'test',source);run(cli,'run',source)
         web=folder/'generated with spaces'/name/'index.html'

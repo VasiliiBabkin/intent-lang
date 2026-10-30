@@ -2,7 +2,7 @@
 
 **Describe the application; get the application. / Описал — получил.**
 
-The published compatibility baseline is [Sedrava 0.9.0a1](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.9.0a1). This branch adds first-class text, typed records bounded collections and multi-screen navigation end-to-end and identifies local development builds as **0.10.0.dev0**; no 0.10 release, tag or PyPI publication is created.
+The published compatibility baseline is [Sedrava 0.9.0a1](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.9.0a1). This branch adds first-class text, typed records bounded collections and multi-screen navigation end-to-end and identifies local development builds as **0.10.0rc1** (experimental RC preparation, not published); no 0.10 release, tag or PyPI publication is created.
 
 Start with [Quick Start](docs/QUICKSTART.md), the [text reference](docs/LANGUAGE_0_10_TEXT.md), [text profile example](examples/text_profile.sdr), and [measured report](docs/TEXT_010_REPORT.md). The [task manager](examples/task_manager.sdr) now uses records and lists directly in `.sdr`; the [navigation example](docs/NAVIGATION_QUICKSTART.en.md) adds guarded screens and Back.
 
@@ -100,3 +100,9 @@ Wheel/sdist include examples, documentation and license under `sys.prefix/share/
 Дистрибутив содержит примеры, документацию и лицензию; публикация 0.10 не выполнялась.
 
 Measured RC readiness / Фактическая готовность RC: [report / отчёт](docs/RELEASE_READINESS_010_REPORT.md).
+
+## 0.10.0rc1 preparation / Подготовка RC (not published)
+
+[Release notes EN](docs/RELEASE_NOTES_0_10_0rc1.en.md) · [RU](docs/RELEASE_NOTES_0_10_0rc1.ru.md) · [Upgrade/rollback EN](docs/UPGRADE_0_10_0rc1.en.md) · [RU](docs/UPGRADE_0_10_0rc1.ru.md) · [RC report](docs/RC_010_REPORT.md).
+Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has been published.
+Установка — из проверенного локального wheel в отдельное окружение; автоматической миграции данных нет.

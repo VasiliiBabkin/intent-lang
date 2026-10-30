@@ -8,12 +8,13 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 EXPECTED_MODULES = {
-    "sedrava.py", "sedrava_android_identity.py", "sedrava_core.py", "sedrava_navigation.py", "sedrava_navigation_web.py", "sedrava_navigation_android.py", "sedrava_cli.py", "sedrava_records.py", "sedrava_records_codegen.py", "sedrava_collections.py",
+    "sedrava.py", "sedrava_version.py", "sedrava_android_identity.py", "sedrava_core.py", "sedrava_navigation.py", "sedrava_navigation_web.py", "sedrava_navigation_android.py", "sedrava_cli.py", "sedrava_records.py", "sedrava_records_codegen.py", "sedrava_collections.py",
     "android_codegen.py", "android_codegen_v03.py", "web_codegen.py",
 }
 LICENSE_MARKER = "Apache License"
 sys.path.insert(0, str(ROOT))
-from sedrava_cli import VERSION
+from sedrava_version import VERSION
+from scripts.rc_archive import read_zip, read_sdist
 
 
 def check_metadata(raw):
@@ -27,6 +28,8 @@ def main():
     wheel_files = list(DIST.glob("*.whl"))
     sdist_files = list(DIST.glob("*.tar.gz"))
     assert len(wheel_files) == len(sdist_files) == 1, "expected exactly one wheel and one sdist"
+    read_zip(wheel_files[0].read_bytes())
+    read_sdist(sdist_files[0].read_bytes())
     with zipfile.ZipFile(wheel_files[0]) as archive:
         names = archive.namelist()
         assert EXPECTED_MODULES.issubset(set(names)), "wheel missing Python modules"

@@ -3,7 +3,25 @@ set -euo pipefail
 sedrava_package=$(python -c "import json;print(json.load(open('build/navigation-android/sedrava-android.json'))['application_id'])")
 # Exercise native scalable text at 130%, including rotation/recreation and scrolling.
 adb shell settings put system font_scale 1.3
-trap 'adb shell settings put system font_scale 1.0' EXIT
+cleanup_navigation_test() {
+  navigation_test_status=$?
+  if [ "$navigation_test_status" -ne 0 ]; then
+    adb shell run-as "$sedrava_package" cat shared_prefs/sedrava_state.xml > build/navigation-failure.preferences.xml || true
+    adb shell uiautomator dump /sdcard/navigation-failure.xml || true
+    adb shell cat /sdcard/navigation-failure.xml > build/navigation-failure.ui.xml || true
+    adb exec-out screencap -p > build/navigation-failure.png || true
+    adb logcat -d -s SedravaUiFailure:V > build/navigation-failure.log || true
+    python - <<'DIAGNOSTIC'
+from pathlib import Path
+for file in ('build/navigation-failure.preferences.xml','build/navigation-failure.log'):
+    p=Path(file)
+    if p.exists(): print(p.name+':\n'+p.read_text(errors='replace')[:16000])
+DIAGNOSTIC
+  fi
+  adb shell settings put system font_scale 1.0 || true
+  exit "$navigation_test_status"
+}
+trap cleanup_navigation_test EXIT
 adb shell settings get system font_scale > build/navigation-font-scale.txt
 gradle -p build/navigation-android --no-daemon -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true :app:connectedDebugAndroidTest
 adb shell am force-stop "$sedrava_package"

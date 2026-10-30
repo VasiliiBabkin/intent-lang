@@ -122,3 +122,9 @@ Wheel/sdist include examples, documentation and license under `sys.prefix/share/
 Дистрибутив содержит примеры, документацию и лицензию; публикация 0.10 не выполнялась.
 
 Measured RC readiness / Фактическая готовность RC: [report / отчёт](RELEASE_READINESS_010_REPORT.md).
+
+## 0.10.0rc1 preparation / Подготовка RC (not published)
+
+[Release notes EN](RELEASE_NOTES_0_10_0rc1.en.md) · [RU](RELEASE_NOTES_0_10_0rc1.ru.md) · [Upgrade/rollback EN](UPGRADE_0_10_0rc1.en.md) · [RU](UPGRADE_0_10_0rc1.ru.md) · [RC report](RC_010_REPORT.md).
+Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has been published.
+Установка — из проверенного локального wheel в отдельное окружение; автоматической миграции данных нет.

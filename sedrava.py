@@ -1,4 +1,5 @@
 """Minimal deterministic Sedrava prototype (v0.1). No eval/exec."""
+from sedrava_version import VERSION as __version__
 from dataclasses import dataclass
 import re
 import sys

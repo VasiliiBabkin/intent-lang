@@ -1,10 +1,10 @@
-# Sedrava — unreleased 0.10 text, records and collections
+# Sedrava — unreleased 0.10 text, records, collections and navigation
 
 **Describe the application; get the application. / Описал — получил.**
 
-The published compatibility baseline is [Sedrava 0.9.0a1](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.9.0a1). This branch adds first-class text, typed records and bounded collections end-to-end and identifies local development builds as **0.10.0.dev0**; no 0.10 release, tag or PyPI publication is created.
+The published compatibility baseline is [Sedrava 0.9.0a1](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.9.0a1). This branch adds first-class text, typed records bounded collections and multi-screen navigation end-to-end and identifies local development builds as **0.10.0.dev0**; no 0.10 release, tag or PyPI publication is created.
 
-Start with [Quick Start](docs/QUICKSTART.md), the [text reference](docs/LANGUAGE_0_10_TEXT.md), [text profile example](examples/text_profile.sdr), and [measured report](docs/TEXT_010_REPORT.md). The [task manager](examples/task_manager.sdr) now uses records and lists directly in `.sdr`; multi-screen navigation remains future work.
+Start with [Quick Start](docs/QUICKSTART.md), the [text reference](docs/LANGUAGE_0_10_TEXT.md), [text profile example](examples/text_profile.sdr), and [measured report](docs/TEXT_010_REPORT.md). The [task manager](examples/task_manager.sdr) now uses records and lists directly in `.sdr`; the [navigation example](docs/NAVIGATION_QUICKSTART.en.md) adds guarded screens and Back.
 
 ## Published 0.9 baseline and common tooling
 
@@ -79,3 +79,14 @@ with stable IDs, atomic actions, strict snapshots and generated Web/Compose UI.
 - [English task-manager guide](docs/RECORDS_QUICKSTART.en.md)
 - [Руководство на русском](docs/RECORDS_QUICKSTART.ru.md)
 - [Measured coverage / Фактические проверки](docs/COLLECTIONS_010_REPORT.md)
+
+## Multi-screen navigation / Многоэкранная навигация (unreleased 0.10)
+
+Named screens, guarded atomic transitions and a bounded Back stack are implemented
+in the core and both generators. One `.sdr` file generates the two-screen task manager.
+Экраны и переходы — возможность языка; опубликованного выпуска 0.10 нет.
+
+- [English guide](docs/NAVIGATION_QUICKSTART.en.md)
+- [Русское руководство](docs/NAVIGATION_QUICKSTART.ru.md)
+- [Syntax and semantics](docs/NAVIGATION_010_CONTRACT.md)
+- [Measured report](docs/NAVIGATION_010_REPORT.md)

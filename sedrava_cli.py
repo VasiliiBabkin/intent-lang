@@ -42,8 +42,15 @@ def main(argv=None):
                 if args.state_file.stat().st_size > 800000: raise ValueError('Snapshot too large')
                 raw = args.state_file.read_text(encoding='utf-8')
                 state = restore_snapshot(program, raw)
+            if program.has_navigation:
+                from sedrava_navigation import initial_session, dispatch
+                session=initial_session(program,state)
             for action in args.actions:
-                state, accepted = transition(program, state, action)
+                if program.has_navigation:
+                    session,accepted=dispatch(program,session,action)
+                    state=session.state
+                else:
+                    state, accepted = transition(program, state, action)
                 if not accepted:
                     raise ValueError(f"Action {action}: invariant rejected; state unchanged")
             if args.state_file:
@@ -59,7 +66,9 @@ def main(argv=None):
                     os.replace(temporary, args.state_file)
                 finally:
                     if temporary and os.path.exists(temporary): os.unlink(temporary)
-            print(json.dumps({k: plain(v) for k, v in resolve(state, program.derived).items()}, ensure_ascii=False, sort_keys=True))
+            result={k:plain(v) for k,v in resolve(state,program.derived).items()}
+            if program.has_navigation: result={"state":result,"stack":list(session.stack)}
+            print(json.dumps(result,ensure_ascii=False,sort_keys=True))
         elif args.command == "test":
             count = run(parse(source))
             print(f"PASS: {count} Sedrava tests")

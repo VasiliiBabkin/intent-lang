@@ -1,3 +1,5 @@
+> Historical report for the records increment. Multi-screen navigation is now implemented; see [navigation evidence](NAVIGATION_010_REPORT.md).
+
 # Records integration report / Отчёт о записях и коллекциях
 
 Development branch `feature/010-records-collections-spec`, PR #14. **Unreleased,

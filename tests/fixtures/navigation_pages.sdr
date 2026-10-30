@@ -1,0 +1,13 @@
+app "Pages"
+screen main:
+    text "Home"
+    button "Next" -> next_page
+screen other:
+    text "Other"
+    button "Again" -> next_page
+    button "Back" -> previous
+navigation:
+    initial main
+    action next_page -> other
+    action previous -> pop
+test route: next_page, previous -> true

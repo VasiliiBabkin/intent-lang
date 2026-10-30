@@ -1,0 +1,52 @@
+app "Daybook · Tasks"
+record Task:
+    title: text
+    done: bool
+state tasks: list<Task>(max=100) = []
+state selected = 0
+state title = ""
+state new_title = ""
+persist tasks
+derive empty = count(tasks) == 0
+derive chosen = has(tasks, selected)
+derive completed = chosen and get(tasks, selected).done
+derive pending = chosen and not get(tasks, selected).done
+action add_task:
+    require new_title != ""
+    tasks = append(tasks, Task(title=new_title, done=false))
+    new_title = ""
+action prepare_details:
+    require has(tasks, selected)
+    title = get(tasks, selected).title
+action rename_task:
+    require title != ""
+    tasks = update(tasks, selected, Task(title=title, done=get(tasks, selected).done))
+action toggle_task:
+    tasks = update(tasks, selected, Task(title=get(tasks, selected).title, done=not get(tasks, selected).done))
+action delete_task:
+    tasks = remove(tasks, selected)
+    selected = 0
+    title = ""
+test initial: -> count(tasks) == 0
+screen main:
+    text "Make room for what matters."
+    text "A calmer place for your day. Add a task, then open it to make it yours."
+    input new_title label "New task"
+    button "Add task" -> add_task
+    show empty : text "A fresh start. Your first task goes here."
+    list tasks select selected open open_details title title status done
+screen details when chosen:
+    text "One thing at a time."
+    display get(tasks, selected).title
+    show completed : text "Completed · nicely done"
+    show pending : text "In progress"
+    input title label "Task title"
+    button "Save title" -> rename_task
+    button "Toggle completion" -> toggle_task
+    button "Delete task" -> delete_and_back
+    button "Back to tasks" -> back_to_tasks
+navigation:
+    initial main
+    action open_details -> details using prepare_details
+    action delete_and_back -> pop using delete_task
+    action back_to_tasks -> pop

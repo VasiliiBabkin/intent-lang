@@ -58,8 +58,11 @@ def statements(body, names, depth=4):
             raise ValueError("Unsupported statement")
     return result
 
-def generate(source):
-    program = parse(source)
+def generate(source, _program=None, _domain_only=False):
+    program = _program or parse(source)
+    if program.has_navigation and _program is None:
+        from sedrava_navigation_web import generate_navigation
+        return generate_navigation(source, program)
     run(program)
     if not program.widgets:
         raise ValueError("Missing screen main")
@@ -104,7 +107,7 @@ def generate(source):
             label, action = widget[1:]
             widgets.append(f'<button type="button" data-action="{html.escape(action, quote=True)}">{html.escape(label)}</button>')
     # No user-supplied text is inserted into executable JS without JSON encoding.
-    return "\n".join([
+    parts = [
         "<!doctype html>",
         '<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">',
         f"<title>{html.escape(program.name)}</title>",
@@ -116,16 +119,16 @@ def generate(source):
         f"const initialState = JSON.parse({json_script(initial)});",
         "const storageKey = 'sedrava:' + (typeof location !== 'undefined' ? location.pathname : '/') + ':' + " + json_script(program.name) + ";",
         "const persistentKeys = " + json_script(list(program.persistent)) + ";",
-        js_runtime(program, json_script) if program.records else "const collectionTypes = {};",
+        js_runtime(program, json_script) if (program.records or program.has_navigation) else "const collectionTypes = {};",
         "let restoreError = false;",
         "let state = { ...initialState };",
-        ("try { const raw = localStorage.getItem(storageKey); if (raw !== null) state = restoreSnapshot(raw); } catch (_) { restoreError = true; }" if program.records else "try { const saved = JSON.parse((typeof localStorage !== 'undefined' ? localStorage.getItem(storageKey) : null) || '{}'); state = restoreState(saved); } catch (_) { /* unavailable or corrupt storage */ }"),
+        ("try { const raw = localStorage.getItem(storageKey); if (raw !== null) state = restoreSnapshot(raw); } catch (_) { restoreError = true; }" if (program.records or program.has_navigation) else "try { const saved = JSON.parse((typeof localStorage !== 'undefined' ? localStorage.getItem(storageKey) : null) || '{}'); state = restoreState(saved); } catch (_) { /* unavailable or corrupt storage */ }"),
         "function checkedInt(n) { if (!Number.isInteger(n) || n < -2147483648 || n > 2147483647) throw new RangeError('Sedrava integer overflow'); return n; }",
         "function validText(value) { if (typeof value !== 'string') return false; let count = 0; for (const char of value) { const cp = char.codePointAt(0); if ((cp >= 0xD800 && cp <= 0xDFFF) || ++count > 1024) return false; } return true; }",
         "function validValue(value, initial) { return typeof value === typeof initial && (typeof value === 'string' ? validText(value) : typeof value === 'number' ? Number.isInteger(value) && value >= -2147483648 && value <= 2147483647 : typeof value === 'boolean'); }",
-        "function checkResources(nextState) { if (JSON.stringify({schema:1,signature,state:nextState}).length > 200000) throw Error('State exceeds resource limit'); }" if program.records else "function checkResources(_) {}",
+        "function checkResources(nextState) { if (JSON.stringify({schema:1,signature,state:nextState}).length > 200000) throw Error('State exceeds resource limit'); }" if (program.records or program.has_navigation) else "function checkResources(_) {}",
         "function checkStateValues(nextState) { if (Object.keys(nextState).length !== Object.keys(initialState).length) throw Error('Invalid keys'); for (const key of Object.keys(initialState)) { if (!Object.hasOwn(nextState, key) || !(Object.hasOwn(collectionTypes, key) ? validCollection(nextState[key], collectionTypes[key]) : validValue(nextState[key], initialState[key]))) throw new RangeError('Invalid Sedrava value'); } }",
-        "function restoreState(saved) { try { return restoreSnapshot(saved); } catch (_) { return { ...initialState }; } }" if program.records else "function restoreState(saved) { const restored = { ...initialState }; if (saved && typeof saved === 'object' && !Array.isArray(saved)) { for (const key of persistentKeys) { if (Object.hasOwn(saved, key) && validValue(saved[key], initialState[key])) restored[key] = saved[key]; } } return validateState(restored) ? restored : { ...initialState }; }",
+        "function restoreState(saved) { try { return restoreSnapshot(saved); } catch (_) { return { ...initialState }; } }" if (program.records or program.has_navigation) else "function restoreState(saved) { const restored = { ...initialState }; if (saved && typeof saved === 'object' && !Array.isArray(saved)) { for (const key of persistentKeys) { if (Object.hasOwn(saved, key) && validValue(saved[key], initialState[key])) restored[key] = saved[key]; } } return validateState(restored) ? restored : { ...initialState }; }",
         "function editState(current, key, value) { if (!Object.hasOwn(initialState, key)) return current; const next = { ...current, [key]: value }; return validateState(next) ? next : current; }",
         "const actions = {",
         *actions,
@@ -146,15 +149,15 @@ def generate(source):
         '  document.querySelectorAll("[data-state]").forEach(el => { el.textContent = String(derivedState[el.dataset.state]); });',
         '  document.querySelectorAll("[data-show]").forEach(el => { el.hidden = !derivedState[el.dataset.show]; });',
         '  document.querySelectorAll("[data-input]").forEach(el => { if (resetInputs || document.activeElement !== el) el.value = String(state[el.dataset.input]); });',
-        "  renderCollections();" if program.records else "",
+        "  renderCollections();" if (program.records or program.has_navigation) else "",
         "}",
         'document.querySelectorAll("[data-action]").forEach(el => {',
         "  el.addEventListener('click', () => {",
         "    const action = actions[el.dataset.action];",
         "    if (!action) throw new Error('Unknown action');",
         "    try { const next = action(state); showError(next === state ? 'Action rejected by declared rules' : ''); state = next; }",
-        "    catch (error) { showError('Action rejected: ' + error.message); return; }" if program.records else "    catch (_) { showError('Action rejected: integer overflow or invalid value'); return; }",
-        "    try { saveSnapshot(); } catch (_) { showError('Could not save state'); }" if program.records else "    try { const saved = {}; for (const key of persistentKeys) saved[key] = state[key]; localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) { /* storage is optional */ }",
+        "    catch (error) { showError('Action rejected: ' + error.message); return; }" if (program.records or program.has_navigation) else "    catch (_) { showError('Action rejected: integer overflow or invalid value'); return; }",
+        "    try { saveSnapshot(); } catch (_) { showError('Could not save state'); }" if (program.records or program.has_navigation) else "    try { const saved = {}; for (const key of persistentKeys) saved[key] = state[key]; localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) { /* storage is optional */ }",
         "    render(true);",
         "  });",
         "});",
@@ -165,7 +168,7 @@ def generate(source):
         "  if (isText ? validText(raw) : (raw !== '' && /^-?[0-9]+$/.test(raw) && Number.isInteger(parsed) && parsed >= -2147483648 && parsed <= 2147483647)) {",
         "    const nextState = { ...state, [key]: isText ? raw : parsed };",
         "    accepted = validateState(nextState);",
-        "    if (accepted) { state = nextState; try { saveSnapshot(); } catch (_) { showError('Could not save state'); } render(); }" if program.records else "    if (accepted) { state = nextState; try { const saved = {}; for (const name of persistentKeys) saved[name] = state[name]; if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) {} render(); }",
+        "    if (accepted) { state = nextState; try { saveSnapshot(); } catch (_) { showError('Could not save state'); } render(); }" if (program.records or program.has_navigation) else "    if (accepted) { state = nextState; try { const saved = {}; for (const name of persistentKeys) saved[name] = state[name]; if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) {} render(); }",
         "  }",
         "  const invalid = (isText || raw !== '') && !accepted;",
         "  el.setAttribute('aria-invalid', String(invalid));",
@@ -179,7 +182,12 @@ def generate(source):
         "render();",
         "if (restoreError) showError('Saved data rejected; defaults restored');",
         "</script></body></html>",
-    ]) + "\n"
+    ]
+    if _domain_only:
+        start=parts.index("<script>")+1
+        stop=next(i for i,line in enumerate(parts) if line.startswith("function showError(message)"))
+        return "\n".join(parts[start:stop])+"\n"
+    return "\n".join(parts)+"\n"
 
 if __name__ == "__main__":
     cli = argparse.ArgumentParser()

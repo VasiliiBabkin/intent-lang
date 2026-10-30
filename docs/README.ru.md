@@ -101,3 +101,14 @@ with stable IDs, atomic actions, strict snapshots and generated Web/Compose UI.
 - [English task-manager guide](RECORDS_QUICKSTART.en.md)
 - [Руководство на русском](RECORDS_QUICKSTART.ru.md)
 - [Measured coverage / Фактические проверки](COLLECTIONS_010_REPORT.md)
+
+## Multi-screen navigation / Многоэкранная навигация (unreleased 0.10)
+
+Named screens, guarded atomic transitions and a bounded Back stack are implemented
+in the core and both generators. One `.sdr` file generates the two-screen task manager.
+Экраны и переходы — возможность языка; опубликованного выпуска 0.10 нет.
+
+- [English guide](NAVIGATION_QUICKSTART.en.md)
+- [Русское руководство](NAVIGATION_QUICKSTART.ru.md)
+- [Syntax and semantics](NAVIGATION_010_CONTRACT.md)
+- [Measured report](NAVIGATION_010_REPORT.md)

@@ -4,7 +4,7 @@
 
 **Status / Статус:** development plan, not a release commitment.  
 **Published package / Опубликованный пакет:** historical `intent-lng` 0.7 series; Sedrava has not been published on PyPI.  
-**Active work / Текущая разработка:** Sedrava 0.9.0a1 is published on GitHub; 0.10 text work is an unreleased development increment.
+**Active work / Текущая разработка:** Sedrava 0.9.0a1 is published on GitHub; 0.10 text/records/navigation work is an unreleased development increment.
 
 ## Vision / Видение
 
@@ -46,7 +46,7 @@ Sedrava should turn concise, declarative descriptions into useful applications w
 - [x] Complete normative 0.9 language syntax/semantics and platform-difference specification: [reference](LANGUAGE_0_9.md).
 - [x] Distinguish the historical Intent 0.7 release from the published Sedrava 0.9 alpha.
 - [x] Define separate integration branch and 0.9.0a1 candidate version; PyPI publication deferred.
-- [ ] Create a complete multi-screen reference application for 0.10. The single-screen 0.9 [reference app](REFERENCE_09.md) is separate.
+- [x] Implement the two-screen [task manager](../examples/task_manager_navigation.sdr) on the navigation branch; measured checks are in [the report](NAVIGATION_010_REPORT.md). The single-screen 0.9 [reference app](REFERENCE_09.md) is separate.
 
 ## Release gate / Условия завершения этапа
 
@@ -80,4 +80,4 @@ The planned physical Android 0.9 Lab acceptance tests passed, including accepted
 
 ## First 0.10 increment
 
-Text state/derive/equality/actions, inferred text input and persistence are implemented on `feature/010-string-core` with Python/JS/JVM and browser conformance. The records branch now integrates records, collections and a single-screen task manager; see [coverage](COLLECTIONS_010_REPORT.md). Multi-screen navigation remains open. The [Describe → Get contract](DESCRIBE_GET_010.md) remains the product gate for the full milestone.
+Text state/derive/equality/actions, inferred text input and persistence are implemented on `feature/010-string-core` with Python/JS/JVM and browser conformance. The records branch now integrates records, collections and a single-screen task manager; see [coverage](COLLECTIONS_010_REPORT.md). Guarded multi-screen navigation is implemented on the navigation branch; see [coverage](NAVIGATION_010_REPORT.md). The [Describe → Get contract](DESCRIBE_GET_010.md) remains the product gate for the full milestone.

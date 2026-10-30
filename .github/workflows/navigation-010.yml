@@ -1,0 +1,74 @@
+name: Navigation 0.10 Android and UI
+on:
+  push:
+    branches: [feature/010-multiscreen-navigation]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Generate untouched application and oracle tests
+        run: |
+          python -m sedrava_cli check examples/task_manager_navigation.sdr
+          python -m sedrava_cli test examples/task_manager_navigation.sdr
+          python -m sedrava_cli build web examples/task_manager_navigation.sdr --output build/navigation-web/index.html
+          python -m sedrava_cli build android examples/task_manager_navigation.sdr --output build/navigation-android
+          python scripts/prepare_navigation_android_tests.py build/navigation-android
+          python scripts/prepare_navigation_ui_tests.py build/navigation-android
+      - name: APK, JVM conformance, Lint and instrumentation compilation
+        run: gradle -p build/navigation-android --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:assembleDebugAndroidTest
+      - name: Navigation without records or domain state
+        run: |
+          python -m sedrava_cli build android tests/fixtures/navigation_pages.sdr --output build/navigation-pages
+          python scripts/prepare_navigation_android_tests.py build/navigation-pages --source tests/fixtures/navigation_pages.sdr
+          gradle -p build/navigation-pages --no-daemon :app:assembleDebug :app:testDebugUnitTest
+      - name: Scalar/text navigation and compiler-marker literals
+        run: |
+          python -m sedrava_cli build android tests/fixtures/navigation_scalar.sdr --output build/navigation-scalar
+          python scripts/prepare_navigation_android_tests.py build/navigation-scalar --source tests/fixtures/navigation_scalar.sdr
+          gradle -p build/navigation-scalar --no-daemon :app:assembleDebug :app:testDebugUnitTest
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Compose interactions and activity recreation on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: bash scripts/test_navigation_emulator.sh
+      - name: Verify APK
+        run: python scripts/verify_apk.py build/navigation-android/app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sedrava-navigation-apk-web-evidence
+          path: |
+            build/navigation-android/app/build/outputs/apk
+            build/navigation-android/app/build/reports
+            build/navigation-android/app/build/test-results
+            build/navigation-android/app/build/outputs/androidTest-results
+            build/navigation-android/app/src
+            build/navigation-web
+            build/navigation-scalar/app/build/reports/tests
+            build/navigation-pages/app/build/reports/tests
+            build/navigation-preferences.xml
+            build/navigation-relaunch.*
+          if-no-files-found: error

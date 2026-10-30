@@ -1,6 +1,6 @@
 # Sedrava 0.10 — Describe → Get contract (proposal)
 
-Status: **records/task-manager integration is experimental on the development branch**; see [measured report](COLLECTIONS_010_REPORT.md). Navigation and the full multi-screen outcome remain design only. The [first-class text increment](LANGUAGE_0_10_TEXT.md) is implemented on its development branch; the records/lists/navigation pseudocode below is not implemented. Sedrava 0.9.0a1 is the published compatibility baseline.
+Status: **records/task-manager integration is experimental on the development branch**; see [measured report](COLLECTIONS_010_REPORT.md). Named screens and the two-screen task manager are implemented on the navigation branch; see [navigation coverage](NAVIGATION_010_REPORT.md). Remaining product gates include package identity and broader accessibility/device acceptance. The [first-class text increment](LANGUAGE_0_10_TEXT.md) is implemented on its development branch; the illustrative natural-language sketch below is not the adopted grammar. Executable records/navigation syntax is specified in their language contracts. Sedrava 0.9.0a1 is the published compatibility baseline.
 
 ## Non-negotiable product promise
 

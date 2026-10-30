@@ -1,4 +1,4 @@
-> This checkout includes the [unreleased text increment](LANGUAGE_0_10_TEXT.md). Historical 0.9 restrictions below apply to the published baseline; text state/input is now supported on this development branch. Lists/navigation remain future work.
+> This checkout includes the [unreleased text increment](LANGUAGE_0_10_TEXT.md). Historical 0.9 restrictions below apply to the published baseline; text state/input is now supported on this development branch. Records, bounded lists and navigation are also implemented in the unreleased development increment; see [navigation](NAVIGATION_010_CONTRACT.md).
 
 # FAQ and troubleshooting / Вопросы и устранение ошибок
 
@@ -12,7 +12,7 @@
 
 **Why does an invalid input stay visible?** It is an editable draft, separate from accepted state. Correct it to an admissible number. Accepted changes persist only for fields marked `persist`. Rejected drafts are not durable data.
 
-**Can I divide or use strings/lists?** No division, string state, automatic timers, collections or multiple screens in 0.9. String labels are static literals. These are future milestones, not hidden APIs.
+**Can I divide or use strings/lists?** No division, string state, automatic timers, collections or multiple screens in 0.9. String labels are static literals. These restrictions describe 0.9 only; text, bounded record lists and named screens are implemented in the unreleased 0.10 development branch. Division and automatic timers remain unsupported.
 
 **`sedrava: command not found`** Activate the virtual environment used for `python -m pip install .`. Check `python -m pip show sedrava`. The source fallback is `python sedrava_cli.py --help`.
 

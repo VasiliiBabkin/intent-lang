@@ -4,6 +4,7 @@ import keyword
 import re
 from sedrava_records import RecordType, ListType, RecordValue, ListValue, value_type, validate, operation
 from dataclasses import dataclass
+from sedrava_navigation import Span, Widget, Screen, Navigation, MAX_SCREENS, MAX_NAV_COMMANDS
 
 MAX_SOURCE_CHARS = 100_000
 MAX_TEXT_SCALARS = 1024
@@ -122,6 +123,10 @@ class Program:
     derived: dict = None
     persistent: tuple = ()
     records: dict = None
+    screens: dict = None
+    navigation: dict = None
+    initial_screen: str = "main"
+    has_navigation: bool = False
 
 def parse_expr(source, types):
     source, literals = literal_expression(source)
@@ -258,7 +263,10 @@ def parse(source):
     records = {}
     types = {}
     name = None
-    screen_seen = False
+    screens, navigation = {}, {}
+    initial_screen = None
+    navigation_seen = False
+    widget_spans = []
     i = 0
     def expression(source, known_types, line_number, column=1):
         try:
@@ -381,26 +389,53 @@ def parse(source):
             node = expression(m[3], types, number, m.start(3) + 1)
             if type_of(node, types) is not bool: raise ValueError(f"Line {number}: test must be bool")
             tests.append((m[1], tuple(x.strip() for x in m[2].split(",") if x.strip()), node))
-        elif line == "screen main:":
-            if screen_seen: raise ValueError(f"Line {number}: duplicate screen main")
-            screen_seen = True
+        elif line == "navigation:":
+            if navigation_seen: raise ValueError(f"Line {number}: column 1: duplicate navigation block")
+            navigation_seen = True
+            i += 1
+            while i < len(lines) and lines[i][0] > 0:
+                d, declaration, n = lines[i]
+                if d != 4: raise ValueError(f"Line {n}: column {d+1}: navigation indentation")
+                if m := re.fullmatch(r"initial ([A-Za-z_][A-Za-z_0-9]*)", declaration):
+                    if initial_screen is not None: raise ValueError(f"Line {n}: column 5: duplicate initial screen")
+                    initial_screen = m[1]
+                    initial_span = n
+                elif m := re.fullmatch(r"action ([A-Za-z_][A-Za-z_0-9]*) -> ([A-Za-z_][A-Za-z_0-9]*)(?: using ([A-Za-z_][A-Za-z_0-9]*))?", declaration):
+                    if m[1] in navigation or len(navigation) >= MAX_NAV_COMMANDS: raise ValueError(f"Line {n}: column 5: duplicate navigation command or binding limit")
+                    navigation[m[1]] = Navigation(m[1], m[2], m[3], Span(n,5))
+                else: raise ValueError(f"Line {n}: column 5: invalid navigation declaration")
+                i += 1
+            continue
+        elif m := re.fullmatch(r"screen ([A-Za-z_][A-Za-z_0-9]*)(?: when ([A-Za-z_][A-Za-z_0-9]*))?:", line):
+            screen_name, guard_name = m[1], m[2]
+            if screen_name in screens: raise ValueError(f"Line {number}: column 8: duplicate screen {screen_name}")
+            if len(screens) >= MAX_SCREENS: raise ValueError(f"Line {number}: column 8: screen limit")
+            guard = expression(guard_name, types, number, m.start(2)+1) if guard_name else None
+            if guard is not None and type_of(guard,types) is not bool: raise ValueError(f"Line {number}: column 8: screen guard must be bool")
+            screen_start = len(widgets)
             i += 1
             widget_indent = lines[i][0] if i < len(lines) else 0
             while i < len(lines) and lines[i][0] > 0:
                 widget_depth, item, n = lines[i]
                 if widget_depth != widget_indent: raise ValueError(f"Line {n}: widget indentation")
-                if m := re.fullmatch(r'list ([A-Za-z_][A-Za-z_0-9]*) select ([A-Za-z_][A-Za-z_0-9]*)', item):
+                widget_spans.append(Span(n,widget_depth+1))
+                if m := re.fullmatch(r'list ([A-Za-z_][A-Za-z_0-9]*) select ([A-Za-z_][A-Za-z_0-9]*)(?: open ([A-Za-z_][A-Za-z_0-9]*))?(?: title ([A-Za-z_][A-Za-z_0-9]*)(?: status ([A-Za-z_][A-Za-z_0-9]*))?)?', item):
                     if not isinstance(types.get(m[1]), ListType) or m[2] not in states or types.get(m[2]) is not int: raise ValueError(f"Line {n}: column 1: list requires collection and int selection state")
-                    widgets.append(("list", m[1], m[2]))
+                    if m[4] and (dict(types[m[1]].record.fields).get(m[4]) is not str or (m[5] and dict(types[m[1]].record.fields).get(m[5]) is not bool)): raise ValueError(f"Line {n}: column 1: list title/status require text/bool record fields")
+                    widgets.append(("list_open", m[1], m[2], m[3], m[4], m[5]) if any(m[j] for j in (3,4,5)) else ("list",m[1],m[2]))
                 elif m := re.fullmatch(r'text (.+)', item): widgets.append(("text", label(m[1], n, widget_depth + 6)))
+                elif item.startswith('display '):
+                    node=expression(item[8:],types,n,widget_depth+9)
+                    if type_of(node,types) not in (int,bool,str): raise ValueError(f"Line {n}: column {widget_depth+9}: display requires scalar expression")
+                    widgets.append(("display",node))
                 elif m := re.fullmatch(r"value ([A-Za-z_][A-Za-z_0-9]*)", item):
                     if m[1] not in types: raise ValueError(f"Line {n}: unknown state")
                     if types[m[1]] not in (int, bool, str): raise ValueError(f"Line {n}: column {widget_depth+1}: value requires a scalar; use list for collections")
                     widgets.append(("value", m[1]))
-                elif m := re.fullmatch(r'input ([A-Za-z_][A-Za-z_0-9]*)', item):
+                elif m := re.fullmatch(r'input ([A-Za-z_][A-Za-z_0-9]*)(?: label (.+))?', item):
                     if m[1] not in states or type(states[m[1]]) not in (int, str):
                         raise ValueError(f"Line {n}: input requires an integer or text state")
-                    widgets.append(("input_text" if type(states[m[1]]) is str else "input_int", m[1]))
+                    widgets.append(("input_text" if type(states[m[1]]) is str else "input_int", m[1], label(m[2],n,widget_depth+m.start(2)+1)) if m[2] else ("input_text" if type(states[m[1]]) is str else "input_int",m[1]))
                 elif m := re.fullmatch(r'show ([A-Za-z_][A-Za-z_0-9]*) : text (.+)', item):
                     if m[1] not in types or types[m[1]] is not bool:
                         raise ValueError(f"Line {n}: show requires a boolean state or derive")
@@ -409,14 +444,53 @@ def parse(source):
                     widgets.append(("button", label(m[1], n, widget_depth + 8), m[2]))
                 else: raise ValueError(f"Line {n}: invalid widget")
                 i += 1
+            if len(widgets) == screen_start: raise ValueError(f"Line {number}: column 1: empty screen")
+            screens[screen_name] = Screen(screen_name, tuple(Widget(w[0],w[1:],span) for w,span in zip(widgets[screen_start:],widget_spans[screen_start:])), guard, Span(number))
             continue
         else: raise ValueError(f"Line {number}: invalid declaration")
         i += 1
     if not name: raise ValueError("Missing app")
+    has_navigation = navigation_seen or len(screens)>1
+    if has_navigation:
+        if not navigation_seen or initial_screen is None: raise ValueError("Line 1: column 1: navigation requires explicit initial screen")
+        if initial_screen not in screens: raise ValueError(f"Line {initial_span}: column 5: unknown initial screen")
+        if screens[initial_screen].guard is not None: raise ValueError(f"Line {screens[initial_screen].span.line}: column 1: initial screen must be unguarded")
+        def fail_at(span,message): raise ValueError(f"Line {span.line}: column {span.column}: {message}")
+        for screen in screens.values():
+            if len(screen.name)>64 or screen.name in ('pop','true','false') or keyword.iskeyword(screen.name) or screen.name in types or screen.name in actions: fail_at(screen.span,"screen name conflict or invalid identifier")
+        for binding in navigation.values():
+            if len(binding.name)>64 or binding.name in ('true','false') or keyword.iskeyword(binding.name) or binding.name in types or binding.name in actions or binding.name in screens: fail_at(binding.span,"navigation name conflict")
+            if binding.target!='pop' and binding.target not in screens: fail_at(binding.span,"unknown target screen "+binding.target)
+            if binding.action and binding.action not in actions: fail_at(binding.span,"unknown domain action "+binding.action)
+        used=set(); graph={key:set() for key in screens}
+        for screen in screens.values():
+            for widget in screen.widgets:
+                command=widget.args[1] if widget.kind=='button' else widget.args[2] if widget.kind=='list_open' else None
+                if command:
+                    if widget.kind=="list_open" and command not in navigation: fail_at(widget.span,"list open requires a navigation command")
+                    if command not in actions and command not in navigation: fail_at(widget.span,"Unknown action "+command)
+                    if command in navigation:
+                        used.add(command)
+                        if navigation[command].target!='pop': graph[screen.name].add(navigation[command].target)
+        for binding in navigation.values():
+            if binding.name not in used: fail_at(binding.span,"unreachable navigation binding "+binding.name)
+        reached={initial_screen}
+        while True:
+            expanded=reached | set().union(*(graph[key] for key in reached))
+            if expanded==reached: break
+            reached=expanded
+        for screen in screens.values():
+            if screen.name not in reached: fail_at(screen.span,"unreachable screen "+screen.name)
+    else:
+        initial_screen='main'
+        if screens and set(screens)!={'main'}: raise ValueError("Line 1: column 1: non-main screen requires explicit navigation")
+        for screen in screens.values():
+            if screen.guard is not None: raise ValueError(f"Line {screen.span.line}: column 1: guarded screens require navigation")
     for _, seq, _ in tests:
-        if any(action not in actions for action in seq): raise ValueError("Unknown action")
-    for widget in widgets:
-        if widget[0] == "button" and widget[2] not in actions: raise ValueError("Unknown action")
+        if any(action not in actions and action not in navigation for action in seq): raise ValueError("Unknown action")
+    for widget,span in zip(widgets,widget_spans):
+        if widget[0]=='button' and widget[2] not in actions and widget[2] not in navigation: raise ValueError(f"Line {span.line}: column {span.column}: Unknown action")
+        if not has_navigation and (widget[0] in ('display','list_open') or len(widget)>2 and widget[0].startswith('input')): raise ValueError(f"Line {span.line}: column {span.column}: presentation extension requires navigation")
     # Bound expanded derived expressions: generators inline them in actions/rules.
     sizes = {key: 1 for key in states}
     for key, expr in derived.items():
@@ -425,8 +499,8 @@ def parse(source):
             raise ValueError("Derived expression exceeds expansion limit")
     values = resolve(states, derived)
     if not all(evaluate(rule, values) for rule in rules): raise ValueError("Invalid initial state")
-    program = Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived, tuple(persistent), records)
-    if records:
+    program = Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived, tuple(persistent), records, screens, navigation, initial_screen, has_navigation)
+    if records or has_navigation:
         from sedrava_records import check_resources
         try:
             check_resources(program, states)
@@ -447,7 +521,7 @@ def valid_state(program, state):
         for key, initial in program.states.items():
             validate(state[key], value_type(initial))
         values = resolve(state, program.derived)
-        if program.records:
+        if program.records or program.has_navigation:
             from sedrava_records import check_resources
             check_resources(program, state)
         return all(evaluate(rule, values) for rule in program.rules)
@@ -463,7 +537,7 @@ def edit_state(program, state, key, value):
 
 
 def restore_state(program, saved):
-    if program.records:
+    if program.records or program.has_navigation:
         from sedrava_records import restore_snapshot
         try: return restore_snapshot(program, saved)
         except ValueError: return program.states.copy()
@@ -497,7 +571,7 @@ def transition(program, state, action):
                 execute(stmt.yes if evaluate(stmt.condition, resolve(candidate, program.derived)) else stmt.no)
     execute(program.actions[action])
     values = resolve(candidate, program.derived)
-    if program.records:
+    if program.records or program.has_navigation:
         from sedrava_records import check_resources
         check_resources(program, candidate)
     if not all(evaluate(rule, values) for rule in program.rules):
@@ -507,8 +581,15 @@ def transition(program, state, action):
 def run(program):
     for name, actions, expected in program.tests:
         state = program.states.copy()
+        if program.has_navigation:
+            from sedrava_navigation import initial_session, dispatch
+            session=initial_session(program)
         for action in actions:
-            state, accepted = transition(program, state, action)
+            if program.has_navigation:
+                session,accepted=dispatch(program,session,action)
+                state=session.state
+            else:
+                state, accepted = transition(program, state, action)
             if not accepted: raise AssertionError(f"{name}: invariant violated")
         if not evaluate(expected, resolve(state, program.derived)): raise AssertionError(f"{name}: assertion failed")
     return len(program.tests)

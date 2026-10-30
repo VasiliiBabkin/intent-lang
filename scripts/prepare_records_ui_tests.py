@@ -25,7 +25,7 @@ class RecordsUiTest {
       for((index,raw) in listOf("{broken",snapshotState(SedravaState()).replace("\\\"schema\\\":1","\\\"schema\\\":2")).withIndex()) {
         prefs.edit().clear().putString("snapshot",raw).commit()
         ui.activityRule.scenario.recreate()
-        ui.onNodeWithText("Saved data rejected; original retained; defaults shown").assertExists()
+        ui.onNodeWithText("Saved data rejected; original retained").assertExists()
         ui.onNode(hasSetTextAction()).performTextReplacement("recovery edit $index")
         ui.onNodeWithText("Add / Добавить").performScrollTo().performClick()
         ui.onNodeWithText("title: recovery edit $index · done: false").assertExists()

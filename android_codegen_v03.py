@@ -198,9 +198,9 @@ def generate(source, output, _program=None, _domain_only=False, application_id=N
             continue
         lines.append("  var " + user[key] + " by rememberSaveable { mutableStateOf(restoredState." + user[key] + ") }")
     if (program.records or program.has_navigation) and program.persistent:
-        lines.append('  var actionError by remember { mutableStateOf(if (prefs.all.isNotEmpty() && !snapshotValid(prefs.all["snapshot"])) "Saved data rejected; original retained; defaults shown" else "") }')
+        lines.append('  var actionError by remember { mutableStateOf(if (prefs.all.isNotEmpty() && !snapshotValid(prefs.all["snapshot"])) "Saved data rejected; original retained" else "") }')
     else:
-        lines.append('  var actionError by remember { mutableStateOf('+('if (!savedStateValid(prefs.all)) "Saved data rejected; original retained; defaults shown" else ""' if program.persistent else '""')+') }')
+        lines.append('  var actionError by remember { mutableStateOf('+('if (!savedStateValid(prefs.all)) "Saved data rejected; original retained" else ""' if program.persistent else '""')+') }')
     for key, expr in (program.derived or {}).items():
         lines.append("  val " + user[key] + " = " + kt(expr, user))
     lines += ["  Column(modifier = Modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {",

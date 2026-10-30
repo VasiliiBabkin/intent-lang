@@ -189,7 +189,7 @@ def generate(source, _program=None, _domain_only=False):
         "  el.addEventListener('blur', () => { if (typeof initialState[el.dataset.input] !== 'string' && el.value.trim() === '') el.value = String(state[el.dataset.input]); validateInput(el); });",
         "});",
         "render();",
-        "if (restoreError) showError('Saved data rejected; original retained; defaults shown');",
+        "if (restoreError) showError('Saved data rejected; original retained');",
         "</script></body></html>",
     ]
     if _domain_only:

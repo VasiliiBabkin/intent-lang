@@ -20,9 +20,14 @@ import org.junit.Test
 class NavigationUiTest {
   @get:Rule val ui=createAndroidComposeRule<MainActivity>()
   @Test fun sharedTasksSystemBackRotationAndDeletion() {
+    try {
     ui.onNodeWithTag("screen-main").assertExists()
     ui.onNodeWithTag("input-new_title").performTextReplacement("First 😀")
-    ui.onNodeWithText("Add task").performScrollTo().performClick()
+    ui.onNodeWithTag("input-new_title").assertTextContains("First 😀")
+    androidx.test.espresso.Espresso.closeSoftKeyboard()
+    ui.onNodeWithText("Add task").assertIsEnabled().performScrollTo().performClick()
+    ui.waitUntil(timeoutMillis=5000) { ui.onAllNodesWithContentDescription("Open First 😀").fetchSemanticsNodes().size==1 }
+    ui.onNodeWithTag("action-error").assertDoesNotExist()
     ui.onNodeWithContentDescription("Open First 😀").performScrollTo().performClick()
     ui.onNodeWithTag("screen-details").assertExists()
     ui.onNodeWithTag("input-title").performTextReplacement("Renamed")
@@ -39,7 +44,8 @@ class NavigationUiTest {
     ui.waitForIdle()
     ui.onNodeWithTag("screen-main").assertExists()
     ui.onNodeWithTag("input-new_title").performTextReplacement("Second")
-    ui.onNodeWithText("Add task").performScrollTo().performClick()
+    androidx.test.espresso.Espresso.closeSoftKeyboard()
+    ui.onNodeWithText("Add task").assertIsEnabled().performScrollTo().performClick()
     ui.onNodeWithContentDescription("Open Renamed").performScrollTo().performClick()
     ui.onNodeWithText("Delete task").performScrollTo().performClick()
     ui.onNodeWithTag("screen-main").assertExists()
@@ -62,6 +68,10 @@ class NavigationUiTest {
     ui.onNodeWithContentDescription("Open Second").performScrollTo().performClick()
     // Leave details active: a new process must still start at the declared main screen.
     ui.onNodeWithTag("screen-details").assertExists()
+    } catch (failure: Throwable) {
+      runCatching { ui.onRoot(useUnmergedTree=true).printToLog("SedravaUiFailure") }
+      throw failure
+    }
   }
 }
 '''.replace('org.sedrava.generated', project_identity(project)),encoding='utf-8');print(p)
@@ -104,7 +114,8 @@ class UpgradeSeedTest {
   @get:Rule val ui=createAndroidComposeRule<MainActivity>()
   @Test fun seedAcceptedDataThroughBaselineUi() {
     ui.onNodeWithTag("input-new_title").performTextReplacement("Upgrade kept")
-    ui.onNodeWithText("Add task").performScrollTo().performClick()
+    androidx.test.espresso.Espresso.closeSoftKeyboard()
+    ui.onNodeWithText("Add task").assertIsEnabled().performScrollTo().performClick()
     ui.onNodeWithContentDescription("Open Upgrade kept").assertExists()
   }
 }

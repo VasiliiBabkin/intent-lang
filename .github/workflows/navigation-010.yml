@@ -116,6 +116,7 @@ jobs:
             build/rc-android-tools.json
             build/rc-android-dependencies.txt
             build/navigation-baseline/app/build/outputs/androidTest-results
+            build/navigation-failure.*
             build/navigation-font-scale.txt
             build/navigation-preferences.xml
             build/navigation-relaunch.*

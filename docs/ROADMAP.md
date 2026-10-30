@@ -1,4 +1,4 @@
-> Current development increment: [first-class text](LANGUAGE_0_10_TEXT.md), [measured report](TEXT_010_REPORT.md). 0.9.0a1 is published; 0.10 remains unreleased; release-readiness evidence is being measured.
+> Current development increment: [first-class text](LANGUAGE_0_10_TEXT.md), [measured report](TEXT_010_REPORT.md). 0.9.0a1 is published; 0.10 remains unreleased; [release-readiness evidence](RELEASE_READINESS_010_REPORT.md) supports technical first-RC review.
 
 # Sedrava — Roadmap / Дорожная карта
 

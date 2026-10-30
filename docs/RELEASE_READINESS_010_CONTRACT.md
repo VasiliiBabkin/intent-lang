@@ -37,3 +37,7 @@ Make generated Web and Android apps safe to install side by side, predictable to
 Default Android identity hashes the exact UTF-8 `app` title with SHA-256 (first 128 bits); identical titles deliberately share identity. Explicit `--application-id` fixes identity across renames. Namespace/package always match; maximum 255 lowercase ASCII characters with no Java/Kotlin keyword segments. See [EN](ANDROID_ID.en.md), [RU](ANDROID_ID.ru.md). This is a build setting, not a language semantic change.
 
 Navigation UIs disable domain-changing actions/selection while a visible draft is invalid; pure navigation and Back remain available, preserving earlier draft-discard behavior. Legacy single-screen semantics are retained. Android launcher names use string resources. Archive payloads and emitted sources are reproducible; timestamps/compression, transitive dependency immutability and release-signed APK byte identity are not promised.
+
+## Measured outcome / Фактический результат
+
+[Readiness report](RELEASE_READINESS_010_REPORT.md): technical first-RC **GO**, with explicit physical-device and release-tooling limitations. This does not authorize merge, tagging, release, PyPI or site deployment.

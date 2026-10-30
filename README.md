@@ -98,3 +98,5 @@ Independent deterministic Android IDs and `--application-id` are implemented.
 [English identity/build guide](docs/ANDROID_ID.en.md) · [Русская инструкция](docs/ANDROID_ID.ru.md).
 Wheel/sdist include examples, documentation and license under `sys.prefix/share/sedrava`.
 Дистрибутив содержит примеры, документацию и лицензию; публикация 0.10 не выполнялась.
+
+Measured RC readiness / Фактическая готовность RC: [report / отчёт](docs/RELEASE_READINESS_010_REPORT.md).

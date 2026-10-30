@@ -54,3 +54,5 @@ This is Sedrava's first candidate; historical Intent 0.7 and abandoned Sedrava 0
 - CLI validates generated Web before creating output directories; project identity collisions reject before changing files.
 - Wheel bundles documentation/examples/license; clean wheel and sdist checks run outside checkout.
 - Side-by-side emulator installation and update-data-retention checks; 0.10 remains unreleased.
+
+- Resource escaping also covers XML-illegal Unicode scalars; duplicate Compose editors track errors independently. Эмулятор подтвердил совместную установку двух APK и сохранение данных при повторной установке; [готовность RC](docs/RELEASE_READINESS_010_REPORT.md) измерена без публикации.

@@ -63,7 +63,8 @@ class StabilityAudit(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);source=root/'a.sdr';source.write_text(SOURCE)
             saved=root/'state.json';saved.write_text(serialize_state(parse(SOURCE),parse(SOURCE).states));before=saved.read_bytes()
-            with patch('os.replace',side_effect=OSError('simulated replace failure')),contextlib.redirect_stderr(io.StringIO()):
-                self.assertEqual(main(['run',str(source),'minimum','--state-file',str(saved)]),1)
-            self.assertEqual(saved.read_bytes(),before)
-            self.assertEqual(sorted(p.name for p in root.iterdir()),['a.sdr','state.json'])
+            for operation in ('os.replace','os.fsync'):
+                with patch(operation,side_effect=OSError('simulated write/replace failure')),contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(main(['run',str(source),'minimum','--state-file',str(saved)]),1)
+                self.assertEqual(saved.read_bytes(),before)
+                self.assertEqual(sorted(p.name for p in root.iterdir()),['a.sdr','state.json'])

@@ -169,7 +169,7 @@ def generate(source, output, _program=None, _domain_only=False, application_id=N
                 val=program.states[key]
                 lines.append('    '+quoted(key)+' -> value is '+kind(val)+' && value == restored.'+user[key])
             lines += ['    else -> false', '  } }', '}']
-        condition = '(!prefs.contains("snapshot") || snapshotValid(prefs.all["snapshot"]))' if (program.records or program.has_navigation) else 'savedStateValid(prefs.all)'
+        condition = '(prefs.all.isEmpty() || snapshotValid(prefs.all["snapshot"]))' if (program.records or program.has_navigation) else 'savedStateValid(prefs.all)'
         lines += ['internal fun persistState(prefs: android.content.SharedPreferences, state: SedravaState): Boolean = try {',
                   '  if (!'+condition+') false else prefs.edit().apply {']
         if program.records or program.has_navigation:
@@ -198,7 +198,7 @@ def generate(source, output, _program=None, _domain_only=False, application_id=N
             continue
         lines.append("  var " + user[key] + " by rememberSaveable { mutableStateOf(restoredState." + user[key] + ") }")
     if (program.records or program.has_navigation) and program.persistent:
-        lines.append('  var actionError by remember { mutableStateOf(if (prefs.contains("snapshot") && !snapshotValid(prefs.all["snapshot"])) "Saved data rejected; original retained; defaults shown" else "") }')
+        lines.append('  var actionError by remember { mutableStateOf(if (prefs.all.isNotEmpty() && !snapshotValid(prefs.all["snapshot"])) "Saved data rejected; original retained; defaults shown" else "") }')
     else:
         lines.append('  var actionError by remember { mutableStateOf('+('if (!savedStateValid(prefs.all)) "Saved data rejected; original retained; defaults shown" else ""' if program.persistent else '""')+') }')
     for key, expr in (program.derived or {}).items():

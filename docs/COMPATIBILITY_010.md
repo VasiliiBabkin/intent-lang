@@ -81,7 +81,9 @@ Rejected schema-1 data stays byte-for-byte in Web storage and unchanged as the
 Android snapshot string. New accepted edits can be visible in memory, but cannot
 replace the rejected snapshot. Web keeps that session locked after a failed
 startup restore, even if storage is subsequently removed; reload after recovery.
-Android revalidates current preferences on each write. A concurrently corrupted
+Android revalidates current preferences on each write. Nonempty preferences
+without a required schema-1 snapshot also block writes; old scalar keys are not
+automatically migrated or discarded. A concurrently corrupted
 Web snapshot is also revalidated before saving. CLI restore failure returns 1
 before replacing any state file.
 

@@ -26,6 +26,9 @@ class RecordsUiTest {
       org.junit.Assert.assertFalse(persistState(prefs,SedravaState()))
       org.junit.Assert.assertEquals(raw,prefs.getString("snapshot",null))
     }
+    prefs.edit().clear().putInt("legacy",7).commit()
+    org.junit.Assert.assertFalse(persistState(prefs,SedravaState()))
+    org.junit.Assert.assertEquals(7,prefs.getInt("legacy",0))
     prefs.edit().clear().commit()
   }
   @Test fun addEditCompleteRotateDeleteAndReject() {

@@ -51,8 +51,12 @@ or in-memory model is reported as a device test.
 
 ## Verification record / Доказательства
 
-Local checks: complete Python regression, Node differential corpus, real
-Chromium, Kotlin JVM corpus, APK/Lint and instrumentation compilation. The full
+Local checks: **159 Python tests**, **26 real Chromium scenarios**, the 550-step
+Node differential corpus and the 55-step Kotlin JVM corpus all pass. APK/Lint and
+instrumentation compilation pass. Independent execution against the detached
+baseline reproduced all four symptoms: S01 `overwritten: true`; S02
+`Line 3: column 6: Integer overflow`; S03 exit 1 with target contents `partial`;
+S04 both editors referencing `error-n`. The baseline worktree was not modified. The full
 CI matrix additionally runs Python 3.10/3.12/3.13, clean wheel/sdist installation,
 0.9 rollback/regression, Web/Android generation, native emulator lifecycle,
 signatures/permissions, two-app storage and real same-key APK updates.

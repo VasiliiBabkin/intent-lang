@@ -80,7 +80,7 @@ The planned physical Android 0.9 Lab acceptance tests passed, including accepted
 
 ## First 0.10 increment
 
-Text state/derive/equality/actions, inferred text input and persistence are implemented on `feature/010-string-core` with Python/JS/JVM and browser conformance. The records branch now integrates records, collections and a single-screen task manager; see [coverage](COLLECTIONS_010_REPORT.md). Guarded multi-screen navigation is implemented on the navigation branch; see [coverage](NAVIGATION_010_REPORT.md). The [Describe → Get contract](DESCRIBE_GET_010.md) remains the product gate for the full milestone.
+Text state/derive/equality/actions, inferred text input and persistence are implemented and merged into main with Python/JS/JVM and browser conformance. Main integrates records, collections and a single-screen task manager; see [coverage](COLLECTIONS_010_REPORT.md). Guarded multi-screen navigation is implemented and merged into main; see [coverage](NAVIGATION_010_REPORT.md). The [Describe → Get contract](DESCRIBE_GET_010.md) remains the product gate for the full milestone.
 
 ## Release-readiness increment / Подготовка RC
 
@@ -95,3 +95,9 @@ See [readiness report](RELEASE_READINESS_010_REPORT.md) for measured CI/emulator
 ## First experimental RC preparation / Подготовка первого RC
 
 Version `0.10.0rc1` is prepared, not published. Same-SHA read-only artifact assembly, version agreement, checksums, published-0.9 rollback and a real Android update gate are implemented. See [report](RC_010_REPORT.md) and [controlled publication procedure](RC_PUBLISHING.md). A technical GO does not grant owner authorization.
+
+## Stabilization / Стабилизация 0.10
+
+The independent [audit](STABILITY_AUDIT_010.md) fixes rejected-data overwrite, signed-minimum parsing, CLI output safety and duplicate editor errors. [Compatibility](COMPATIBILITY_010.md) and [measurable stable gates](STABLE_RELEASE_GATES_010.md) define actual guarantees. Next recommendation: separately versioned rc2 and observation before stable 0.10.0; rc1 artifacts stay immutable.
+
+Рекомендация: новый rc2 после исправлений и период наблюдения перед стабильной версией. Публикация требует отдельного решения владельца.

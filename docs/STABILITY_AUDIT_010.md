@@ -77,8 +77,15 @@ its own increasing release versionCode and repeat the update check.
 
 Test development exposed a mistaken new browser fixture assumption (daily_steps
 has no input). It was corrected to use text_profile; the browser check was rerun.
-Existing ID-based regressions required keeping the first historical error ID;
-only duplicates receive a suffix. These failures were not waived.
+Documentation also corrects the stale Russian Python 3.12 minimum (supported:
+3.10+), branch-only feature wording and the obsolete claim that E2E verification
+is still entirely outstanding. Existing ID-based regressions required keeping
+the first historical error ID;
+only duplicates receive a suffix. These failures were not waived. One superseded
+push run (`41071221406`) reported failure while its job remained queued with no
+steps or downloadable logs; no test failure could be diagnosed from that record.
+It is not counted as a passing run or used as final evidence. Final-SHA checks
+must pass independently.
 
 Final SHA, actual Python counts and run URL are appended by
 `scripts/write_stability_evidence.py` to the copy of this report uploaded as

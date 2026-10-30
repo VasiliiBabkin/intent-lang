@@ -55,6 +55,17 @@ class ReleaseReadinessTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'different application ID'):generate(SOURCE,root/'first')
             self.assertEqual(before,{p.relative_to(root/'first'):p.read_bytes() for p in (root/'first').rglob('*') if p.is_file()})
 
+    def test_android_title_controls_are_valid_xml_and_reproducible(self):
+        import xml.etree.ElementTree as E
+        from sedrava_android_identity import write_title
+        title='@? " \\ '+''.join(chr(n) for n in range(32))+'\ufffe\uffff 😀'
+        with tempfile.TemporaryDirectory() as tmp:
+            write_title(tmp,title)
+            p=Path(tmp)/'app/src/main/res/values/strings.xml';before=p.read_bytes()
+            E.fromstring(before) # Raw XML-illegal Unicode scalars must be escaped for AAPT.
+            self.assertIn(b'\\u0000',before);self.assertIn(b'\\ufffe',before)
+            write_title(tmp,title);self.assertEqual(p.read_bytes(),before)
+
     def test_invalid_build_no_partial_outputs(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);source=root/'bad.sdr';source.write_text('app "Bad"\nscreen main:\n    text "Bad"\n    nope\n')

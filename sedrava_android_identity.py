@@ -59,7 +59,8 @@ def prepare_identity(output, package, title):
 def write_title(output, title):
     """Use an Android string resource so @, ?, quotes and whitespace stay data."""
     import html
-    escaped = title.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'").replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t').replace('@', '\\@').replace('?', '\\?')
+    escapes = {"\\": "\\\\", '"': '\\"', "'": "\\'", "\n": "\\n", "\r": "\\r", "\t": "\\t", "@": "\\@", "?": "\\?"}
+    escaped = ''.join(escapes.get(char, '\\u%04x' % ord(char) if ord(char) < 32 or ord(char) in (0xFFFE, 0xFFFF) else char) for char in title)
     target = Path(output) / 'app/src/main/res/values/strings.xml'
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text('<resources><string name="sedrava_app_name">"' + html.escape(escaped, quote=False) + '"</string></resources>\n', encoding='utf-8')

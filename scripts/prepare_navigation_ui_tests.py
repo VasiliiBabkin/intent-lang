@@ -7,7 +7,7 @@ from sedrava_android_identity import project_identity, kotlin_path
 
 project=Path(sys.argv[1]);gradle=project/'app/build.gradle.kts'
 s=re.sub(r'(versionCode = [0-9]+;)', r'testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"; \1', gradle.read_text())
-s+='\ndependencies { androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01")); androidTestImplementation("androidx.compose.ui:ui-test-junit4"); androidTestImplementation("androidx.test:runner:1.6.2"); androidTestImplementation("androidx.test.ext:junit:1.2.1"); androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0"); debugImplementation("androidx.compose.ui:ui-test-manifest") }\n';gradle.write_text(s)
+s+='\ndependencies { androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01")); androidTestImplementation("androidx.compose.ui:ui-test-junit4"); androidTestImplementation("androidx.test:runner:1.6.2"); androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0"); androidTestImplementation("androidx.test.ext:junit:1.2.1"); androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0"); debugImplementation("androidx.compose.ui:ui-test-manifest") }\n';gradle.write_text(s)
 p=kotlin_path(project, 'androidTest', 'NavigationUiTest.kt');p.parent.mkdir(parents=True,exist_ok=True)
 p.write_text('''package org.sedrava.generated
 import androidx.compose.ui.test.*

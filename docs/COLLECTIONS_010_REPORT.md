@@ -1,34 +1,59 @@
-# Sedrava 0.10 — Collection core increment / Ядро коллекций
+# Records integration report / Отчёт о записях и коллекциях
 
-**Status: experimental Python reference implementation; NOT integrated into Sedrava grammar, interpreter, CLI, Web or Android. Not a release.**
+Development branch `feature/010-records-collections-spec`, PR #14. **Unreleased,
+experimental 0.10; 0.9 compatibility baseline is preserved.**
 
-Files: [reference module](../sedrava_collections.py), [seven focused regression tests](../tests/test_collections_010.py), [Python CI matrix](../.github/workflows/collections-010.yml).
+## Implementation / Реализация
 
-## Implemented reference semantics
+- Record declarations and bounded typed collection state are accepted directly in
+  `.sdr`. Constructors, scalar field access, count, ID allocation/lookup, immutable
+  append/update/remove and action requirements use the shared typed AST.
+- Atomic candidate transitions, deterministic insertion order and stable monotonic
+  IDs; explicit overflow/capacity/Unicode/resource rejection.
+- Strict schema-1 snapshots, declaration fingerprint, duplicate-key rejection and
+  whole-snapshot validation. CLI `run --state-file` atomically replaces a snapshot
+  only after successful execution; corrupt files are preserved and reported.
+- Web and Compose generate list selection, scalar inputs and action buttons from
+  [one source](../examples/task_manager.sdr). CRUD and offline storage require no
+  handwritten target code. Full accepted state is encoded for Android recreation;
+  only persistent declarations survive relaunch.
+- `sedrava_records.py` is an internal generic component; the original
+  `sedrava_collections.py` compatibility API delegates mutations to it while
+  retaining its legacy snapshot format and stricter task-title policy.
 
-- Immutable typed task records: positive int32 identity, Unicode scalar text (at most 1024), boolean completion.
-- Immutable ordered task collection of at most 100 records, unique stable identifiers, monotonic ID allocation with explicit exhaustion.
-- Pure add, update, remove and final-invariant-gated atomic operations; rejected operations do not mutate accepted snapshots.
-- JSON persistence with schema 1; strict record field names and types, capacity and identity validation; incompatible snapshots rejected as a whole.
-- No implicit truncation, Unicode normalization or identifier reuse.
+## Measured evidence / Фактические проверки
 
-## Verification / Проверка
+Local development evidence (2026-10-30):
 
-The committed seven-test reference core passed GitHub Actions on Python 3.10, 3.12 and 3.13 at commit `f27ae0a0` (workflow run `40999851723`). Since then an eighth test and strict duplicate-key / payload-size restoration checks were added. **The latest revision must pass CI again; earlier green runs do not validate subsequent commits.**
+| Check | Result |
+| --- | --- |
+| Python suite including 0.9/text regressions | 118 tests passed |
+| Python/generated JavaScript oracle | passed, including accepted/rejected CRUD and strict snapshot corpus |
+| Real Chromium | 17 scenarios passed, including task CRUD, reload, capacity, corrupt storage and invalid input |
+| Kotlin/JVM emitted state functions | 3 JUnit tests passed with Kotlin 2.0.21; expanded snapshot corpus awaits rerun |
+| Wheel/sdist metadata and module audit | passed; clean install to be repeated after final changes |
+| Android APK, Gradle JVM tests, Lint | running; not yet claimed successful |
+| Compose emulator interaction/rotation | workflow added; not yet verified |
+| Physical Android device | unavailable; NOT tested for this increment |
 
-Run the exact repository tests:
+The initial PR head `bba0695` had seven successful workflows. That evidence covers
+only the original reference increment, not this integration. Final-head CI links
+and artifacts will be recorded after the implementation checks complete.
 
-```sh
-python -m unittest discover -s tests -p test_collections_010.py -v
-```
+## Limits / Ограничения
 
-This is not an end-to-end Sedrava test. No parser, compiler, Web generator, Android APK, UI, device or persistence migration conformance has been tested for collections.
+No nested records/lists, record/list equality, indexing, migrations, list sorting,
+multi-screen navigation, custom list layouts or per-app Android package identity.
+Records are constructed values used as collection elements and derives; standalone
+record state declarations are not part of this increment. Lists have at most 100
+items and records at most 16 scalar fields. Full state is bounded to a 200000
+UTF-16-code-unit envelope. Text has 1024 Unicode scalars; no normalization/trimming.
+Local storage is unencrypted. Invalid drafts need not survive Android recreation.
+No physical-device or accessibility certification is implied by JVM/APK checks.
 
-## Remaining integration work
+Русский: коллекции интегрированы в язык и генераторы; это экспериментальная
+разработка, а не выпуск 0.10. Таблица выше разделяет проверки Python, настоящего
+браузера, JVM, APK, эмулятора и устройства. Отсутствующая проверка не считается
+успешной. Публикация и слияние PR не выполняются.
 
-1. Agree normative record/list grammar, typed AST and deterministic operation semantics.
-2. Integrate records and collections into the Sedrava parser, interpreter, CLI and state type system.
-3. Implement identical operations and persistence in Web and Android, then cross-target conformance.
-4. Generate list/detail UI and complete the offline task-list example, including device acceptance.
-
-**Русский:** реализовано самостоятельное экспериментальное Python-ядро записей и ограниченного списка задач. Оно ещё не является возможностью языка Sedrava: исходные файлы `.sdr` не умеют объявлять коллекции, а генераторы Web/Android не используют новый модуль. Выпуск 0.10 не состоялся.
+Guides: [English](RECORDS_QUICKSTART.en.md), [Русский](RECORDS_QUICKSTART.ru.md).

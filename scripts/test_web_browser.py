@@ -68,6 +68,42 @@ class BrowserAlpha(unittest.TestCase):
     def state(self, name):
         return self.page.locator(f'output[data-state="{name}"]').inner_text()
 
+    def test_records_task_manager_crud_reload_and_corruption(self):
+        self.open((ROOT / 'examples/task_manager.sdr').read_text(encoding='utf-8'))
+        page=self.page; field=page.locator('textarea'); rows=page.locator('[data-list] li')
+        self.assertEqual(rows.count(),0)
+        page.get_by_role('button',name='Add / Добавить',exact=True).click()
+        self.assertFalse(page.locator('#sedrava-error').is_hidden())
+        field.fill('Привет 😀'); page.get_by_role('button',name='Add / Добавить',exact=True).click()
+        self.assertEqual(rows.count(),1);self.assertIn('Привет 😀',rows.inner_text())
+        page.get_by_role('button',name='Select 1',exact=True).click()
+        page.get_by_role('button',name='Complete / Выполнено',exact=True).click()
+        self.assertIn('done: true',rows.inner_text())
+        field.fill('renamed');page.get_by_role('button',name='Rename / Переименовать',exact=True).click()
+        self.assertIn('title: renamed',rows.inner_text())
+        page.reload();self.assertIn('title: renamed',rows.inner_text());self.assertIn('done: true',rows.inner_text())
+        field.fill('second');page.get_by_role('button',name='Add / Добавить',exact=True).click()
+        page.get_by_role('button',name='Select 1',exact=True).click();page.get_by_role('button',name='Delete / Удалить',exact=True).click()
+        self.assertEqual(rows.count(),1);self.assertEqual(rows.get_attribute('data-id'),'2')
+        page.get_by_role('button',name='Select 2',exact=True).click();page.get_by_role('button',name='Delete / Удалить',exact=True).click()
+        self.assertEqual(rows.count(),0)
+        page.evaluate("localStorage.setItem(storageKey, '{bad')");page.reload()
+        self.assertEqual(rows.count(),0);self.assertIn('rejected',page.locator('#sedrava-error').inner_text())
+
+    def test_records_capacity_invalid_input_and_atomicity(self):
+        source=(ROOT / 'examples/task_manager.sdr').read_text(encoding='utf-8').replace('max=100','max=1')
+        self.open(source);page=self.page;field=page.locator('textarea');rows=page.locator('[data-list] li')
+        field.fill('one');page.get_by_role('button',name='Add / Добавить',exact=True).click()
+        field.fill('two');before=page.evaluate('JSON.stringify(state)')
+        page.get_by_role('button',name='Add / Добавить',exact=True).click()
+        self.assertEqual(page.evaluate('JSON.stringify(state)'),before)
+        self.assertEqual(rows.count(),1);self.assertFalse(page.locator('#sedrava-error').is_hidden())
+        field.fill('😀'*1025);self.assertEqual(field.get_attribute('aria-invalid'),'true')
+        self.assertEqual(page.evaluate('JSON.stringify(state)'),before)
+        page.get_by_role('button',name='Delete / Удалить',exact=True).click()
+        self.assertEqual(page.evaluate('JSON.stringify(state)'),before)
+        page.reload();self.assertIn('title: one',rows.inner_text())
+
     def test_reference_input_constraints_and_reload(self):
         self.open((ROOT / 'examples/reference_09.sdr').read_text())
         self.assertEqual(self.state('goal'), '5')

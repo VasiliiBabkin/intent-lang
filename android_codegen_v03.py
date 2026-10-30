@@ -2,10 +2,16 @@
 import argparse
 import ast
 from pathlib import Path
-from sedrava_core import parse, run, Assign, If
+from sedrava_records import ListValue
+from sedrava_records_codegen import kt_support, kt_persistence
+from sedrava_core import parse, run, Assign, If, Require
 from android_codegen import generate as scaffold
 
 def kt(node, names):
+    if isinstance(node, ast.Attribute): return '(' + kt(node.value, names) + ').sdr_' + node.attr
+    if isinstance(node, ast.Call):
+        if hasattr(node, 'record_type'): return 'SdrRecord_' + node.record_type.name + '(' + ','.join('sdr_'+k.arg+'='+kt(k.value,names) for k in node.keywords) + ')'
+        return 'sdr_'+node.func.id+'('+','.join(kt(a,names) for a in node.args)+')' 
     if isinstance(node, ast.Constant):
         if type(node.value) is str: return quoted(node.value)
         return str(node.value).lower() if type(node.value) is bool else str(node.value)
@@ -27,7 +33,13 @@ def quoted(value):
     return '"' + "".join(escapes.get(char, "\\u%04x" % ord(char) if ord(char) < 32 or 0xD800 <= ord(char) <= 0xDFFF or ord(char) in (0x2028, 0x2029) else char) for char in value) + '"'
 
 
+def kind(value):
+    if isinstance(value, ListValue): return 'SdrList<SdrRecord_' + value.kind.record.name + '>'
+    return {int:'Int',bool:'Boolean',str:'String'}[type(value)]
+
+
 def literal(value):
+    if isinstance(value, ListValue): return 'SdrList<SdrRecord_' + value.kind.record.name + '>(capacity=' + str(value.kind.capacity) + ')'
     return quoted(value) if type(value) is str else str(value).lower()
 
 
@@ -46,7 +58,7 @@ def generate(source, output):
     next_names = {key: "next_" + key for key in keys}
     for key, expr in (program.derived or {}).items():
         next_names[key] = "(" + kt(expr, next_names) + ")"
-    params = ", ".join("next_" + key + ": " + kinds[type(val)] for key, val in program.states.items())
+    params = ", ".join("next_" + key + ": " + kind(val) for key, val in program.states.items())
     next_args = ", ".join("next_" + key for key in keys)
     user_args = ", ".join(user[key] for key in keys)
     def state_args(prefix):
@@ -78,30 +90,38 @@ def generate(source, output):
         "  return true",
         "}",
         'internal fun checkedText(value: String): String { require(validText(value)) { "Invalid text value" }; return value }',
-        "internal " + ("data " if keys else "") + "class SedravaState(" + ", ".join("val " + user[key] + ": " + kinds[type(val)] + " = " + literal(val) for key, val in program.states.items()) + ")",
+        *(kt_support(program, quoted) if program.records else []),
+        "internal " + ("data " if keys else "") + "class SedravaState(" + ", ".join("val " + user[key] + ": " + kind(val) + " = " + literal(val) for key, val in program.states.items()) + ")",
         "internal fun checkDerivedState(" + params + ") {",
     ]
     for key, val in program.states.items():
         if type(val) is str:
             lines.append("  checkedText(next_" + key + ")")
+        elif isinstance(val, ListValue):
+            lines.append("  next_" + key + ".check(); require(next_" + key + ".capacity == " + str(val.kind.capacity) + ")")
     for key in (program.derived or {}):
         lines.append("  val checked_" + key + " = " + next_names[key])
-    lines += ["}", "internal fun validState(" + params + "): Boolean = try {", "  checkDerivedState(" + next_args + ")", "  " + guard,
+    lines += ["}", "internal fun validState(" + params + "): Boolean = try {", "  checkDerivedState(" + next_args + ")", ("  snapshotState(SedravaState(" + next_args + "), true); " if program.records else "  ") + guard,
               "} catch (_: ArithmeticException) { false } catch (_: IllegalArgumentException) { false }",
               "internal fun restoreState(saved: Map<String, *>): SedravaState {"]
+    if program.records:
+        lines += ['  return try { val raw=saved["snapshot"]; if(raw is String) restoreSnapshot(raw) else SedravaState() } catch (_: IllegalArgumentException) { SedravaState() }', '}',
+                  'internal fun editState(state: SedravaState, key: String, value: Any?): SedravaState {', '  val next = when(key) {']
+    else:
+        for key, val in program.states.items():
+            if key in program.persistent:
+                lines.append("  val saved_" + key + " = saved[" + quoted(key) + "]")
+                condition = "saved_" + key + " is " + kind(val)
+                if type(val) is str:
+                    condition += " && validText(saved_" + key + ")"
+                lines.append("  val next_" + key + " = if (" + condition + ") saved_" + key + " else " + literal(val))
+            else:
+                lines.append("  val next_" + key + " = " + literal(val))
+        lines += ["  return if (validState(" + next_args + ")) SedravaState(" + next_args + ") else SedravaState()", "}",
+                  "internal fun editState(state: SedravaState, key: String, value: Any?): SedravaState {", "  val next = when (key) {"]
     for key, val in program.states.items():
-        if key in program.persistent:
-            lines.append("  val saved_" + key + " = saved[" + quoted(key) + "]")
-            condition = "saved_" + key + " is " + kinds[type(val)]
-            if type(val) is str:
-                condition += " && validText(saved_" + key + ")"
-            lines.append("  val next_" + key + " = if (" + condition + ") saved_" + key + " else " + literal(val))
-        else:
-            lines.append("  val next_" + key + " = " + literal(val))
-    lines += ["  return if (validState(" + next_args + ")) SedravaState(" + next_args + ") else SedravaState()", "}",
-              "internal fun editState(state: SedravaState, key: String, value: Any?): SedravaState {", "  val next = when (key) {"]
-    for key, val in program.states.items():
-        lines.append("    " + quoted(key) + " -> if (value is " + kinds[type(val)] + ") state.copy(" + user[key] + " = value) else return state")
+        if isinstance(val, ListValue): continue
+        lines.append("    " + quoted(key) + " -> if (value is " + kind(val) + ") state.copy(" + user[key] + " = value) else return state")
     lines += ["    else -> return state", "  }", "  return if (validState(" + state_args("next") + ")) next else state", "}",
               "internal fun transitionState(state: SedravaState, action: String): SedravaState {",
               "  if (!validState(" + state_args("state") + ")) return state"]
@@ -110,7 +130,9 @@ def generate(source, output):
     lines += ["  return try {", "    when (action) {"]
     def emit(body, depth):
         for stmt in body:
-            if isinstance(stmt, Assign):
+            if isinstance(stmt, Require):
+                lines.append(' ' * depth + 'require(' + kt(stmt.condition, next_names) + ')')
+            elif isinstance(stmt, Assign):
                 lines.append(" " * depth + next_names[stmt.name] + " = " + kt(stmt.expr, next_names))
                 lines.append(" " * depth + "checkDerivedState(" + next_args + ")")
             else:
@@ -126,12 +148,21 @@ def generate(source, output):
         lines.append("      }")
     lines += ["      else -> return state", "    }", "    if (validState(" + next_args + ")) SedravaState(" + next_args + ") else state",
               "  } catch (_: ArithmeticException) { state } catch (_: IllegalArgumentException) { state }", "}"]
-    if program.persistent:
-        lines += ["private fun persistState(prefs: android.content.SharedPreferences, state: SedravaState) {", "  prefs.edit().apply {"]
-        for key in program.persistent:
-            method = {int: "putInt", bool: "putBoolean", str: "putString"}[type(program.states[key])]
-            lines.append("    " + method + "(" + quoted(key) + ", state." + user[key] + ")")
-        lines += ["  }.apply()", "}"]
+    if program.records:
+        lines += kt_persistence(program, quoted, literal)
+    if program.records and program.persistent:
+        lines += ['private fun persistState(prefs: android.content.SharedPreferences, state: SedravaState): Boolean = try {',
+                  '  prefs.edit().putString("snapshot", snapshotState(state)).commit()',
+                  '} catch (_: Exception) { false }']
+    else:
+        if program.persistent:
+            lines += ["private fun persistState(prefs: android.content.SharedPreferences, state: SedravaState) {", "  prefs.edit().apply {"]
+            if program.records:
+                lines.append('    putString("snapshot", snapshotState(state))')
+            for key in (() if program.records else program.persistent):
+                method = {int: "putInt", bool: "putBoolean", str: "putString"}[type(program.states[key])]
+                lines.append("    " + method + "(" + quoted(key) + ", state." + user[key] + ")")
+            lines += ["  }.apply()", "}"]
     lines += ["class MainActivity : ComponentActivity() {", "  override fun onCreate(savedInstanceState: Bundle?) {", "    super.onCreate(savedInstanceState)",
               "    setContent { MaterialTheme { SedravaScreen() } }", "  }", "}", "@Composable fun SedravaScreen() {"]
     if program.persistent:
@@ -139,15 +170,29 @@ def generate(source, output):
                   "  val restoredState = remember { restoreState(prefs.all) }"]
     else:
         lines.append("  val restoredState = remember { SedravaState() }")
+    if program.records:
+        lines += ['  var savedSnapshot by rememberSaveable { mutableStateOf(snapshotState(restoredState, true)) }',
+                  '  val recreatedState = remember { try { restoreSnapshot(savedSnapshot, true) } catch (_: IllegalArgumentException) { restoredState } }']
     for key in keys:
+        if program.records:
+            lines.append("  var " + user[key] + " by remember { mutableStateOf(recreatedState." + user[key] + ") }")
+            continue
         lines.append("  var " + user[key] + " by rememberSaveable { mutableStateOf(restoredState." + user[key] + ") }")
-    lines.append('  var actionError by remember { mutableStateOf("") }')
+    if program.records and program.persistent:
+        lines.append('  var actionError by remember { mutableStateOf(if (prefs.contains("snapshot") && !snapshotValid(prefs.all["snapshot"])) "Saved data rejected; defaults restored" else "") }')
+    else:
+        lines.append('  var actionError by remember { mutableStateOf("") }')
     for key, expr in (program.derived or {}).items():
         lines.append("  val " + user[key] + " = " + kt(expr, user))
     lines += ["  Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {",
               '    if (actionError.isNotEmpty()) Text(actionError, color = MaterialTheme.colorScheme.error)']
     for widget in program.widgets:
-        if widget[0] == "text":
+        if widget[0] == "list":
+            key, selected = widget[1:]
+            lines += ["    for (row in " + user[key] + ".items) {", "      key(row.id) {", '        Text(row.record.fields().entries.joinToString(" · ") { it.key + ": " + it.value.toString() })', '        Button(onClick = {', "          val current=SedravaState(" + user_args + ")", '          val next=editState(current,' + quoted(selected) + ',row.id)', '          if(next !== current) {', '            ' + user[selected] + ' = next.' + user[selected], '            savedSnapshot = snapshotState(next, true)']
+            if program.persistent: lines.append('            if (!persistState(prefs,next)) actionError = "Could not save state"')
+            lines += ['          } else { actionError = "Selection rejected" }', '        }) { Text("Select / Выбрать") }', '      }', '    }']
+        elif widget[0] == "text":
             lines.append("    Text(" + quoted(widget[1]) + ", style = MaterialTheme.typography.headlineMedium)")
         elif widget[0] == "value":
             lines.append("    Text(" + quoted(widget[1] + ": ") + " + " + user[widget[1]] + ".toString())")
@@ -165,8 +210,10 @@ def generate(source, output):
                       "      OutlinedTextField(value = draft_" + key + ", onValueChange = { raw ->",
                       "        draft_" + key + " = raw", "        val next = editState(current, " + quoted(key) + ", " + parse_raw + ")",
                       "        if (next !== current) {", "          " + user[key] + " = next." + user[key]]
+            if program.records:
+                lines.append("          savedSnapshot = snapshotState(next, true)")
             if program.persistent:
-                lines.append("          persistState(prefs, next)")
+                lines.append('          if (!persistState(prefs,next)) actionError = "Could not save state"' if program.records else "          persistState(prefs, next)")
             message = "Text must contain at most 1024 Unicode scalar values and satisfy the declared rules" if text else "Value does not satisfy the declared rules"
             lines += ["        }", "      }, isError = error_" + key + ", supportingText = { if (error_" + key + ") Text(" + quoted(message) + ") }, label = { Text(" + quoted(key) + ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType." + ("Text" if text else "Number") + "))", "    }"]
         elif widget[0] == "show_text":
@@ -177,9 +224,11 @@ def generate(source, output):
                       "      if (next !== current) {"]
             for key in keys:
                 lines.append("        " + user[key] + " = next." + user[key])
+            if program.records:
+                lines.append("        savedSnapshot = snapshotState(next, true)")
             if program.persistent:
-                lines.append("        persistState(prefs, next)")
-            lines += ['        actionError = ""', '      } else { actionError = "Action rejected: constraints or arithmetic/value error" }', "    }) { Text(" + quoted(label) + ") }"]
+                lines.append('        actionError = if (persistState(prefs,next)) "" else "Could not save state"' if program.records else "        persistState(prefs, next)")
+            lines += [('' if program.records and program.persistent else '        actionError = ""'), '      } else { actionError = "Action rejected: constraints or arithmetic/value error" }', "    }) { Text(" + quoted(label) + ") }"]
     lines += ["  }", "}"]
     target.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return target

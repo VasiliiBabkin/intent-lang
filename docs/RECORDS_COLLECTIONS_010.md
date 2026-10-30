@@ -1,50 +1,59 @@
-# Sedrava 0.10 — Records and bounded collections (design contract)
+# Records and collections / Записи и коллекции — unreleased 0.10
 
-**Status: design proposal, NOT IMPLEMENTED.** The published compatibility baseline is 0.9.0a1. The text core is an unreleased 0.10 development increment. None of the illustrative syntax below is accepted by the compiler yet.
+Normative development syntax (not a release):
 
-## Why this is the next increment
-
-The [Describe → Get 0.10 target](DESCRIBE_GET_010.md) requires an offline task list. First-class text alone cannot represent multiple independently editable tasks. Records and bounded ordered collections must preserve the existing atomic state/rule model on Python, Web and Android before introducing list UI or navigation.
-
-## Proposed data model (not valid Sedrava syntax)
-
-```text
+```sdr
 record Task:
-    id: int
     title: text
     done: bool
 state tasks: list<Task>(max=100) = []
+state selected = 0
+state title = ""
 persist tasks
+action add: tasks = append(tasks, Task(title=title, done=false))
+action rename: tasks = update(tasks, selected, Task(title=title, done=false))
+action delete: tasks = remove(tasks, selected)
 ```
 
-The spelling, type grammar, and whether identifiers use integers or an opaque identity type remain open decisions. Do not implement this pseudocode as a platform-specific shortcut.
+Derives must precede actions. See
+`examples/task_manager.sdr` for a complete valid program.
 
-## Required semantic decisions and acceptance gates
+Records declare 1–16 fields of `int`, `bool`, `text`; no nesting or implicit
+conversion. Constructors require every field exactly once, using named arguments.
+Field order is declaration order. Record and list equality are forbidden; compare
+scalar fields. `get(tasks, id).title` returns a scalar field; missing ID rejects
+the entire action. `has(tasks, id)` is boolean; `count(tasks)` and `next_id(tasks)`
+return int32. `append`, `update`, `remove` return new immutable list values.
+`update` replaces all user fields and preserves identity. There is no indexing.
 
-1. **Records:** fixed, named, statically typed fields; exact field order and initialization rules; no implicit conversions. Record values are immutable snapshots. Define structural equality or explicitly disallow it in the first increment.
-2. **Collections:** finite ordered sequences of one declared element type; explicit capacity; deterministic insertion/removal order; capacity checked before acceptance; no implicit truncation or unbounded allocations. Specify whether equality is supported before parsing it.
-3. **Identity:** task identity must not depend on list index. Define stable IDs, uniqueness, lookup of missing IDs, and behavior after removal and restoration. No silent update of the wrong task after a deletion.
-4. **Actions:** add, replace/update, remove and lookup must use typed operations with atomic rollback. Invalid indices, missing IDs, duplicate IDs, over-capacity inserts, invalid fields and rule violations must leave all accepted state unchanged.
-5. **Persistence:** explicit schema version, strict decoding, per-field type/length validation and collection capacity validation. Malformed or incompatible snapshots must not partially restore state. State migration must be specified or restoration must safely fall back to defaults.
-6. **Cross-target determinism:** preserve exact Unicode scalar semantics, int32 overflow checks, ordered iteration and JSON serialization across Python, JS and Kotlin. Validate equality and ordering only where specified.
-7. **Resource bounds:** define limits for number of fields, record nesting, list size and serialized payload. Reject pathological declarations before generation.
-8. **Backward compatibility:** all 0.9 and current text fixtures must still check/test/build; changes to legacy grammar need explicit diagnostics and migration notes.
+Each list has capacity 1–100, insertion order, and an automatic positive int32 ID
+outside user fields. IDs are never reused. Removal preserves relative order.
+`next_id` starts at 1; append rejects at 2147483647 (reserved exhaustion sentinel).
+An action uses candidate values, checks derived values after each assignment and
+rules on the final candidate; any failure leaves all accepted state unchanged.
+Missing IDs, capacity, overflow and invalid Unicode reject without repair.
+`require <bool-expression>` inside an action rejects unless true. `has` returns
+false for a missing ID; `get`, `update`, `remove` reject. IDs cannot be assigned.
+Text is at most 1024 Unicode scalar values; no trimming or normalization.
+At most 16 record declarations and 16 collection states; source and expression
+limits remain those of the text core.
 
-## Proposed implementation order
+`list tasks select selected` renders ordered records and a Select button per row;
+`selected` must be an int state. Selection is validated like other input. Authors
+use ordinary inputs and actions for add/edit/delete; no target code is required.
 
-- **A — Specification and negative fixtures:** settle grammar, identity, equality, bounds and persistence with explicit examples of accepted/rejected programs.
-- **B — Typed core:** parser/AST/type checker/interpreter, typed atomic operations, state serialization and tests.
-- **C — Web/Android parity:** generators, restoration, deterministic conformance, hostile input and clean builds.
-- **D — Product UI:** list rendering, task detail, navigation and accessibility; only then call the reference task manager functional.
+Collection programs persist one schema-1 envelope with an exact declaration
+fingerprint, all and only persistent keys, and lists containing `next_id` and
+ordered `items` (`id` plus exact declared fields). All fields, IDs, capacities,
+scalar types and final rules are checked before restoration. Wrong schema,
+unknown/missing fields, duplicate keys, malformed/oversized JSON reject the entire
+snapshot. No migrations; report rejection and retain defaults. Maximum encoded
+snapshot and full accepted state envelope: 200000 UTF-16 code units on every target.
+JSON numbers must use integer syntax (no fraction/exponent). Scalar-only programs retain
+the legacy restoration contract. Storage failure does not alter accepted state.
 
-## Release and evidence rules
-
-Do not publish 0.10, tag a release, or claim task-list support based on this document. Each implementation increment needs a test report naming Python/browser/JVM/device coverage separately. An Android APK build does not prove Compose interaction or rotation behavior. Documentation in both languages must distinguish design, implementation and release status.
-
-## Design review questions
-
-- Prefer a bounded `list<Task>` with explicit unique `id` versus a map keyed by ID?
-- Should field updates be expressed as pure record replacement, or as an atomic typed operation on a selected ID?
-- What is the minimum migration policy that avoids silently discarding user data when schemas evolve?
-
-Until answered, these are intentionally **open questions**, not promises.
+Русский: записи имеют фиксированные типизированные поля; список хранит порядок и
+выдаёт ID независимо от индекса. Изменения выполняются над кандидатом и принимаются
+целиком после проверки правил. Повреждённое сохранение отклоняется целиком; миграций
+нет. Пределы: 16 полей, 100 элементов, int32, 1024 скалярных значения в строке.
+Статус платформ и фактические проверки указаны в COLLECTIONS_010_REPORT.md.

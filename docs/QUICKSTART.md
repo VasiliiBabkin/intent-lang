@@ -55,3 +55,13 @@ Next: [language syntax and semantics](LANGUAGE_0_9.md), [complete examples](../e
 ## First-class text / Полноценный текст
 
 Run `sedrava check examples/text_profile.sdr`, `sedrava test examples/text_profile.sdr`, `sedrava run examples/text_profile.sdr rename`, then `sedrava build web examples/text_profile.sdr --output build/text-web/index.html`. Serve that directory as above. `sedrava build android examples/text_profile.sdr --output build/text-android` produces the Android project without manual application-code changes. Follow the [text guide](LANGUAGE_0_10_TEXT.md) for APK/JVM/Lint commands and input/restore semantics.
+
+## Records and collections / Записи и коллекции (unreleased 0.10)
+
+The development branch integrates typed records and bounded ordered lists into `.sdr`,
+with stable IDs, atomic actions, strict snapshots and generated Web/Compose UI.
+Записи и списки доступны в языке на ветке разработки; 0.10 не выпущена.
+
+- [English task-manager guide](RECORDS_QUICKSTART.en.md)
+- [Руководство на русском](RECORDS_QUICKSTART.ru.md)
+- [Measured coverage / Фактические проверки](COLLECTIONS_010_REPORT.md)

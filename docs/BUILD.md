@@ -60,3 +60,13 @@ Generated sources request no permissions. SDK/AndroidX may contribute manifest m
 [Alpha checks](../.github/workflows/alpha.yml) run unit/conformance/example/documentation/package and Chromium tests; [reference Android workflow](../.github/workflows/reference-09-android.yml) builds the Lab APK and Lint report. The Android workflow also emits `sedrava-09-release-candidate-bundle` containing wheel, sdist, APK, Web ZIP and `SHA256SUMS`; reproduce it with `python scripts/prepare_release.py --apk PATH_TO_CHECKED_APK` after building distributions. Download artifacts from the Actions run for the **same commit** as the source. Dependencies and toolchain versions are pinned directly; transitive dependency byte-for-byte reproducibility and release-signed APK reproducibility are not claimed.
 
 Русский: генератор Android создаёт проект, который затем собирается Gradle. Используйте полный JDK с `javac`, SDK 35 и Gradle 8.11.1. При отсутствии устройства APK можно проверить подписью, `aapt` и Lint, но это не проверяет интерфейс. Состояние и ограничения описаны в [справочнике](LANGUAGE_0_9.md).
+
+## Records and collections / Записи и коллекции (unreleased 0.10)
+
+The development branch integrates typed records and bounded ordered lists into `.sdr`,
+with stable IDs, atomic actions, strict snapshots and generated Web/Compose UI.
+Записи и списки доступны в языке на ветке разработки; 0.10 не выпущена.
+
+- [English task-manager guide](RECORDS_QUICKSTART.en.md)
+- [Руководство на русском](RECORDS_QUICKSTART.ru.md)
+- [Measured coverage / Фактические проверки](COLLECTIONS_010_REPORT.md)

@@ -2,6 +2,7 @@
 import ast
 import keyword
 import re
+from sedrava_records import RecordType, ListType, RecordValue, ListValue, value_type, validate, operation
 from dataclasses import dataclass
 
 MAX_SOURCE_CHARS = 100_000
@@ -101,6 +102,10 @@ class Assign:
     expr: ast.expr
 
 @dataclass(frozen=True)
+class Require:
+    condition: ast.expr
+
+@dataclass(frozen=True)
 class If:
     condition: ast.expr
     yes: tuple
@@ -116,6 +121,7 @@ class Program:
     widgets: tuple
     derived: dict = None
     persistent: tuple = ()
+    records: dict = None
 
 def parse_expr(source, types):
     source, literals = literal_expression(source)
@@ -143,13 +149,36 @@ def parse_expr(source, types):
         type_of(node, types)
     except ValueError as exc:
         unknown = next((item.id for item in ast.walk(node)
-                        if isinstance(item, ast.Name) and item.id not in types), None)
+                        if isinstance(item, ast.Name) and item.id not in types and item.id not in ('append','update','remove','get','has','count','next_id')), None)
         if unknown is not None:
             raise ValueError(f"Unknown identifier: {unknown}") from exc
         raise
     return node
 
 def type_of(node, types):
+    if isinstance(node, ast.Attribute):
+        kind = type_of(node.value, types)
+        if isinstance(kind, RecordType) and node.attr in dict(kind.fields): return dict(kind.fields)[node.attr]
+        raise ValueError("Unknown record field")
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+        name = node.func.id
+        if name in types and isinstance(types[name], RecordType):
+            kind = types[name]
+            if node.args or len(node.keywords) != len(kind.fields) or {k.arg for k in node.keywords} != set(dict(kind.fields)):
+                raise ValueError("Record requires exact named fields")
+            if any(type_of(k.value, types) != dict(kind.fields)[k.arg] for k in node.keywords): raise ValueError("Record field type mismatch")
+            node.record_type = kind
+            return kind
+        if name in ('append', 'update', 'remove', 'get', 'has', 'count', 'next_id') and not node.keywords:
+            count = {'append': 2, 'update': 3, 'remove': 2, 'get': 2, 'has': 2, 'count': 1, 'next_id': 1}[name]
+            if len(node.args) != count: raise ValueError("Invalid operation arguments")
+            kind = type_of(node.args[0], types)
+            if not isinstance(kind, ListType): raise ValueError("Collection required")
+            node.collection_type = kind
+            if name in ('get', 'has', 'remove', 'update') and type_of(node.args[1], types) is not int: raise ValueError("Identity must be int")
+            if name in ('append', 'update') and type_of(node.args[-1], types) != kind.record: raise ValueError("Wrong record type")
+            return kind.record if name == 'get' else bool if name == 'has' else int if name in ('count', 'next_id') else kind
+        raise ValueError("Unknown operation")
     if isinstance(node, ast.Constant) and type(node.value) in (int, bool, str):
         return type(node.value)
     if isinstance(node, ast.Name) and node.id in types:
@@ -164,14 +193,31 @@ def type_of(node, types):
         if all(type_of(x, types) is bool for x in node.values): return bool
     if isinstance(node, ast.Compare) and len(node.ops) == len(node.comparators) == 1:
         a, b = type_of(node.left, types), type_of(node.comparators[0], types)
-        if a is b and (isinstance(node.ops[0], (ast.Eq, ast.NotEq)) or
+        if a in (int, bool, str) and a is b and (isinstance(node.ops[0], (ast.Eq, ast.NotEq)) or
                        (a is int and isinstance(node.ops[0], (ast.Lt, ast.LtE, ast.Gt, ast.GtE)))):
             return bool
     raise ValueError("Unsupported or ill-typed expression")
 
 def evaluate(node, state):
+    try:
+        return _evaluate(node, state)
+    except ValueError as exc:
+        if hasattr(node, 'source_line') and not str(exc).startswith('Line '):
+            raise ValueError(f"Line {node.source_line}: column {node.source_column}: {exc}") from exc
+        raise
+
+
+def _evaluate(node, state):
+    if isinstance(node, ast.Attribute):
+        record = evaluate(node.value, state)
+        return record.values[[k for k, _ in record.kind.fields].index(node.attr)]
+    if isinstance(node, ast.Call):
+        if hasattr(node, 'record_type'):
+            fields = {k.arg: evaluate(k.value, state) for k in node.keywords}
+            return validate(RecordValue(node.record_type, tuple(fields[k] for k, _ in node.record_type.fields)))
+        return operation(node.func.id, [evaluate(arg, state) for arg in node.args])
     if isinstance(node, ast.Constant): return checked_value(node.value)
-    if isinstance(node, ast.Name): return checked_value(state[node.id])
+    if isinstance(node, ast.Name): return validate(state[node.id])
     if isinstance(node, ast.UnaryOp):
         x = evaluate(node.operand, state)
         return checked_int(-x) if isinstance(node.op, ast.USub) else not x
@@ -209,13 +255,16 @@ def parse(source):
              if raw.strip() and not raw.lstrip().startswith("#")]
     states, actions, rules, tests, widgets, derived = {}, {}, [], [], [], {}
     persistent = []
+    records = {}
     types = {}
     name = None
     screen_seen = False
     i = 0
     def expression(source, known_types, line_number, column=1):
         try:
-            return parse_expr(source, known_types)
+            node = parse_expr(source, known_types)
+            node.source_line, node.source_column = line_number, column
+            return node
         except ValueError as exc:
             message = str(exc)
             column += getattr(exc, "offset", 0)
@@ -255,10 +304,14 @@ def parse(source):
                     no, pos = block(pos, lines[pos][0], nesting + 1)
                 result.append(If(condition, tuple(yes), tuple(no)))
                 continue
+            if line.startswith('require '):
+                node = expression(line[8:], types, number, depth + 9)
+                if type_of(node, types) is not bool: raise ValueError(f"Line {number}: column {depth+9}: require must be bool")
+                result.append(Require(node)); pos += 1; continue
             m = re.fullmatch(r"([A-Za-z_][A-Za-z_0-9]*)\s*=\s*(.+)", line)
             if not m or m[1] not in states: raise ValueError(f"Line {number}: invalid assignment")
             node = expression(m[2], types, number, depth + m.start(2) + 1)
-            if type_of(node, types) is not types[m[1]]: raise ValueError(f"Line {number}: type mismatch")
+            if type_of(node, types) != types[m[1]]: raise ValueError(f"Line {number}: type mismatch")
             result.append(Assign(m[1], node))
             pos += 1
         return tuple(result), pos
@@ -268,6 +321,24 @@ def parse(source):
         if m := re.fullmatch(r'app (.+)', line):
             if name is not None: raise ValueError(f"Line {number}: duplicate app")
             name = label(m[1], number, 5)
+        elif m := re.fullmatch(r"record ([A-Za-z_][A-Za-z_0-9]*):", line):
+            if states or actions or len(records) >= 16 or m[1] in types or keyword.iskeyword(m[1]) or m[1] in ('true','false','append','update','remove','get','has','count','next_id'): raise ValueError(f"Line {number}: column 1: invalid record declaration")
+            fields = []
+            i += 1
+            while i < len(lines) and lines[i][0] > 0:
+                d, field, n = lines[i]
+                f = re.fullmatch(r"([A-Za-z_][A-Za-z_0-9]*): (int|bool|text)", field)
+                if not f or d != 4 or f[1] == 'id' or f[1] in dict(fields): raise ValueError(f"Line {n}: column {d+1}: invalid record field")
+                fields.append((f[1], {'int': int, 'bool': bool, 'text': str}[f[2]]))
+                i += 1
+            if not 1 <= len(fields) <= 16: raise ValueError(f"Line {number}: column 1: record field limit")
+            records[m[1]] = types[m[1]] = RecordType(m[1], tuple(fields))
+            continue
+        elif m := re.fullmatch(r"state ([A-Za-z_][A-Za-z_0-9]*): list<([A-Za-z_][A-Za-z_0-9]*)>\(max=([0-9]+)\) = \[\]", line):
+            if actions or rules or tests or widgets or m[1] in types or keyword.iskeyword(m[1]) or m[1] in ('true','false') or m[2] not in records or not 1 <= int(m[3]) <= 100 or sum(isinstance(v, ListValue) for v in states.values()) >= 16:
+                raise ValueError(f"Line {number}: column 1: invalid collection declaration")
+            types[m[1]] = ListType(records[m[2]], int(m[3]))
+            states[m[1]] = ListValue(types[m[1]])
         elif m := re.fullmatch(r"state ([A-Za-z_][A-Za-z_0-9]*)\s*=\s*(.+)", line):
             if actions or rules or tests or widgets: raise ValueError(f"Line {number}: states must precede actions")
             if m[1] in types: raise ValueError(f"Line {number}: duplicate state")
@@ -318,7 +389,10 @@ def parse(source):
             while i < len(lines) and lines[i][0] > 0:
                 widget_depth, item, n = lines[i]
                 if widget_depth != widget_indent: raise ValueError(f"Line {n}: widget indentation")
-                if m := re.fullmatch(r'text (.+)', item): widgets.append(("text", label(m[1], n, widget_depth + 6)))
+                if m := re.fullmatch(r'list ([A-Za-z_][A-Za-z_0-9]*) select ([A-Za-z_][A-Za-z_0-9]*)', item):
+                    if not isinstance(types.get(m[1]), ListType) or m[2] not in states or types.get(m[2]) is not int: raise ValueError(f"Line {n}: column 1: list requires collection and int selection state")
+                    widgets.append(("list", m[1], m[2]))
+                elif m := re.fullmatch(r'text (.+)', item): widgets.append(("text", label(m[1], n, widget_depth + 6)))
                 elif m := re.fullmatch(r"value ([A-Za-z_][A-Za-z_0-9]*)", item):
                     if m[1] not in types: raise ValueError(f"Line {n}: unknown state")
                     widgets.append(("value", m[1]))
@@ -345,15 +419,15 @@ def parse(source):
     # Bound expanded derived expressions: generators inline them in actions/rules.
     sizes = {key: 1 for key in states}
     for key, expr in derived.items():
-        sizes[key] = sum(sizes[item.id] if isinstance(item, ast.Name) else 1 for item in ast.walk(expr))
+        sizes[key] = sum(sizes.get(item.id, 1) if isinstance(item, ast.Name) else 1 for item in ast.walk(expr))
         if sizes[key] > MAX_DERIVED_NODES:
             raise ValueError("Derived expression exceeds expansion limit")
     values = resolve(states, derived)
     if not all(evaluate(rule, values) for rule in rules): raise ValueError("Invalid initial state")
-    return Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived, tuple(persistent))
+    return Program(name, states, actions, tuple(rules), tuple(tests), tuple(widgets), derived, tuple(persistent), records)
 
 def resolve(state, derived):
-    values = {name: checked_value(value) for name, value in state.items()}
+    values = {name: validate(value) for name, value in state.items()}
     for name, expr in (derived or {}).items():
         values[name] = evaluate(expr, values)
     return values
@@ -363,8 +437,11 @@ def valid_state(program, state):
         if state.keys() != program.states.keys():
             return False
         for key, initial in program.states.items():
-            checked_value(state[key], type(initial))
+            validate(state[key], value_type(initial))
         values = resolve(state, program.derived)
+        if program.records:
+            from sedrava_records import check_resources
+            check_resources(program, state)
         return all(evaluate(rule, values) for rule in program.rules)
     except (ValueError, KeyError):
         return False
@@ -378,6 +455,10 @@ def edit_state(program, state, key, value):
 
 
 def restore_state(program, saved):
+    if program.records:
+        from sedrava_records import restore_snapshot
+        try: return restore_snapshot(program, saved)
+        except ValueError: return program.states.copy()
     candidate = program.states.copy()
     if type(saved) is dict:
         for key, initial in program.states.items():
@@ -399,13 +480,18 @@ def transition(program, state, action):
             steps += 1
             if steps > MAX_ACTION_STEPS:
                 raise ValueError("Action exceeds execution step limit")
-            if isinstance(stmt, Assign):
+            if isinstance(stmt, Require):
+                if not evaluate(stmt.condition, resolve(candidate, program.derived)): raise ValueError('Action requirement rejected')
+            elif isinstance(stmt, Assign):
                 candidate[stmt.name] = evaluate(stmt.expr, resolve(candidate, program.derived))
                 resolve(candidate, program.derived)
             else:
                 execute(stmt.yes if evaluate(stmt.condition, resolve(candidate, program.derived)) else stmt.no)
     execute(program.actions[action])
     values = resolve(candidate, program.derived)
+    if program.records:
+        from sedrava_records import check_resources
+        check_resources(program, candidate)
     if not all(evaluate(rule, values) for rule in program.rules):
         return state.copy(), False
     return candidate, True

@@ -80,4 +80,4 @@ The planned physical Android 0.9 Lab acceptance tests passed, including accepted
 
 ## First 0.10 increment
 
-Text state/derive/equality/actions, inferred text input and persistence are implemented on `feature/010-string-core` with Python/JS/JVM and browser conformance. This does not implement records, collections or the full task-list/navigation target. The [Describe → Get contract](DESCRIBE_GET_010.md) remains the product gate for the full milestone.
+Text state/derive/equality/actions, inferred text input and persistence are implemented on `feature/010-string-core` with Python/JS/JVM and browser conformance. The records branch now integrates records, collections and a single-screen task manager; see [coverage](COLLECTIONS_010_REPORT.md). Multi-screen navigation remains open. The [Describe → Get contract](DESCRIBE_GET_010.md) remains the product gate for the full milestone.

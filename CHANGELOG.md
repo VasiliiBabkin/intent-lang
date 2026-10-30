@@ -27,3 +27,11 @@ The published 0.9.0a1 release/tag/assets remain unchanged. Older candidate notes
 - Source distributions now include examples, documentation and validation scripts; CI prepares downloadable candidate artifacts without PyPI publishing.
 
 This is Sedrava's first candidate; historical Intent 0.7 and abandoned Sedrava 0.7.1 proposals are not releases of this version. No stable-language compatibility promise is made.
+
+## Unreleased 0.10 records integration / Записи и коллекции
+
+- `.sdr` record declarations, bounded list state, typed constructors, lookup and immutable mutations.
+- Stable monotonic IDs, atomic actions and `require`, strict versioned whole-state snapshots.
+- Generated selectable lists in Web and Compose; offline task manager from one source file.
+- Python/JS/Kotlin oracle, Chromium CRUD and Android test harnesses; see
+  [measured results](docs/COLLECTIONS_010_REPORT.md). No release or publication.

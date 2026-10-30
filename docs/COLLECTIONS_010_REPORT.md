@@ -14,7 +14,7 @@ Files: [reference module](../sedrava_collections.py), [seven focused regression 
 
 ## Verification / Проверка
 
-Seven isolated Python reference-core tests were exercised in a local prototype and passed. The repository's exact committed implementation has a separate GitHub Actions matrix (Python 3.10, 3.12, 3.13); **its CI outcome is not yet verified**. The prototype and committed reference core are not identical, so local results are not evidence of the committed code passing.
+The committed seven-test reference core passed GitHub Actions on Python 3.10, 3.12 and 3.13 at commit `f27ae0a0` (workflow run `40999851723`). Since then an eighth test and strict duplicate-key / payload-size restoration checks were added. **The latest revision must pass CI again; earlier green runs do not validate subsequent commits.**
 
 Run the exact repository tests:
 

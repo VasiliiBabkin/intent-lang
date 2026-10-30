@@ -160,7 +160,7 @@ def test_evidence(api,runs,nav):
             key=(case.get('classname'),case.get('name'))
             target[key]={'class':key[0],'name':key[1]}
     summary['jvm_navigation']=list(unit.values());summary['emulator']=list(device.values())
-    if len(unit)<7 or len(device)<4:raise ValueError('Native JVM/emulator test evidence incomplete')
+    if len(unit)<7 or len(device)<4:raise ValueError('Native test evidence incomplete: JVM='+str(len(unit))+', emulator='+str(len(device)))
     upgrade=json.loads(nav['rc-upgrade.json'])
     if upgrade.get('result')!='PASS' or upgrade.get('rc_apk',{}).get('version_name')!=VERSION or upgrade.get('rc_apk',{}).get('version_code')!=ANDROID_VERSION_CODE or upgrade.get('baseline_apk',{}).get('version_code')!=1:
         raise ValueError('Real APK upgrade evidence missing')

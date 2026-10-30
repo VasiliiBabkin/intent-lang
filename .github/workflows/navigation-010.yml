@@ -108,7 +108,9 @@ jobs:
             build/navigation-scalar/sedrava-android.json
             build/navigation-scalar/app/build/outputs/apk
             build/navigation-scalar/app/build/outputs/androidTest-results
+            build/navigation-scalar/app/build/test-results
             build/navigation-scalar/app/build/reports/tests
+            build/navigation-pages/app/build/test-results
             build/navigation-pages/app/build/reports/tests
             build/rc-upgrade*
             build/rc-android-tools.json

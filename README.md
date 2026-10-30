@@ -2,6 +2,8 @@
 
 **Describe the application; get the application. / Описал — получил.**
 
+**[Dedication / Посвящение](DEDICATION.md):** Геннадию Ивановичу Смирных — учителю информатики, благодаря которому автор Sedrava понял и полюбил программирование.
+
 The published compatibility baseline is [Sedrava 0.9.0a1](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.9.0a1). This branch adds first-class text, typed records bounded collections and multi-screen navigation end-to-end and identifies local development builds as **0.10.0rc1** (experimental RC preparation, not published); no 0.10 release, tag or PyPI publication is created.
 
 Start with [Quick Start](docs/QUICKSTART.md), the [text reference](docs/LANGUAGE_0_10_TEXT.md), [text profile example](examples/text_profile.sdr), and [measured report](docs/TEXT_010_REPORT.md). The [task manager](examples/task_manager.sdr) now uses records and lists directly in `.sdr`; the [navigation example](docs/NAVIGATION_QUICKSTART.en.md) adds guarded screens and Back.

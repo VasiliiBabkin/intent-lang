@@ -38,20 +38,24 @@ def validate_run(run,sha,repo):
 def wait_gates(api,sha,timeout):
     deadline=time.monotonic()+timeout
     while True:
-        runs=api.pages('/actions/runs?head_sha='+sha,'workflow_runs')
+        runs=[r for r in api.pages('/actions/runs?head_sha='+sha,'workflow_runs')
+              if r.get('event') in ('pull_request','push','workflow_dispatch') and r.get('path')!='.github/workflows/rc-prepare.yml']
+        pending=[r for r in runs if r['status']!='completed']
+        for run in runs:
+            if run['status']=='completed':validate_run(run,sha,api.repo)
         chosen={}
         for gate in GATES:
-            candidates=[r for r in runs if r.get('path')=='.github/workflows/'+gate and r.get('event') in ('pull_request','push','workflow_dispatch')]
-            # Prefer the PR verification for this head; never use a successful older SHA.
+            candidates=[r for r in runs if r.get('path')=='.github/workflows/'+gate]
             candidates.sort(key=lambda r:(r.get('event')=='pull_request',r['id']),reverse=True)
-            if candidates:
-                run=candidates[0]
-                if run['status']=='completed' and run['conclusion']!='success':
-                    raise ValueError('Failed prerequisite: '+run['html_url'])
-                if run['status']=='completed':chosen[gate]=validate_run(run,sha,api.repo)
-        if len(chosen)==len(GATES):return chosen
+            if candidates and candidates[0]['status']=='completed':chosen[gate]=candidates[0]
+        if len(chosen)==len(GATES) and not pending:
+            selected={run['id'] for run in chosen.values()}
+            for run in runs:
+                if run['id'] not in selected:
+                    chosen[run['path'].rsplit('/',1)[-1]+':'+run['event']+':'+str(run['id'])]=run
+            return chosen
         if time.monotonic()>deadline:raise TimeoutError('Timed out waiting for same-SHA release gates')
-        print('Waiting for release gates: '+', '.join(g for g in GATES if g not in chosen),flush=True)
+        print('Waiting for all applicable same-SHA gates; completed required '+str(len(chosen))+'/'+str(len(GATES))+', running '+str(len(pending)),flush=True)
         time.sleep(20)
 
 
@@ -112,7 +116,7 @@ def test_evidence(api,runs,nav):
     for gate,run in runs.items():
         jobs=api.pages('/actions/runs/'+str(run['id'])+'/jobs','jobs')
         if not jobs or any(j['status']!='completed' or j['conclusion']!='success' for j in jobs):raise ValueError('Prerequisite job not successful')
-        ci.append({'workflow':gate,'run_id':run['id'],'source_sha':run['head_sha'],'url':run['html_url'],'conclusion':run['conclusion'],'attempt':run.get('run_attempt',1),
+        ci.append({'workflow':run['path'],'event':run['event'],'run_id':run['id'],'source_sha':run['head_sha'],'url':run['html_url'],'conclusion':run['conclusion'],'attempt':run.get('run_attempt',1),
                    'jobs':[{'id':j['id'],'name':j['name'],'conclusion':j['conclusion']} for j in jobs]})
         if gate=='alpha.yml':
             for job in jobs:

@@ -304,7 +304,7 @@ def main():
     if rollback.get('result')!='PASS' or rollback.get('rc_version')!=VERSION:raise ValueError('Upgrade/rollback evidence missing')
     summary['python_upgrade_rollback']=rollback
     payload['checks.json']=encode(summary);payload['availability.json']=encode(availability)
-    payload['toolchains.json']=encode({'python_build':json.loads(dist['BUILD_TOOLS.json']),'android_build':json.loads(nav['rc-android-tools.json']),
+    payload['toolchains.json']=encode({'browser':json.loads(traces['toolchain.json']),'python_build':json.loads(dist['BUILD_TOOLS.json']),'android_build':json.loads(nav['rc-android-tools.json']),
                                       'direct_python_requirements':(ROOT/'requirements-rc.txt').read_text(), 'action_pins':json.loads((ROOT/'.github/action-pins.json').read_text())})
     import tempfile
     apk_results=[]

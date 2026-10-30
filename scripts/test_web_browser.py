@@ -1,5 +1,7 @@
 """Real Chromium tests. Install playwright and its Chromium before running this file."""
 import functools
+import importlib.metadata
+import json
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import os
 from pathlib import Path
@@ -31,6 +33,9 @@ class BrowserAlpha(unittest.TestCase):
         cls.playwright = sync_playwright().start()
         executable = os.environ.get('SEDRAVA_CHROMIUM') or shutil.which('chromium')
         cls.browser = cls.playwright.chromium.launch(executable_path=executable, args=['--no-sandbox'])
+        evidence=ROOT/'build/browser'
+        evidence.mkdir(parents=True,exist_ok=True)
+        (evidence/'toolchain.json').write_text(json.dumps({'engine':'chromium','browser_version':cls.browser.version,'playwright_version':importlib.metadata.version('playwright'),'executable_source':'configured/system' if executable else 'playwright-bundled'},sort_keys=True,indent=2)+'\n',encoding='utf-8')
         cls.counter = 0
 
     @classmethod

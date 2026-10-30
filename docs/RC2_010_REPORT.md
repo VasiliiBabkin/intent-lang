@@ -54,7 +54,7 @@ archive/source inventory; reproducible payloads; actual published 0.9.0a1 rollba
 Collector assembly uses the tested package/Web/APK bytes, not a fresh untested
 rebuild. It verifies immutable source artifact digests and checks the target APK
 against update evidence. It rechecks actual APK signatures/IDs/versions/permissions
-using SDK tools. Python/Android toolchains, dependencies and pinned Actions SHAs
+using SDK tools. Actual Chromium/Playwright/Node versions, Python/Android toolchains, dependencies and pinned Actions SHAs
 are recorded. SHA256SUMS includes both manifests; the outer Actions digest binds
 SHA256SUMS without a circular self-hash. Local exact-inventory and remote roundtrip
 checks fail on substitution. The original rc1 kit's known ID/digest/source is

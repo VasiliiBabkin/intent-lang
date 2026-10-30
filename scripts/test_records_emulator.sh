@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run inside android-emulator-runner, after generating the task manager test harness.
 set -euo pipefail
-gradle -p build/tasks-android --no-daemon :app:connectedDebugAndroidTest
+gradle -p build/tasks-android --no-daemon -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true :app:connectedDebugAndroidTest
 adb shell am force-stop org.sedrava.generated
 adb shell run-as org.sedrava.generated cat shared_prefs/sedrava_state.xml > build/tasks-preferences.xml
 python - <<'PY'

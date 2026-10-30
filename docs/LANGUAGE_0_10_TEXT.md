@@ -42,7 +42,7 @@ Only `persist` fields are saved. Wrong-type, oversized or surrogate-containing f
 - **Escaped legacy labels:** 0.9's regex labels treated backslashes literally. One uniform escape grammar is necessary to avoid contradictory meanings of the same literal in state and UI. In this development increment, labels containing backslashes must escape them: `text "C:\\temp"` displays `C:\temp`; `text "line\nnext"` now displays a newline. All published 0.9 examples retain their behavior. Migration is covered by `test_legacy_label_backslash_migration_is_explicit`; invalid escapes fail instead of being silently reinterpreted. No 0.9 tag or artifact is changed.
 - **Native editor line endings:** HTML textarea normalizes CR and CRLF in the *draft* to LF, per browser behavior. The runtime adds no additional normalization. Source/action/model/persisted strings retain CR, LF and exact equality; their display in an editor follows the platform's editor behavior. A Chromium conformance test checks both the native draft normalization and exact model acceptance of CR. This boundary is disclosed rather than claiming byte-identical native editing.
 - Android compilation, JVM state tests, signature checks and Lint do not establish Compose UI/rotation/device acceptance. See the [work report](TEXT_010_REPORT.md) for measured coverage.
-- Lists, records, toggles, cards, navigation, themes, adaptive layouts and per-app package identity remain separate milestones. The full [Describe → Get target](DESCRIBE_GET_010.md) is not yet implemented.
+- Records and bounded lists are integrated on the records development branch; see [syntax](RECORDS_COLLECTIONS_010.md). Toggles, cards, navigation, themes, adaptive layouts and per-app package identity remain separate milestones. The full [Describe → Get target](DESCRIBE_GET_010.md) is not yet implemented.
 
 ## Reproduce / Повторить
 
@@ -70,3 +70,6 @@ python scripts/verify_apk.py build/text-android/app/build/outputs/apk/debug/app-
 The test-preparation script adds only test sources; generated application code is unchanged. APK: `build/text-android/app/build/outputs/apk/debug/app-debug.apk`. The [text Android CI](../.github/workflows/text-010.yml) builds both the profile and hostile-string fixture with the same process, uploading APKs, Web output and evidence. Full Python/Node and Chromium suites remain mandatory.
 
 Русский: строка — полноценное неизменяемое значение, а не только элемент интерфейса. Тип редактора выводится из состояния; проверка, сохранение и обработчики генерируются. Лимит — 1024 Unicode scalar values; emoji считается одним значением, составной графемный кластер может содержать несколько. Нет автоматической нормализации и усечения. Некорректный ввод не меняет принятое состояние; отказ действия отменяет все связанные изменения. Это реализованный промежуточный шаг, а не выпуск всей версии 0.10.
+
+Collection programs use strict whole-snapshot restoration; scalar-only programs retain
+the text restoration contract above. See [collection specification](RECORDS_COLLECTIONS_010.md).

@@ -1,0 +1,23 @@
+name: Collection core 0.10
+
+on:
+  push:
+    branches: [feature/010-records-collections-spec]
+  pull_request:
+    paths:
+      - 'sedrava_collections.py'
+      - 'tests/test_collections_010.py'
+      - '.github/workflows/collections-010.yml'
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m unittest discover -s tests -p test_collections_010.py -v

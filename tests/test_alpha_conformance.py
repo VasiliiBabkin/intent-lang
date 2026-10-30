@@ -5,6 +5,7 @@ import random
 import shutil
 import subprocess
 import unittest
+from sedrava_records import plain
 from sedrava_core import parse, transition
 from web_codegen import generate
 
@@ -51,7 +52,7 @@ screen main:
                     error = False
                 except ValueError:
                     error = True
-                trace.append({'state': state.copy(), 'error': error})
+                trace.append({'state': {k: plain(v) for k,v in state.items()}, 'error': error})
             expected.append(trace)
             payload.append({'script': generate(source).split('<script>', 1)[1].split('</script>', 1)[0], 'sequence': sequence})
         runner = r'''

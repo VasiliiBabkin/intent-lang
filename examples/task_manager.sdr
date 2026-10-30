@@ -1,0 +1,35 @@
+app "Sedrava Tasks"
+record Task:
+    title: text
+    done: bool
+state tasks: list<Task>(max=100) = []
+state selected = 0
+state title = ""
+persist tasks
+derive empty = count(tasks) == 0
+derive chosen = has(tasks, selected)
+action add:
+    require title != ""
+    tasks = append(tasks, Task(title=title, done=false))
+    title = ""
+action complete:
+    tasks = update(tasks, selected, Task(title=get(tasks, selected).title, done=not get(tasks, selected).done))
+action rename:
+    require title != ""
+    tasks = update(tasks, selected, Task(title=title, done=get(tasks, selected).done))
+    title = ""
+action delete:
+    tasks = remove(tasks, selected)
+    selected = 0
+test initial: -> count(tasks) == 0
+screen main:
+    text "Tasks / Задачи"
+    text "Enter a title to add. Select a task to complete, rename or delete. / Введите название; выберите задачу для изменения."
+    input title
+    button "Add / Добавить" -> add
+    show empty : text "No tasks yet / Список пуст"
+    list tasks select selected
+    value selected
+    button "Complete / Выполнено" -> complete
+    button "Rename / Переименовать" -> rename
+    button "Delete / Удалить" -> delete

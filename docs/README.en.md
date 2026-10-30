@@ -36,7 +36,7 @@ See [Russian guide](README.ru.md) and [example](../examples/workflow.sdr).
 
 ## Current limitations
 
-No user-defined functions, collections, modules, IO, async, standard library or production-level diagnostics. The web backend is experimental; equivalence across runtimes still needs end-to-end verification.
+No user-defined functions, modules, IO, async or standard library. Bounded record collections are experimental in the unreleased 0.10 branch. The web backend is experimental; equivalence across runtimes still needs end-to-end verification.
 
 ## Install from source
 
@@ -51,3 +51,13 @@ sedrava build web examples/workflow.sdr
 The `sedrava` distribution is not published on PyPI.
 
 > Sedrava is not yet published on PyPI. Install from this source checkout using `python -m pip install .`; the CLI is `sedrava`, and source files end in `.sdr`. The GitHub repository is now `VasiliiBabkin/sedrava`. The domain sedrava.com is prospective only.
+
+## Records and collections / Записи и коллекции (unreleased 0.10)
+
+The development branch integrates typed records and bounded ordered lists into `.sdr`,
+with stable IDs, atomic actions, strict snapshots and generated Web/Compose UI.
+Записи и списки доступны в языке на ветке разработки; 0.10 не выпущена.
+
+- [English task-manager guide](RECORDS_QUICKSTART.en.md)
+- [Руководство на русском](RECORDS_QUICKSTART.ru.md)
+- [Measured coverage / Фактические проверки](COLLECTIONS_010_REPORT.md)

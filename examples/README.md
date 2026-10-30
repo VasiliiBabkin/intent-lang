@@ -25,3 +25,13 @@ For Android APK instructions see [build guide](../docs/BUILD.md). All UI example
 | `timer.sdr` | Historical interpreter-only start/stop model | `sedrava run examples/timer.sdr start`; no screen or automatic clock |
 
 No example uses fictitious APIs. `timer.sdr` remains for compatibility; use `countdown.sdr` for a complete manual countdown UI. Время само не течёт: действие `tick` вызывает пользователь.
+
+## Records and collections / Записи и коллекции (unreleased 0.10)
+
+The development branch integrates typed records and bounded ordered lists into `.sdr`,
+with stable IDs, atomic actions, strict snapshots and generated Web/Compose UI.
+Записи и списки доступны в языке на ветке разработки; 0.10 не выпущена.
+
+- [English task-manager guide](../docs/RECORDS_QUICKSTART.en.md)
+- [Руководство на русском](../docs/RECORDS_QUICKSTART.ru.md)
+- [Measured coverage / Фактические проверки](../docs/COLLECTIONS_010_REPORT.md)

@@ -4,13 +4,21 @@ import ast
 import html
 import json
 from pathlib import Path
-from sedrava_core import Assign, If, parse, run
+from sedrava_records import plain
+from sedrava_records_codegen import js_runtime
+from sedrava_core import Assign, If, Require, parse, run
 
 def json_script(value, **kwargs):
     # HTML parses script end tags before JavaScript parses quoted strings.
     return json.dumps(value, **kwargs).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
 def js_expr(node, names):
+    if isinstance(node, ast.Attribute): return '(' + js_expr(node.value, names) + ')[' + json_script(node.attr) + ']'
+    if isinstance(node, ast.Call):
+        if hasattr(node, 'record_type'):
+            fields = {k.arg: k.value for k in node.keywords}
+            return '({' + ','.join('[' + json_script(k) + ']:' + js_expr(fields[k], names) for k, _ in node.record_type.fields) + '})'
+        return 'collectionOp(' + json_script(node.func.id) + ',' + str(node.collection_type.capacity) + ',' + ','.join(js_expr(a, names) for a in node.args) + ')'
     if isinstance(node, ast.Constant):
         return json_script(node.value)
     if isinstance(node, ast.Name):
@@ -34,7 +42,9 @@ def statements(body, names, depth=4):
     result = []
     pad = " " * depth
     for stmt in body:
-        if isinstance(stmt, Assign):
+        if isinstance(stmt, Require):
+            result.append(pad + 'if (!(' + js_expr(stmt.condition, names) + ")) throw Error('Action requirement rejected');")
+        elif isinstance(stmt, Assign):
             result.append(f"{pad}{names[stmt.name]} = {js_expr(stmt.expr, names)};")
             result.append(f"{pad}checkDerivedState(nextState);")
         elif isinstance(stmt, If):
@@ -53,7 +63,7 @@ def generate(source):
     run(program)
     if not program.widgets:
         raise ValueError("Missing screen main")
-    initial = json_script(program.states, ensure_ascii=False)
+    initial = json_script({k: plain(v) for k, v in program.states.items()}, ensure_ascii=False)
     names = {key: "nextState[" + json_script(key) + "]" for key in program.states}
     for key, expr in (program.derived or {}).items():
         names[key] = js_expr(expr, names)
@@ -74,7 +84,9 @@ def generate(source):
         render_names[key] = "derivedState[" + json_script(key) + "]"
     widgets = []
     for widget in program.widgets:
-        if widget[0] == "text":
+        if widget[0] == "list":
+            widgets.append('<ul data-list="' + html.escape(widget[1], quote=True) + '" data-select="' + html.escape(widget[2], quote=True) + '"></ul>')
+        elif widget[0] == "text":
             widgets.append(f'<h1>{html.escape(widget[1])}</h1>')
         elif widget[0] == "value":
             key = html.escape(widget[1], quote=True)
@@ -104,13 +116,16 @@ def generate(source):
         f"const initialState = JSON.parse({json_script(initial)});",
         "const storageKey = 'sedrava:' + (typeof location !== 'undefined' ? location.pathname : '/') + ':' + " + json_script(program.name) + ";",
         "const persistentKeys = " + json_script(list(program.persistent)) + ";",
+        js_runtime(program, json_script) if program.records else "const collectionTypes = {};",
+        "let restoreError = false;",
         "let state = { ...initialState };",
-        "try { const saved = JSON.parse((typeof localStorage !== 'undefined' ? localStorage.getItem(storageKey) : null) || '{}'); state = restoreState(saved); } catch (_) { /* unavailable or corrupt storage */ }",
+        ("try { const raw = localStorage.getItem(storageKey); if (raw !== null) state = restoreSnapshot(raw); } catch (_) { restoreError = true; }" if program.records else "try { const saved = JSON.parse((typeof localStorage !== 'undefined' ? localStorage.getItem(storageKey) : null) || '{}'); state = restoreState(saved); } catch (_) { /* unavailable or corrupt storage */ }"),
         "function checkedInt(n) { if (!Number.isInteger(n) || n < -2147483648 || n > 2147483647) throw new RangeError('Sedrava integer overflow'); return n; }",
         "function validText(value) { if (typeof value !== 'string') return false; let count = 0; for (const char of value) { const cp = char.codePointAt(0); if ((cp >= 0xD800 && cp <= 0xDFFF) || ++count > 1024) return false; } return true; }",
         "function validValue(value, initial) { return typeof value === typeof initial && (typeof value === 'string' ? validText(value) : typeof value === 'number' ? Number.isInteger(value) && value >= -2147483648 && value <= 2147483647 : typeof value === 'boolean'); }",
-        "function checkStateValues(nextState) { for (const key of Object.keys(initialState)) { if (!Object.hasOwn(nextState, key) || !validValue(nextState[key], initialState[key])) throw new RangeError('Invalid Sedrava value'); } }",
-        "function restoreState(saved) { const restored = { ...initialState }; if (saved && typeof saved === 'object' && !Array.isArray(saved)) { for (const key of persistentKeys) { if (Object.hasOwn(saved, key) && validValue(saved[key], initialState[key])) restored[key] = saved[key]; } } return validateState(restored) ? restored : { ...initialState }; }",
+        "function checkResources(nextState) { if (JSON.stringify({schema:1,signature,state:nextState}).length > 200000) throw Error('State exceeds resource limit'); }" if program.records else "function checkResources(_) {}",
+        "function checkStateValues(nextState) { if (Object.keys(nextState).length !== Object.keys(initialState).length) throw Error('Invalid keys'); for (const key of Object.keys(initialState)) { if (!Object.hasOwn(nextState, key) || !(Object.hasOwn(collectionTypes, key) ? validCollection(nextState[key], collectionTypes[key]) : validValue(nextState[key], initialState[key]))) throw new RangeError('Invalid Sedrava value'); } }",
+        "function restoreState(saved) { try { return restoreSnapshot(saved); } catch (_) { return { ...initialState }; } }" if program.records else "function restoreState(saved) { const restored = { ...initialState }; if (saved && typeof saved === 'object' && !Array.isArray(saved)) { for (const key of persistentKeys) { if (Object.hasOwn(saved, key) && validValue(saved[key], initialState[key])) restored[key] = saved[key]; } } return validateState(restored) ? restored : { ...initialState }; }",
         "function editState(current, key, value) { if (!Object.hasOwn(initialState, key)) return current; const next = { ...current, [key]: value }; return validateState(next) ? next : current; }",
         "const actions = {",
         *actions,
@@ -119,7 +134,7 @@ def generate(source):
         *derived_lines,
         "}",
         "function validateState(nextState) {",
-        "  try { checkStateValues(nextState); const derivedState = { __proto__: null, ...nextState };",
+        "  try { checkResources(nextState); checkStateValues(nextState); const derivedState = { __proto__: null, ...nextState };",
         *derived_lines,
         "    return " + rules + "; } catch (_) { return false; }",
         "}",
@@ -131,14 +146,15 @@ def generate(source):
         '  document.querySelectorAll("[data-state]").forEach(el => { el.textContent = String(derivedState[el.dataset.state]); });',
         '  document.querySelectorAll("[data-show]").forEach(el => { el.hidden = !derivedState[el.dataset.show]; });',
         '  document.querySelectorAll("[data-input]").forEach(el => { if (resetInputs || document.activeElement !== el) el.value = String(state[el.dataset.input]); });',
+        "  renderCollections();" if program.records else "",
         "}",
         'document.querySelectorAll("[data-action]").forEach(el => {',
         "  el.addEventListener('click', () => {",
         "    const action = actions[el.dataset.action];",
         "    if (!action) throw new Error('Unknown action');",
         "    try { const next = action(state); showError(next === state ? 'Action rejected by declared rules' : ''); state = next; }",
-        "    catch (_) { showError('Action rejected: integer overflow or invalid value'); return; }",
-        "    try { const saved = {}; for (const key of persistentKeys) saved[key] = state[key]; localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) { /* storage is optional */ }",
+        "    catch (error) { showError('Action rejected: ' + error.message); return; }" if program.records else "    catch (_) { showError('Action rejected: integer overflow or invalid value'); return; }",
+        "    try { saveSnapshot(); } catch (_) { showError('Could not save state'); }" if program.records else "    try { const saved = {}; for (const key of persistentKeys) saved[key] = state[key]; localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) { /* storage is optional */ }",
         "    render(true);",
         "  });",
         "});",
@@ -149,7 +165,7 @@ def generate(source):
         "  if (isText ? validText(raw) : (raw !== '' && /^-?[0-9]+$/.test(raw) && Number.isInteger(parsed) && parsed >= -2147483648 && parsed <= 2147483647)) {",
         "    const nextState = { ...state, [key]: isText ? raw : parsed };",
         "    accepted = validateState(nextState);",
-        "    if (accepted) { state = nextState; try { const saved = {}; for (const name of persistentKeys) saved[name] = state[name]; if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) {} render(); }",
+        "    if (accepted) { state = nextState; try { saveSnapshot(); } catch (_) { showError('Could not save state'); } render(); }" if program.records else "    if (accepted) { state = nextState; try { const saved = {}; for (const name of persistentKeys) saved[name] = state[name]; if (typeof localStorage !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(saved)); } catch (_) {} render(); }",
         "  }",
         "  const invalid = (isText || raw !== '') && !accepted;",
         "  el.setAttribute('aria-invalid', String(invalid));",
@@ -161,6 +177,7 @@ def generate(source):
         "  el.addEventListener('blur', () => { if (typeof initialState[el.dataset.input] !== 'string' && el.value.trim() === '') el.value = String(state[el.dataset.input]); validateInput(el); });",
         "});",
         "render();",
+        "if (restoreError) showError('Saved data rejected; defaults restored');",
         "</script></body></html>",
     ]) + "\n"
 

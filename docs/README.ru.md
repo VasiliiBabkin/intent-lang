@@ -70,7 +70,7 @@ screen main:
 
 ## Что ещё не поддерживается
 
-Пользовательские функции, строки как тип состояния, списки, словари, модули, ввод-вывод, асинхронность, стандартная библиотека и полноценные сообщения об ошибках компиляции. Это пока узкоспециализированный язык, а не замена Kotlin или JavaScript.
+Пользовательские функции, словари, модули, ввод-вывод, асинхронность и стандартная библиотека. Строки, записи и ограниченные списки реализованы в разработке 0.10. Это пока узкоспециализированный язык, а не замена Kotlin или JavaScript.
 
 ## Статус переносимости
 
@@ -91,3 +91,13 @@ sedrava build android examples/workflow.sdr --output build/generated-android
 ```
 
 Сборка Android дополнительно требует Java, Android SDK и Gradle. Репозиторий переименован: `VasiliiBabkin/sedrava`. Домен `sedrava.com` рассматривается, но не является действующим сайтом.
+
+## Records and collections / Записи и коллекции (unreleased 0.10)
+
+The development branch integrates typed records and bounded ordered lists into `.sdr`,
+with stable IDs, atomic actions, strict snapshots and generated Web/Compose UI.
+Записи и списки доступны в языке на ветке разработки; 0.10 не выпущена.
+
+- [English task-manager guide](RECORDS_QUICKSTART.en.md)
+- [Руководство на русском](RECORDS_QUICKSTART.ru.md)
+- [Measured coverage / Фактические проверки](COLLECTIONS_010_REPORT.md)

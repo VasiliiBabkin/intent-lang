@@ -27,8 +27,8 @@ Sedrava should turn concise, declarative descriptions into useful applications w
 | Version | Focus / Направление | Exit criteria / Результат |
 | --- | --- | --- |
 | **0.9** | Reliable foundations / Надёжная основа: checked arithmetic, persistence, numeric input, conditional widgets, diagnostics | Clear input validation feedback; Android/Web regression and conformance tests; device check |
-| **0.10** | Rich UI / Интерфейс: text fields, toggles, lists, cards, navigation, themes, responsive layout | Multi-screen example runs on Android and Web; accessibility basics |
-| **0.11** | Data / Данные: strings, collections, records, local data model | Type and persistence semantics specified; migration strategy; working sample |
+| **0.10** | Text, records, bounded collections and richer UI / Строки, записи, списки и интерфейс | Multi-screen example runs on Android and Web; accessibility basics |
+| **0.11** | Data / Данные: migrations, nested schemas, local data model | Type and persistence semantics specified; migration strategy; working sample |
 | **0.12** | Device capabilities / Устройство: files, notifications, permissions, camera | Explicit capability declarations, graceful unsupported-platform behavior |
 | **0.13** | App architecture / Архитектура: reusable components, modules, structured errors | Tested multi-file reference application |
 | **0.14** | Developer tools / Инструменты: editor integration, syntax highlighting, completion, preview, debugger | Documented, repeatable edit-build-preview workflow |
@@ -80,4 +80,4 @@ The planned physical Android 0.9 Lab acceptance tests passed, including accepted
 
 ## First 0.10 increment
 
-Text state/derive/equality/actions, inferred text input and persistence are implemented on `feature/010-string-core` with Python/JS/JVM and browser conformance. This does not implement records, collections or the full task-list/navigation target. The [Describe → Get contract](DESCRIBE_GET_010.md) remains the product gate for the full milestone.
+Text state/derive/equality/actions, inferred text input and persistence are implemented on `feature/010-string-core` with Python/JS/JVM and browser conformance. The records branch now integrates records, collections and a single-screen task manager; see [coverage](COLLECTIONS_010_REPORT.md). Multi-screen navigation remains open. The [Describe → Get contract](DESCRIBE_GET_010.md) remains the product gate for the full milestone.

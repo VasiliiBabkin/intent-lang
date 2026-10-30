@@ -1,6 +1,6 @@
 # Sedrava 0.10 — Describe → Get contract (proposal)
 
-Status: **full task-list outcome remains design only**. The [first-class text increment](LANGUAGE_0_10_TEXT.md) is implemented on its development branch; the records/lists/navigation pseudocode below is not implemented. Sedrava 0.9.0a1 is the published compatibility baseline.
+Status: **records/task-manager integration is experimental on the development branch**; see [measured report](COLLECTIONS_010_REPORT.md). Navigation and the full multi-screen outcome remain design only. The [first-class text increment](LANGUAGE_0_10_TEXT.md) is implemented on its development branch; the records/lists/navigation pseudocode below is not implemented. Sedrava 0.9.0a1 is the published compatibility baseline.
 
 ## Non-negotiable product promise
 

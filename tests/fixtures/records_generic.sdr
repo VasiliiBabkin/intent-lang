@@ -1,0 +1,36 @@
+app "Generic records"
+record Metric:
+    label: text
+    amount: int
+    enabled: bool
+record Tag:
+    name: text
+state metrics: list<Metric>(max=2) = []
+state tags: list<Tag>(max=1) = []
+state selected = 0
+state label = "😀"
+state changed = false
+persist metrics
+persist tags
+action add:
+    metrics = append(metrics, Metric(enabled=true, amount=-2147483648, label=label))
+    tags = append(tags, Tag(name="é"))
+action overflow:
+    changed = true
+    metrics = update(metrics, 1, Metric(label="x", amount=-get(metrics, 1).amount, enabled=false))
+action mutate:
+    metrics = update(metrics, 1, Metric(label="é", amount=2147483647, enabled=false))
+action nested_capacity:
+    tags = remove(append(tags, Tag(name="overflow")), 1)
+action delete:
+    tags = remove(tags, 1)
+test fields: add, mutate -> get(metrics, 1).amount == 2147483647
+screen main:
+    input label
+    list metrics select selected
+    list tags select selected
+    button "Add" -> add
+    button "Update" -> mutate
+    button "Overflow" -> overflow
+    button "Nested" -> nested_capacity
+    button "Delete" -> delete

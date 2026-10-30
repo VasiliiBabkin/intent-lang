@@ -30,6 +30,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Resolve the single source version
+        id: version
+        run: |
+          python - <<'PYTHON'
+          import os
+          from sedrava_version import VERSION
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('version='+VERSION+'\n')
+          PYTHON
       - name: Verify checkout and assemble only same-SHA tested bytes
         env:
           GH_TOKEN: ${{ github.token }}
@@ -42,7 +51,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         id: kit
         with:
-          name: sedrava-0.10.0rc1-candidate
+          name: sedrava-${{ steps.version.outputs.version }}-candidate
           path: build/rc-candidate/*
           if-no-files-found: error
           retention-days: 90
@@ -55,8 +64,9 @@ jobs:
           python - <<'PY'
           import hashlib,json,os
           from pathlib import Path
+          from sedrava_version import VERSION
           kit=Path('build/rc-candidate')
-          data={'schema':1,'version':'0.10.0rc1','git_sha':os.environ['CHECKED_SHA'],
+          data={'schema':1,'version':VERSION,'git_sha':os.environ['CHECKED_SHA'],
                 'run_id':int(os.environ['GITHUB_RUN_ID']),'artifact_id':int(os.environ['KIT_ID']),
                 'artifact_url':os.environ['KIT_URL'],'artifact_zip_sha256':os.environ['KIT_DIGEST'],
                 'sha256sums_sha256':hashlib.sha256((kit/'SHA256SUMS').read_bytes()).hexdigest(),
@@ -68,6 +78,6 @@ jobs:
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: sedrava-0.10.0rc1-delivery
+          name: sedrava-${{ steps.version.outputs.version }}-delivery
           path: build/rc-delivery.json
           if-no-files-found: error

@@ -58,7 +58,7 @@ Generated sources request no permissions. SDK/AndroidX may contribute manifest m
 
 ## CI artifacts and repeatability
 
-[Alpha checks](../.github/workflows/alpha.yml) run unit/conformance/example/documentation/package and Chromium tests; [reference Android workflow](../.github/workflows/reference-09-android.yml) builds the Lab APK and Lint report. The Android workflow also emits `sedrava-09-release-candidate-bundle` containing wheel, sdist, APK, Web ZIP and `SHA256SUMS`; reproduce it with `python scripts/prepare_release.py --apk PATH_TO_CHECKED_APK` after building distributions. Download artifacts from the Actions run for the **same commit** as the source. Dependencies and toolchain versions are pinned directly; transitive dependency byte-for-byte reproducibility and release-signed APK reproducibility are not claimed.
+[Alpha checks](../.github/workflows/alpha.yml) run unit/conformance/example/documentation/package and Chromium tests; [reference Android workflow](../.github/workflows/reference-09-android.yml) builds the Lab APK and Lint report. The compatibility Android workflow also emits `sedrava-09-compatibility-build` containing wheel, sdist, APK, Web ZIP and `SHA256SUMS`; reproduce it with `python scripts/prepare_release.py --apk PATH_TO_CHECKED_APK` after building distributions. Download artifacts from the Actions run for the **same commit** as the source. Dependencies and toolchain versions are pinned directly; transitive dependency byte-for-byte reproducibility and release-signed APK reproducibility are not claimed.
 
 Русский: генератор Android создаёт проект, который затем собирается Gradle. Используйте полный JDK с `javac`, SDK 35 и Gradle 8.11.1. При отсутствии устройства APK можно проверить подписью, `aapt` и Lint, но это не проверяет интерфейс. Состояние и ограничения описаны в [справочнике](LANGUAGE_0_9.md).
 
@@ -92,3 +92,11 @@ Wheel/sdist include examples, documentation and license under `sys.prefix/share/
 Дистрибутив содержит примеры, документацию и лицензию; публикация 0.10 не выполнялась.
 
 Measured RC readiness / Фактическая готовность RC: [report / отчёт](RELEASE_READINESS_010_REPORT.md).
+
+## 0.10.0rc1 preparation / Подготовка RC (not published)
+
+[Release notes EN](RELEASE_NOTES_0_10_0rc1.en.md) · [RU](RELEASE_NOTES_0_10_0rc1.ru.md) · [Upgrade/rollback EN](UPGRADE_0_10_0rc1.en.md) · [RU](UPGRADE_0_10_0rc1.ru.md) · [RC report](RC_010_REPORT.md).
+Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has been published.
+Установка — из проверенного локального wheel в отдельное окружение; автоматической миграции данных нет.
+
+The complete two-APK RC kit is assembled by [the read-only preparation workflow](../.github/workflows/rc-prepare.yml) from successful same-SHA producer artifacts; use [the controlled procedure](RC_PUBLISHING.md), not the historical one-APK compatibility helper, for RC delivery.

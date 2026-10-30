@@ -16,7 +16,9 @@ class SedravaIdentityTests(unittest.TestCase):
     def test_distribution_and_entrypoint(self):
         metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
         self.assertEqual(metadata["project"]["name"], "sedrava")
-        self.assertEqual(metadata["project"]["version"], VERSION)
+        self.assertEqual(metadata["project"]["dynamic"], ["version"])
+        self.assertEqual(metadata["tool"]["setuptools"]["dynamic"]["version"], {"attr": "sedrava_version.VERSION"})
+        self.assertEqual(VERSION, "0.10.0rc1")
         self.assertEqual(metadata["project"]["scripts"]["sedrava"], "sedrava_cli:main")
         self.assertIn("sedrava_core", metadata["tool"]["setuptools"]["py-modules"])
 

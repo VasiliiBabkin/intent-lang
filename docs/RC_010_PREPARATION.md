@@ -1,6 +1,6 @@
 # Sedrava 0.10 — experimental release candidate preparation
 
-**Status:** preparation only; no RC published, tagged or uploaded.
+**Status:** implementation in this preparation branch; version 0.10.0rc1, no RC published, tagged or uploaded.
 
 Baseline: merged PR #16, main commit `2ff3994dd503d453c2fc81c133cc1c95a9c3d3b1`.
 
@@ -24,3 +24,7 @@ Baseline: merged PR #16, main commit `2ff3994dd503d453c2fc81c133cc1c95a9c3d3b1`.
 - Clear human approval checklist for publishing.
 
 No merge, tag, release, package publication or deployment is authorized by this contract.
+
+## Adopted engineering decisions
+
+Single literal `sedrava_version.VERSION` supplies setuptools dynamic metadata, CLI and Android versionName. RC debug versionCode 10001 advances code 1; application IDs remain independent of compiler version. CI creates exact-SHA manifests and checksums from already tested immutable bytes, and records the actual kit artifact identity after upload. All preparation workflows are read-only and action-SHA pinned; even the historical attachment workflow has no publisher now. A real same-key development APK -> RC update is checked on emulator. The GitHub 0.9 wheel, not an invented PyPI version, is the tested rollback baseline.

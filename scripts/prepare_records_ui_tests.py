@@ -1,12 +1,13 @@
 """Add emulator Compose interaction/rotation checks to a generated task manager."""
 import sys
+import re
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sedrava_android_identity import project_identity, kotlin_path
 
 project=Path(sys.argv[1])
 gradle=project/'app/build.gradle.kts'
-text=gradle.read_text().replace('versionCode = 1;', 'testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"; versionCode = 1;')
+text=re.sub(r'(versionCode = [0-9]+;)', r'testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"; \1', gradle.read_text())
 text+='\ndependencies { androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01")); androidTestImplementation("androidx.compose.ui:ui-test-junit4"); androidTestImplementation("androidx.test:runner:1.6.2"); androidTestImplementation("androidx.test.ext:junit:1.2.1"); debugImplementation("androidx.compose.ui:ui-test-manifest") }\n'
 gradle.write_text(text)
 path=kotlin_path(project, 'androidTest', 'RecordsUiTest.kt');path.parent.mkdir(parents=True,exist_ok=True)

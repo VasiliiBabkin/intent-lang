@@ -56,3 +56,11 @@ This is Sedrava's first candidate; historical Intent 0.7 and abandoned Sedrava 0
 - Side-by-side emulator installation and update-data-retention checks; 0.10 remains unreleased.
 
 - Resource escaping also covers XML-illegal Unicode scalars; duplicate Compose editors track errors independently. Эмулятор подтвердил совместную установку двух APK и сохранение данных при повторной установке; [готовность RC](docs/RELEASE_READINESS_010_REPORT.md) измерена без публикации.
+
+## 0.10.0rc1 — prepared, not published / Подготовлено, не опубликовано
+
+- Single `sedrava_version.VERSION` for package/CLI/generated Android; Android test code 10001, unchanged IDs.
+- Pinned build backend/tools/actions, read-only workflows without publication rights/steps; bounded archive/credential/integrity checks.
+- Same-SHA immutable RC kit with wheel/sdist/two debug APKs/Web/test evidence, actual manifests/checksums and post-upload delivery identity.
+- Clean installs cover 0.9, text, records/collections/navigation; published 0.9 wheel -> separate RC -> original environment tested. Real same-key Android development-to-RC update gate added.
+- RU/EN release notes, installation/rollback, physical-device limitations and separate owner approval instructions. No tag, release, merge, index upload or deployment.

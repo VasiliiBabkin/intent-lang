@@ -1,4 +1,5 @@
 """Deterministic Sedrava -> Android Jetpack Compose project generator."""
+from sedrava_version import VERSION, ANDROID_VERSION_CODE
 from pathlib import Path
 import argparse
 import re
@@ -124,9 +125,9 @@ def generate(source, output, application_id=None):
     (output / "settings.gradle.kts").write_text('pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }\ndependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }\nrootProject.name = "SedravaApp"\ninclude(":app")\n', encoding="utf-8")
     (output / "build.gradle.kts").write_text('plugins { id("com.android.application") version "8.9.2" apply false; id("org.jetbrains.kotlin.android") version "2.0.21" apply false; id("org.jetbrains.kotlin.plugin.compose") version "2.0.21" apply false }\n', encoding="utf-8")
     (output / "gradle.properties").write_text('org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8\nandroid.useAndroidX=true\n', encoding="utf-8")
-    (output / "app/build.gradle.kts").write_text('plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }\nandroid { namespace = "PACKAGE_PLACEHOLDER"; compileSdk = 35\n defaultConfig { applicationId = "PACKAGE_PLACEHOLDER"; minSdk = 26; targetSdk = 35; versionCode = 1; versionName = "0.10.0.dev0" }\n buildFeatures { compose = true }\n compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }\n kotlinOptions { jvmTarget = "17" }\n}\ndependencies { implementation(platform("androidx.compose:compose-bom:2024.12.01")); implementation("androidx.activity:activity-compose:1.9.3"); implementation("androidx.compose.material3:material3"); implementation("androidx.compose.ui:ui"); testImplementation("junit:junit:4.13.2") }\n', encoding="utf-8")
+    (output / "app/build.gradle.kts").write_text('plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }\nandroid { namespace = "PACKAGE_PLACEHOLDER"; compileSdk = 35\n defaultConfig { applicationId = "PACKAGE_PLACEHOLDER"; minSdk = 26; targetSdk = 35; versionCode = CODE_PLACEHOLDER; versionName = "VERSION_PLACEHOLDER" }\n buildFeatures { compose = true }\n compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }\n kotlinOptions { jvmTarget = "17" }\n}\ndependencies { implementation(platform("androidx.compose:compose-bom:2024.12.01")); implementation("androidx.activity:activity-compose:1.9.3"); implementation("androidx.compose.material3:material3"); implementation("androidx.compose.ui:ui"); testImplementation("junit:junit:4.13.2") }\n', encoding="utf-8")
     gradle = output / "app/build.gradle.kts"
-    gradle.write_text(gradle.read_text(encoding="utf-8").replace("PACKAGE_PLACEHOLDER", package), encoding="utf-8")
+    gradle.write_text(gradle.read_text(encoding="utf-8").replace("PACKAGE_PLACEHOLDER", package).replace("CODE_PLACEHOLDER", str(ANDROID_VERSION_CODE)).replace("VERSION_PLACEHOLDER", VERSION), encoding="utf-8")
     return target
 
 if __name__ == "__main__":

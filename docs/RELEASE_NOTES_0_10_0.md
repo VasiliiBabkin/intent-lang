@@ -26,6 +26,10 @@ sedrava --version
 
 Для RC2 существуют отчёты Python/JavaScript/Kotlin/Chromium/Android emulator ([RC2 report](RC2_010_REPORT.md)). На финальном SHA `688a320025a0d38235eb90c780362ec26b0708e2` успешно прошли публикация wheel/sdist и применимые проверки CI, Android и текста ([workflow](https://github.com/VasiliiBabkin/sedrava/actions/runs/41237159326)). Успешное выполнение физического теста не подтверждено: см. [device checklist](PHYSICAL_DEVICE_010.md).
 
+## Ручная проверка после релиза / Post-release manual smoke test
+
+1 ноября 2026 года пользователь подтвердил установку `sedrava==0.10.0` с PyPI на Linux (виртуальное окружение Python 3.13), успешные `check`, `test` и `run`, генерацию HTML и работу приложения в браузере. Проверки CLI и генерации зафиксированы снимками терминала; браузерный результат сообщён тестировщиком. [Подробный отчёт и ограничения](MANUAL_LINUX_WEB_SMOKE_0_10_0_2026-11-01.md). Это не заменяет приёмку Android на реальном устройстве.
+
 ## Совместимость и ограничения / Compatibility and limitations
 
 Android versionCode **10003** > rc2 **10002**. Обновление возможно лишь при совпадении application ID и подписи. Автоматических миграций нет; несовместимые данные отклоняются с сохранением оригинального снимка. При ошибке записи принятые изменения могут остаться только в памяти. Одновременные авторы записи не синхронизируются. Web storage зависит от origin; данные Android не шифруются самим Sedrava. Нет модулей, циклов, deep links и гарантии стабильного API. Подробности: [compatibility](COMPATIBILITY_010.md), [known limitations](KNOWN_LIMITATIONS.md), [Android IDs](ANDROID_ID.en.md).

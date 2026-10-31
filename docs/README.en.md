@@ -29,3 +29,6 @@ For Windows PowerShell use `.venv\Scripts\Activate.ps1`. To develop from source,
 0.10.0 includes signed int32, bool, Unicode text, typed records and bounded lists, atomic actions, invariants, persistence and navigation. No data migrations, encrypted storage, modules, automatic timers or production API compatibility guarantee. The [draft 0.11 Web UI work](https://github.com/VasiliiBabkin/sedrava/pull/22) is not in this release. The [Astro/Starlight site](https://github.com/VasiliiBabkin/sedrava-site) is independent.
 
 **Evidence boundary:** [final 0.10 physical-device acceptance](PHYSICAL_DEVICE_010.md) remains unconfirmed; passing emulator tests do not prove phone compatibility.
+
+
+**Linux release smoke test:** [manual verification on 1 November 2026](MANUAL_LINUX_WEB_SMOKE_0_10_0_2026-11-01.md) (PyPI installation, CLI and Web). Physical Android acceptance is separate.

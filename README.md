@@ -53,6 +53,8 @@ To produce an APK, install a full JDK, SDK 35 and Gradle 8.11.1 and follow the [
 - [Changelog](CHANGELOG.md) · [0.10.0 release notes](docs/RELEASE_NOTES_0_10_0.md) · [historical 0.9 notes](docs/RELEASE_NOTES_0_9_0a1.md)
 - [Roadmap](docs/ROADMAP.md) · [0.10 design](docs/PLAN_0_10_UI.md)
 
+**Post-release manual smoke test:** On 2026-11-01, `sedrava==0.10.0` was installed from PyPI on Linux/Python 3.13; CLI checks, one embedded test, two actions and Web HTML generation passed. Browser functionality was confirmed by the tester. [Full evidence and limitations](docs/MANUAL_LINUX_WEB_SMOKE_0_10_0_2026-11-01.md). This does not close physical Android acceptance.
+
 ## Architecture and verification
 
 Source → restricted typed AST (`sedrava_core.py`) → interpreter / Web (`web_codegen.py`) / Android (`android_codegen_v03.py`). Builds run embedded language tests. Actions change a candidate state sequentially; all final rules must hold before atomic commit. Integers and arithmetic intermediates are checked signed 32-bit values. Python runtime has no third-party dependencies and never executes source through `eval`/`exec`.

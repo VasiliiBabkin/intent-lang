@@ -1,6 +1,7 @@
 name: Prepare experimental RC kit (no publication)
 on:
-  pull_request:
+  # Historical candidate packaging: manual only after stable 0.10.0 publication.
+  # Pull-request validation is handled by ordinary CI/Android/distribution jobs.
   workflow_dispatch:
     inputs:
       source_sha:
@@ -14,8 +15,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   candidate:
-    # Stabilization runs all regression jobs but does not prepare another rc1 kit.
-    if: ${{ !startsWith(github.head_ref, 'stabilization/') && !startsWith(github.head_ref, 'release/') }}
+    # Manual archival RC reproducibility; never create a new RC on documentation PRs.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:

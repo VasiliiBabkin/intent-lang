@@ -6,7 +6,7 @@ from sedrava_records import RecordType, ListType, RecordValue, ListValue, value_
 from dataclasses import dataclass
 from sedrava_navigation import Span, Widget, Screen, Navigation, MAX_SCREENS, MAX_NAV_COMMANDS
 
-MAX_SOURCE_CHARS = 100_000
+from sedrava_syntax import MAX_SOURCE_CHARS, source_lines
 MAX_TEXT_SCALARS = 1024
 MAX_AST_NODES = 256
 MAX_ACTION_STEPS = 10_000
@@ -250,17 +250,9 @@ def _evaluate(node, state):
     raise ValueError("Unsupported expression")
 
 def parse(source):
-    if len(source) > MAX_SOURCE_CHARS:
-        raise ValueError("Source exceeds size limit")
-    for number, raw in enumerate(source.split("\n"), 1):
-        for offset, char in enumerate(raw):
-            if 0xD800 <= ord(char) <= 0xDFFF:
-                raise ValueError(f"Line {number}: column {offset + 1}: Source contains an unpaired surrogate")
-        if "\t" in raw[:len(raw) - len(raw.lstrip())]:
-            raise ValueError(f"Line {number}: tabs are not allowed in indentation")
-    lines = [(len(raw) - len(raw.lstrip(" ")), raw.strip(), i)
-             for i, raw in enumerate(source.split("\n"), 1)
-             if raw.strip() and not raw.lstrip().startswith("#")]
+    lines = source_lines(source, limit=MAX_SOURCE_CHARS)
+    if lines and lines[0][1].split()[0] == 'site':
+        raise ValueError(f"Line {lines[0][2]}: column 1: Site mode is Web-only; use sedrava build site")
     states, actions, rules, tests, widgets, derived = {}, {}, [], [], [], {}
     persistent = []
     records = {}

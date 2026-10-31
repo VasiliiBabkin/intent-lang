@@ -10,6 +10,7 @@ DIST = ROOT / "dist"
 EXPECTED_MODULES = {
     "sedrava.py", "sedrava_version.py", "sedrava_android_identity.py", "sedrava_core.py", "sedrava_navigation.py", "sedrava_navigation_web.py", "sedrava_navigation_android.py", "sedrava_cli.py", "sedrava_records.py", "sedrava_records_codegen.py", "sedrava_collections.py",
     "android_codegen.py", "android_codegen_v03.py", "web_codegen.py",
+    "sedrava_syntax.py", "sedrava_frontend.py", "sedrava_site.py", "site_codegen.py",
 }
 LICENSE_MARKER = "Apache License"
 sys.path.insert(0, str(ROOT))

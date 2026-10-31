@@ -14,8 +14,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   candidate:
-    # Stabilization runs all regression jobs but does not prepare another rc1 kit.
-    if: ${{ !startsWith(github.head_ref, 'stabilization/') }}
+    # Release assembly only; feature/stabilization branches still run all tests.
+    if: ${{ startsWith(github.head_ref, 'release/') || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:

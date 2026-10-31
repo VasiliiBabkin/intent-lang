@@ -54,3 +54,7 @@ Independent deterministic Android IDs and `--application-id` are implemented.
 [English identity/build guide](../docs/ANDROID_ID.en.md) · [Русская инструкция](../docs/ANDROID_ID.ru.md).
 Wheel/sdist include examples, documentation and license under `sys.prefix/share/sedrava`.
 Дистрибутив содержит примеры, документацию и лицензию; публикация 0.10 не выполнялась.
+
+## Static site / Статический сайт (experimental 0.11)
+
+`web_ui_011_landing.sdr` is a site document, not an action application. Это сайт, не приложение с действиями. Use `sedrava check examples/web_ui_011_landing.sdr` and `sedrava build site examples/web_ui_011_landing.sdr --output build/site`; keep `assets/sedrava-blueprint.svg` beside the source. `build web/android`, `run`, `test` target applications and reject this document. [English](../docs/WEB_UI_011.en.md) · [Русский](../docs/WEB_UI_011.ru.md).

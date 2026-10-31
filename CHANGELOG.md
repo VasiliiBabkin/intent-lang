@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — Web UI 0.11 Slice A
+
+- Add experimental `site` presentation AST and `sedrava build site`, preserving 0.10 application semantics and package identity.
+- Implement 13 primitives, named styles, typed properties, responsive layouts and amethyst/gold dark defaults.
+- Validate links, headings and bounded local assets; escape HTML; stage deterministic outputs with protected rebuilds.
+- Include two-page source example, RU/EN reference, clean-package checks and actual Chromium screenshots/keyboard/contrast evidence.
+- No release, production-site change or deployment.
+
+
 ## 0.10.0rc2 preparation — not published
 
 - Retain all stability audit fixes; no language/schema or Android ID changes.

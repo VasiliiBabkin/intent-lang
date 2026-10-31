@@ -33,6 +33,14 @@ def check(archive, folder):
         assert before==web.read_bytes()
         run(cli,'build','android',source,'--output',folder/'generated with spaces'/name/'android')
     run(cli,'build','android',source,'--application-id','com.example.installed','--output',folder/'explicit android')
+    site_source=folder/'share/sedrava/examples/web_ui_011_landing.sdr'
+    site_output=folder/'site with spaces'
+    run(cli,'check',site_source)
+    run(cli,'build','site',site_source,'--output',site_output)
+    first={p.relative_to(site_output):p.read_bytes() for p in site_output.rglob('*') if p.is_file()}
+    run(cli,'build','site',site_source,'--output',site_output)
+    assert first=={p.relative_to(site_output):p.read_bytes() for p in site_output.rglob('*') if p.is_file()}
+    assert (site_output/'site.css').is_file() and list((site_output/'assets').glob('*.svg'))
     print(f'PASS: clean {archive.name}, bundled docs/examples/license, check/test/run/Web/Android and deterministic Web',flush=True)
 
 if __name__=='__main__':

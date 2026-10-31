@@ -1,3 +1,5 @@
+> **Historical procedure (completed 31 October 2026).** Sedrava 0.10.0 is published on [GitHub](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.10.0) and [PyPI](https://pypi.org/project/sedrava/0.10.0/), via [successful publishing workflow](https://github.com/VasiliiBabkin/sedrava/actions/runs/41237159326). Steps below record the pre-release procedure, not unfinished obligations. Final 0.10 physical-device acceptance remains unconfirmed.
+
 # Sedrava 0.10.0 — публикация / Owner checklist
 
 **Подготовка не означает выпуск. Не публиковать до выполнения всех ворот и разрешения владельца.**

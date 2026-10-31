@@ -1,3 +1,5 @@
+> **Historical gate checklist:** Sedrava 0.10.0 was published on 31 October 2026 ([GitHub](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.10.0), [PyPI](https://pypi.org/project/sedrava/0.10.0/)). The checklist describes pre-release criteria; it does **not** certify that every criterion was completed. In particular, the owner physical-device protocol remains **open**. Preparation instructions below are historical.
+
 # Stable release gates / Условия стабильного выпуска 0.10
 
 Passing CI is necessary, not sufficient. The historical audit recommended **rc2** because rc1 contained reproduced storage and int32 defects. RC2 was prepared separately. This document remains the gate checklist for release 0.10.0.

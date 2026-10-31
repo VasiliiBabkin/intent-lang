@@ -50,9 +50,11 @@ SVG_ATTRS={'viewBox','width','height','x','y','x1','x2','y1','y2','cx','cy','r',
 
 def validate_image(data,suffix):
     if suffix=='.svg':
-        if b'<!DOCTYPE' in data.upper() or b'<!ENTITY' in data.upper() or re.search(br'<\?(?!xml\s)',data):
+        try:xml=data.decode('utf-8-sig')
+        except UnicodeDecodeError as exc:raise ValueError('SVG assets must use UTF-8') from exc
+        if '\x00' in xml or '<!DOCTYPE' in xml.upper() or '<!ENTITY' in xml.upper() or re.search(r'<\?(?!xml\s)',xml):
             raise ValueError('SVG declarations/stylesheets/entities are not allowed')
-        try:root=ET.fromstring(data)
+        try:root=ET.fromstring(xml)
         except ET.ParseError as exc:raise ValueError('Invalid SVG XML') from exc
         if root.tag!='{http://www.w3.org/2000/svg}svg':raise ValueError('Expected an SVG namespace/root')
         for item in root.iter():
@@ -86,7 +88,8 @@ class Assets:
                 if current.is_symlink():raise ValueError('Symlink image assets are not supported')
                 current=current.parent
             if resolved_path.stat().st_size>2*1024*1024:raise ValueError('Image exceeds 2 MiB limit')
-            data=resolved_path.read_bytes()
+            with resolved_path.open('rb') as handle:data=handle.read(2*1024*1024+1)
+            if len(data)>2*1024*1024:raise ValueError('Image exceeds 2 MiB limit')
             suffix=resolved_path.suffix.lower();validate_image(data,suffix)
             name='assets/'+digest(data)+suffix
             if name not in self.files:

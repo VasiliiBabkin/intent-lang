@@ -112,7 +112,7 @@ class SiteTests(unittest.TestCase):
     def test_safe_svg_boundary_and_signatures(self):
         good=b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0L10 10" stroke="#fff"/></svg>'
         validate_image(good,'.svg')
-        bads=[good.replace(b'<path',b'<script'),good.replace(b'stroke=',b'onload='),good.replace(b'#fff',b'url(https://example.com/x)'),good.replace(b'#fff',b'u\\72l(x)'),b'<!DOCTYPE svg>'+good,b'<?xml-stylesheet href="x"?>'+good]
+        bads=[good.replace(b'<path',b'<script'),good.replace(b'stroke=',b'onload='),good.replace(b'#fff',b'url(https://example.com/x)'),good.replace(b'#fff',b'u\\72l(x)'),b'<!DOCTYPE svg>'+good,b'<?xml-stylesheet href="x"?>'+good, ('<!DOCTYPE svg [<!ENTITY x "expanded">]><svg xmlns="http://www.w3.org/2000/svg"><text>&x;</text></svg>').encode('utf-16')]
         for data in bads:
             with self.subTest(data=data),self.assertRaises(ValueError):validate_image(data,'.svg')
         for suffix in ('.html','.js','.png','.webp','.jpg'):

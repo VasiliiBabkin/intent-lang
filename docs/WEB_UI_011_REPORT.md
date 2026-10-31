@@ -7,7 +7,7 @@ Experimental implementation in PR [#22](https://github.com/VasiliiBabkin/sedrava
 - `sedrava build site examples/web_ui_011_landing.sdr --output build/site`, with shared frontend dispatch, source validation, text literals and spans; separate typed presentation AST.
 - Page plus 12 component primitives, registry-driven nesting/properties, theme tokens, named styles, responsive overrides and strict semantic diagnostics. No language of arbitrary HTML/CSS/JavaScript.
 - Multi-page portable HTML/CSS, dark amethyst/gold defaults, adaptive grids, focus/skip navigation, reduced motion and escaped content. Static buttons are honest navigation anchors.
-- Checked links and local assets; bounded safe SVG, hash-named images, restrictive CSP. Deterministic manifests; validation/staging and protected rebuild/rollback.
+- Checked links and local assets; reject UTF-16 SVG/entity declarations before XML parsing and bound reads even if an asset grows during the build; bounded safe SVG, hash-named images, restrictive CSP. Deterministic manifests; validation/staging and protected rebuild/rollback.
 - Working two-page example including local illustration; RU/EN references and source/wheel/sdist inclusion. Existing application examples remain in their original regression suites; sites have dedicated tests.
 
 ## Local evidence / Локальные проверки

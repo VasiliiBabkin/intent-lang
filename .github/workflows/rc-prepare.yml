@@ -15,7 +15,7 @@ concurrency:
 jobs:
   candidate:
     # Stabilization runs all regression jobs but does not prepare another rc1 kit.
-    if: ${{ !startsWith(github.head_ref, 'stabilization/') }}
+    if: ${{ !startsWith(github.head_ref, 'stabilization/') && !startsWith(github.head_ref, 'release/') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:

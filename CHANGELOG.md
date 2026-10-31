@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.0 — stable source release (publication pending)
+
+- Version 0.10.0 / Android versionCode 10003, supporting updates from rc2 (10002) with unchanged ID and signing key.
+- Dedicated GitHub Actions PyPI Trusted Publishing: exact production tag v0.10.0, manual TestPyPI only, separate build and publish jobs.
+- Release notes, physical-device checklist and publishing instructions; owner acceptance is not inferred from undated or unchecked evidence.
+- Historic rc1/rc2 artifacts remain immutable. No automatic data migrations or production workload guarantees.
+
 ## 0.10.0rc2 preparation — not published
 
 - Retain all stability audit fixes; no language/schema or Android ID changes.

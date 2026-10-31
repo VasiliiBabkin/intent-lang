@@ -1,0 +1,76 @@
+# Personal website example built with Sedrava Web UI 0.11
+site "Василий — личная страница"
+theme:
+    background "#101019"
+    surface "#1B1B2A"
+    foreground "#F6F3FF"
+    accent "#B8A0FF"
+    gold "#F0CC8D"
+
+style panel:
+    padding 28
+    radius 24
+    shadow soft
+
+page home at "/":
+    title "Василий — инженер, разработчик, автор"
+    description "Личная страница: инженерия, разработка приложений, проекты и тексты."
+    container max 1120 padding 24 md-padding 40 id top:
+        column gap 64 md-gap 88:
+            row justify between gap 20:
+                row gap 12:
+                    paragraph "◆" color gold size 24
+                    paragraph "Василий" variant brand
+                row gap 20:
+                    link "Проекты" to "#projects" variant quiet
+                    link "Обо мне" to "#about" variant quiet
+            grid columns 2 gap 48 align center:
+                column gap 24:
+                    paragraph "ИНЖЕНЕРИЯ · КОД · СМЫСЛ" variant eyebrow
+                    heading "Создаю вещи,\nкоторые работают." variant display
+                    paragraph "Сервисный инженер по слаботочным системам. Разрабатываю приложения, экспериментирую с языками программирования и пишу о том, что важно." variant lead
+                    row gap 12:
+                        button "Посмотреть проекты" to "#projects"
+                        button "GitHub ↗" to "https://github.com/VasiliiBabkin" variant secondary
+                    paragraph "От реальных инженерных задач — к собственным цифровым продуктам." variant muted size 13
+                card style panel variant highlight:
+                    column gap 20:
+                        paragraph "МОЙ ПОДХОД" variant eyebrow
+                        heading "Не просто идея. Работающий результат." size 32
+                        paragraph "Мне интересно создавать полезные инструменты: от простого таймера до собственного языка программирования." variant lead
+                        divider
+                        paragraph "Разработка · Автоматизация · Тексты · Поддержка" variant muted
+            column gap 28 id projects:
+                paragraph "ЧЕМ Я ЗАНИМАЮСЬ" variant eyebrow
+                heading "Проекты, в которых есть смысл."
+                grid columns 3 gap 20:
+                    card style panel:
+                        column gap 14:
+                            paragraph "01 / ЯЗЫК" variant eyebrow
+                            heading "Sedrava" size 27
+                            paragraph "Экспериментальный декларативный язык для создания приложений и сайтов." variant muted
+                            link "Репозиторий ↗" to "https://github.com/VasiliiBabkin/sedrava"
+                    card style panel:
+                        column gap 14:
+                            paragraph "02 / ПРИЛОЖЕНИЯ" variant eyebrow
+                            heading "Ладокод" size 27
+                            paragraph "Простые и понятные Android-приложения для повседневных задач." variant muted
+                            link "Мои репозитории ↗" to "https://github.com/VasiliiBabkin"
+                    card style panel:
+                        column gap 14:
+                            paragraph "03 / ПОМОЩЬ" variant eyebrow
+                            heading "Светлая память" size 27
+                            paragraph "Материалы и сообщество поддержки людей после потери близких." variant muted
+                            link "Открыть проект ↗" to "https://netsmerti.ru/"
+            card style panel id about:
+                column gap 20:
+                    paragraph "НЕМНОГО ОБО МНЕ" variant eyebrow
+                    heading "Люблю разбираться. Люблю создавать."
+                    paragraph "В моей работе встречаются техника, программирование и человеческие истории. Я обучался кризисной психологии, пишу тексты и создаю цифровые инструменты, которые хотелось бы использовать самому." variant lead
+                    row gap 14:
+                        button "GitHub ↗" to "https://github.com/VasiliiBabkin"
+                        button "Sedrava ↗" to "https://sedrava.virtreal.ru/" variant secondary
+            divider
+            row justify between gap 16:
+                paragraph "Сделано на Sedrava Web UI 0.11 · Демонстрационная визитка" variant muted size 13
+                link "Наверх ↑" to "#top" variant quiet

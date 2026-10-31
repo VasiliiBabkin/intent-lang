@@ -1,13 +1,13 @@
 # Changelog
 
-## 0.10.0 — stable source release (publication pending)
+## 0.10.0 — released on GitHub and PyPI (2026-10-31)
 
-- Version 0.10.0 / Android versionCode 10003, supporting updates from rc2 (10002) with unchanged ID and signing key.
+- [GitHub release](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.10.0) and [PyPI wheel/sdist](https://pypi.org/project/sedrava/0.10.0/); publishing workflow completed successfully. Version 0.10.0 / Android versionCode 10003. In-place Android updates require identical ID and signing key.
 - Dedicated GitHub Actions PyPI Trusted Publishing: exact production tag v0.10.0, manual TestPyPI only, separate build and publish jobs.
-- Release notes, physical-device checklist and publishing instructions; owner acceptance is not inferred from undated or unchecked evidence.
+- Release notes and physical-device checklist. Final 0.10 physical Android acceptance remains unconfirmed; release success does not imply hardware certification.
 - Historic rc1/rc2 artifacts remain immutable. No automatic data migrations or production workload guarantees.
 
-## 0.10.0rc2 preparation — not published
+## Historical: 0.10.0rc2 preparation (pre-stable)
 
 - Retain all stability audit fixes; no language/schema or Android ID changes.
 - Version 0.10.0rc2 and Android 10002; strict actual rc1 upgrade/corruption evidence.
@@ -24,7 +24,7 @@
 - Add bounded Python/JavaScript/Kotlin differential evidence and rc1-source update checks.
 - No version, schema or Android identity change; rc1 artifacts unchanged. Recommend rc2.
 
-## 0.10.0.dev0 — unreleased text increment
+## Historical: 0.10.0.dev0 text increment
 
 - First-class immutable text state, derived aliases/booleans, exact equality, assignments, rules/tests and CLI JSON.
 - Strict escaped literals shared by expressions and UI labels; bounded Unicode scalar values and rejection of invalid surrogates.
@@ -33,7 +33,7 @@
 - Expanded Python/JavaScript/browser/JVM tests, Android APK/Lint workflow and normative text guide.
 - Explicit label-backslash migration and native HTML textarea line-ending boundary, both tested. No full 0.10 milestone, tag or publication.
 
-The published 0.9.0a1 release/tag/assets remain unchanged. Older candidate notes below are historical.
+The historical 0.9.0a1 release/tag/assets remain unchanged. Notes below preserve the status *at the time* and do not override the published 0.10.0 status.
 
 
 ## 0.9.0a1 — unreleased first Sedrava public alpha candidate
@@ -52,7 +52,7 @@ The published 0.9.0a1 release/tag/assets remain unchanged. Older candidate notes
 
 This is Sedrava's first candidate; historical Intent 0.7 and abandoned Sedrava 0.7.1 proposals are not releases of this version. No stable-language compatibility promise is made.
 
-## Unreleased 0.10 records integration / Записи и коллекции
+## Historical: 0.10 records integration / Записи и коллекции
 
 - `.sdr` record declarations, bounded list state, typed constructors, lookup and immutable mutations.
 - Stable monotonic IDs, atomic actions and `require`, strict versioned whole-state snapshots.
@@ -60,7 +60,7 @@ This is Sedrava's first candidate; historical Intent 0.7 and abandoned Sedrava 0
 - Python/JS/Kotlin oracle, Chromium CRUD and Android test harnesses; see
   [measured results](docs/COLLECTIONS_010_REPORT.md). No release or publication.
 
-## Unreleased 0.10 navigation / Многоэкранность
+## Historical: 0.10 navigation / Многоэкранность
 
 - Named screens, explicit initial screen, bounded push/pop stack and bool guards.
 - Atomic navigation bindings with domain actions; selected stable ID preserved;
@@ -71,7 +71,7 @@ This is Sedrava's first candidate; historical Intent 0.7 and abandoned Sedrava 0
   emulator harnesses. [Measured evidence](docs/NAVIGATION_010_REPORT.md).
 - Навигация реализована в ядре и генераторах; 0.10 не выпущена.
 
-## Unreleased 0.10 — release readiness / Подготовка RC
+## Historical: 0.10 release readiness / Подготовка RC
 
 - Deterministic Android identity and validated `--application-id`; matching namespace, Kotlin package, tests and permission audit. Независимая установка приложений, стабильные ID и строковые ресурсы названия.
 - Responsive long titles/cards, larger fonts, stronger secondary-text contrast, accessible status descriptions and invalid-draft action blocking in navigation apps; pure navigation remains available.

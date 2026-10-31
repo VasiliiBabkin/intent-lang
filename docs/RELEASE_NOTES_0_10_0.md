@@ -1,5 +1,7 @@
 # Sedrava 0.10.0 — заметки о стабильном выпуске / Release notes
 
+**Релиз:** [GitHub v0.10.0](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.10.0) · [PyPI 0.10.0](https://pypi.org/project/sedrava/0.10.0/).
+
 **Описал приложение — получил приложение.** Sedrava позволяет описать небольшое приложение в одном `.sdr` и сгенерировать автономное Web-приложение или проект Android/Jetpack Compose.
 
 ## Возможности / Capabilities
@@ -11,18 +13,18 @@
 - Web: история, восстановление сохранённых значений. Android: системный Back, сохранение принятого сеанса.
 - CLI: `check`, `test`, `run`, `build web`, `build android`; Python >=3.10, без внешних runtime dependencies.
 
-## Установка после публикации / Installation after publication
+## Установка / Installation
 
 ```sh
 python -m pip install sedrava==0.10.0
 sedrava --version
 ```
 
-Ожидаемая версия: `sedrava 0.10.0`. Само наличие инструкций не означает, что PyPI-пакет уже опубликован.
+Версия [опубликована на PyPI](https://pypi.org/project/sedrava/0.10.0/) 31 октября 2026 года. Команда `sedrava --version` сообщает установленную версию.
 
 ## Проверка / Verification
 
-Для RC2 существуют отчёты Python/JavaScript/Kotlin/Chromium/Android emulator ([RC2 report](RC2_010_REPORT.md)). Для финального 0.10.0 требуется повторная проверка по [release gates](STABLE_RELEASE_GATES_010.md) на окончательном SHA. Успешное выполнение физического теста не подтверждено: см. [device checklist](PHYSICAL_DEVICE_010.md).
+Для RC2 существуют отчёты Python/JavaScript/Kotlin/Chromium/Android emulator ([RC2 report](RC2_010_REPORT.md)). На финальном SHA `688a320025a0d38235eb90c780362ec26b0708e2` успешно прошли публикация wheel/sdist и применимые проверки CI, Android и текста ([workflow](https://github.com/VasiliiBabkin/sedrava/actions/runs/41237159326)). Успешное выполнение физического теста не подтверждено: см. [device checklist](PHYSICAL_DEVICE_010.md).
 
 ## Совместимость и ограничения / Compatibility and limitations
 
@@ -30,4 +32,4 @@ Android versionCode **10003** > rc2 **10002**. Обновление возмож
 
 **Назначение:** учебная и экспериментальная разработка, не production.
 
-**English:** Sedrava 0.10.0 prepares a stable language release with text, records, bounded collections, atomic actions, invariants and navigation. Final-SHA validation, owner device acceptance and PyPI/GitHub publication are separate steps; this document does not assert they already occurred.
+**English:** Sedrava 0.10.0 was publicly released on GitHub and PyPI on 31 October 2026 with text, records, bounded lists, atomic actions, invariants and navigation. The language remains experimental; final 0.10 physical Android acceptance is not yet documented.

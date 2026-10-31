@@ -101,3 +101,7 @@ Version `0.10.0rc1` is prepared, not published. Same-SHA read-only artifact asse
 The independent [audit](STABILITY_AUDIT_010.md) fixes rejected-data overwrite, signed-minimum parsing, CLI output safety and duplicate editor errors. [Compatibility](COMPATIBILITY_010.md) and [measurable stable gates](STABLE_RELEASE_GATES_010.md) define actual guarantees. Next recommendation: separately versioned rc2 and observation before stable 0.10.0; rc1 artifacts stay immutable.
 
 Рекомендация: новый rc2 после исправлений и период наблюдения перед стабильной версией. Публикация требует отдельного решения владельца.
+
+## RC2 verification / Проверка RC2
+
+Version 0.10.0rc2 / Android 10002 includes the audit fixes. [RC2 contract](RC2_010_PREPARATION.md) and [report](RC2_010_REPORT.md) require real increasing-code rc1 updates, independent corpus evidence and immutable same-SHA artifacts. Technical GO and owner authorization remain separate; stable release requires an owner-defined observation period.

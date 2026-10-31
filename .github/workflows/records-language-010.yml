@@ -63,6 +63,7 @@ jobs:
         with:
           name: sedrava-records-task-manager-apk-web-evidence
           path: |
+            build/emulator-system-dialogs
             build/storage-rejection
             build/tasks-android/app/build/outputs/apk
             build/tasks-android/app/build/reports
@@ -76,4 +77,5 @@ jobs:
             build/tasks-relaunch.*
             build/generic-android/app/build/outputs/apk
             build/generic-android/app/build/reports/tests
+            build/generic-android/app/build/test-results
           if-no-files-found: error

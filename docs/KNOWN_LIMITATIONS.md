@@ -24,3 +24,9 @@ Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has be
 [Audit](STABILITY_AUDIT_010.md) · [Compatibility](COMPATIBILITY_010.md) · [Stable gates](STABLE_RELEASE_GATES_010.md). Rejected saved data is preserved; edits may remain temporary until recovery. Concurrent writers are last-writer-wins; no migration or power-cut certification. The audit recommends rc2 before stable 0.10.0.
 
 Отвергнутые данные защищены от перезаписи; перед ручным сбросом сделайте копию. Новые изменения могут оставаться в памяти. Рекомендуется rc2, а не немедленный стабильный выпуск.
+
+## 0.10.0rc2 preparation / Подготовка RC2 (not published)
+
+[Release notes EN](RELEASE_NOTES_0_10_0rc2.en.md) · [RU](RELEASE_NOTES_0_10_0rc2.ru.md) · [Upgrade/rollback EN](UPGRADE_0_10_0rc2.en.md) · [RU](UPGRADE_0_10_0rc2.ru.md) · [RC2 report](RC2_010_REPORT.md).
+Current source version: **0.10.0rc2**, Android versionCode **10002**. This is a separately prepared experimental candidate, not stable 0.10.0 or a publication. The original rc1 kit remains immutable.
+Текущая версия исходников — 0.10.0rc2, код Android — 10002. Публикация требует отдельного решения владельца; физическое устройство не проверено.

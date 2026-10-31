@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.0rc2 preparation — not published
+
+- Retain all stability audit fixes; no language/schema or Android ID changes.
+- Version 0.10.0rc2 and Android 10002; strict actual rc1 upgrade/corruption evidence.
+- Bind tested APK bytes and complete boundary corpus to the immutable RC2 kit.
+- Include dedication in distributions; separate bilingual RC2 notes/rollback guides.
+- No stable-release, tag, index publication or deployment authorization.
+
 ## Unreleased stability audit / Аудит стабильности
 
 - Preserve rejected saved data on Web/Android instead of overwriting it with defaults or new edits.

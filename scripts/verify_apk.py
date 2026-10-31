@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import subprocess
 import json
+import hashlib
 
 
 def verify(apk, sdk, expected_id=None, expected_version=None):
@@ -48,7 +49,7 @@ def verify(apk, sdk, expected_id=None, expected_version=None):
     certificate = re.search(r'Signer #1 certificate SHA-256 digest: ([0-9a-fA-F]+)', signature)
     if certificate is None:
         raise SystemExit('Missing signer certificate fingerprint')
-    return {'application_id':package, 'version_name':version, 'version_code':code,
+    return {'sha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'application_id':package, 'version_name':version, 'version_code':code,
             'debuggable':'application-debuggable' in badging,
             'signer_certificate_sha256':certificate[1].lower(),'permissions':sorted(used)}
 

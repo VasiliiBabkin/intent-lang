@@ -63,7 +63,7 @@ jobs:
       - name: Rebuild immutable rc1 source for same-key update verification
         run: |
           git worktree add --detach build/rc1-baseline-src 6ddae99fc837d67b465285f629d9f5a2ec52e870
-          python build/rc1-baseline-src/sedrava_cli.py build android examples/task_manager_navigation.sdr --output build/navigation-rc1-baseline
+          python build/rc1-baseline-src/sedrava_cli.py build android build/rc1-baseline-src/examples/task_manager_navigation.sdr --output build/navigation-rc1-baseline
           python scripts/prepare_navigation_ui_tests.py build/navigation-rc1-baseline --seed-upgrade
           gradle -p build/navigation-rc1-baseline --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest
       - name: Enable KVM
@@ -80,7 +80,7 @@ jobs:
           disable-animations: true
           script: |
             python scripts/test_rc_upgrade.py
-            python scripts/test_rc_upgrade.py --baseline-project build/navigation-rc1-baseline --baseline-source build/rc1-baseline-src --baseline-sha 6ddae99fc837d67b465285f629d9f5a2ec52e870 --baseline-version 0.10.0rc1 --baseline-code 10001 --evidence-prefix build/rc1-audit-upgrade
+            python scripts/test_rc_upgrade.py --baseline-project build/navigation-rc1-baseline --baseline-source build/rc1-baseline-src --baseline-sha 6ddae99fc837d67b465285f629d9f5a2ec52e870 --baseline-version 0.10.0rc1 --baseline-code 10001 --evidence-prefix build/rc1-audit-upgrade --verify-rejected-updates
             bash scripts/test_navigation_emulator.sh
             gradle -p build/navigation-scalar --no-daemon :app:connectedDebugAndroidTest
             bash scripts/test_records_emulator.sh
@@ -103,6 +103,7 @@ jobs:
             build/navigation-android/app/src
             build/navigation-android/sedrava-android.json
             build/tasks-android/sedrava-android.json
+            build/emulator-system-dialogs
             build/storage-rejection
             build/tasks-android/app/build/outputs/apk
             build/tasks-android/app/build/reports

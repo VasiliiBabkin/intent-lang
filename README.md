@@ -4,7 +4,7 @@
 
 **[Dedication / Посвящение](DEDICATION.md):** Геннадию Ивановичу Смирных — учителю информатики, благодаря которому автор Sedrava понял и полюбил программирование.
 
-The published compatibility baseline is [Sedrava 0.9.0a1](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.9.0a1). This branch adds first-class text, typed records bounded collections and multi-screen navigation end-to-end and identifies local development builds as **0.10.0rc1** (experimental RC preparation, not published); no 0.10 release, tag or PyPI publication is created.
+The published compatibility baseline is [Sedrava 0.9.0a1](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.9.0a1). This branch adds first-class text, typed records bounded collections and multi-screen navigation end-to-end and identifies local development builds as **0.10.0rc2** (experimental RC preparation, not published); no 0.10 release, tag or PyPI publication is created.
 
 Start with [Quick Start](docs/QUICKSTART.md), the [text reference](docs/LANGUAGE_0_10_TEXT.md), [text profile example](examples/text_profile.sdr), and [measured report](docs/TEXT_010_REPORT.md). The [task manager](examples/task_manager.sdr) now uses records and lists directly in `.sdr`; the [navigation example](docs/NAVIGATION_QUICKSTART.en.md) adds guarded screens and Back.
 
@@ -110,3 +110,9 @@ Use a verified local wheel in a separate environment; no PyPI/TestPyPI RC has be
 Установка — из проверенного локального wheel в отдельное окружение; автоматической миграции данных нет.
 
 Stability / стабильность: [audit](docs/STABILITY_AUDIT_010.md), [compatibility](docs/COMPATIBILITY_010.md), [release gates](docs/STABLE_RELEASE_GATES_010.md). Stabilization changes are not a new release; rc1 artifacts remain unchanged.
+
+## 0.10.0rc2 preparation / Подготовка RC2 (not published)
+
+[Release notes EN](docs/RELEASE_NOTES_0_10_0rc2.en.md) · [RU](docs/RELEASE_NOTES_0_10_0rc2.ru.md) · [Upgrade/rollback EN](docs/UPGRADE_0_10_0rc2.en.md) · [RU](docs/UPGRADE_0_10_0rc2.ru.md) · [RC2 report](docs/RC2_010_REPORT.md).
+Current source version: **0.10.0rc2**, Android versionCode **10002**. This is a separately prepared experimental candidate, not stable 0.10.0 or a publication. The original rc1 kit remains immutable.
+Текущая версия исходников — 0.10.0rc2, код Android — 10002. Публикация требует отдельного решения владельца; физическое устройство не проверено.

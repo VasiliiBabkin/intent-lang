@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import platform
 import subprocess
+import shutil
 import sys
 
 def record(android=False):
@@ -12,6 +13,8 @@ def record(android=False):
     for item in importlib.metadata.distributions():
         name=item.metadata.get('Name')
         if name:result['python_distributions'][name]=item.version
+    if shutil.which('node'):
+        result['node']=subprocess.check_output(['node','--version'],text=True).strip()
     if android:
         for name,command in [('java',['java','-version']),('gradle',['gradle','--version'])]:
             run=subprocess.run(command,capture_output=True,text=True,check=True)

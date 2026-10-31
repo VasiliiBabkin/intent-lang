@@ -23,7 +23,7 @@ from scripts.rc_archive import sha256, read_zip, read_sdist, deterministic_zip, 
 from scripts.check_rc_availability import check as check_availability
 
 GATES=('alpha.yml','ci.yml','android.yml','navigation-010.yml','records-language-010.yml','text-010.yml','reference-09-android.yml','sedrava07-pypi.yml')
-LIMITS=['Experimental RC, not a stable release','No physical-device validation for these APKs','Debug APKs, not production signing; different machines may use different keys','No data/schema migrations or encrypted storage','No Gradle wrapper, transitive lockfiles or byte-identical APK guarantee','Same-title default Android identities intentionally coincide; explicit ID separates apps','TestPyPI not checked and not a publication target; recheck any target before authorized publication']
+LIMITS=['Experimental RC, not a stable release','No physical-device validation for these APKs','Debug APKs, not production signing; different machines may use different keys','No data/schema migrations, encryption or multi-writer conflict resolution; rejected data retained; accepted edits may be volatile when saving fails','No Gradle wrapper, transitive lockfiles or byte-identical APK guarantee','Same-title default Android identities intentionally coincide; explicit ID separates apps','Stable-release observation window is owner-defined and not performed by this automated RC pass','TestPyPI not checked and not a publication target; recheck any target before authorized publication']
 
 
 def encode(value):return (json.dumps(value,sort_keys=True,indent=2,ensure_ascii=False)+'\n').encode('utf-8')
@@ -78,7 +78,7 @@ def checked_wheel_inventory(wheel):
     from scripts.audit_dist import EXPECTED_MODULES
     expected={name:(ROOT/name).read_bytes() for name in EXPECTED_MODULES}
     data_root='sedrava-'+VERSION+'.data/data/share/sedrava/'
-    for name in ('README.md','CHANGELOG.md','LICENSE'):
+    for name in ('README.md','CHANGELOG.md','LICENSE','DEDICATION.md'):
         expected[data_root+name]=(ROOT/name).read_bytes()
     for directory,patterns in [('docs',('*.md',)),('examples',('*.sdr','README.md'))]:
         for pattern in patterns:
@@ -131,7 +131,59 @@ def check_distributions(files):
     return {name:files[name] for name in wheels+sdists}
 
 
-def test_evidence(api,runs,nav):
+RC1_SHA='6ddae99fc837d67b465285f629d9f5a2ec52e870'
+RC1_ARTIFACT_ID=12979815532
+RC1_DIGEST='sha256:e99a0c1ca1d42c8d09c27cd9663ff8d5f71ada19d18b6e9a45b003a1947b7119'
+
+
+def check_rc1_immutable(api):
+    meta=api.get('/actions/artifacts/'+str(RC1_ARTIFACT_ID))
+    if (meta.get('expired') or meta.get('digest')!=RC1_DIGEST or
+            meta.get('workflow_run',{}).get('head_sha')!=RC1_SHA):
+        raise ValueError('Original immutable rc1 kit unavailable or changed')
+    return {'artifact_id':RC1_ARTIFACT_ID,'source_sha':RC1_SHA,'digest':RC1_DIGEST,
+            'url':'https://github.com/'+api.repo+'/actions/runs/41060380228/artifacts/'+str(RC1_ARTIFACT_ID),'unchanged':True}
+
+
+def native_cases(files):
+    unit,device=[],[]
+    for name,data in files.items():
+        target=unit if '/test-results/testDebugUnitTest/' in name else device if '/outputs/androidTest-results/' in name else None
+        if target is None or not name.endswith('.xml'):continue
+        if b'<!DOCTYPE' in data or b'<!ENTITY' in data:raise ValueError('Unexpected XML DTD')
+        root=ET.fromstring(data)
+        if any(int(root.get(k,'0')) for k in ('failures','errors','skipped')):raise ValueError('Native suite did not pass')
+        for case in root.iter('testcase'):
+            if any(case.find(tag) is not None for tag in ('failure','error','skipped')):raise ValueError('Native test did not pass')
+            # Distinct baseline projects can execute identically named test methods.
+            target.append({'report':name,'class':case.get('classname'),'name':case.get('name')})
+    return unit,device
+
+
+def validate_upgrade_evidence(value, baseline_sha, baseline_version, baseline_code, apk, rejected=False):
+    old,new=value.get('baseline_apk',{}),value.get('rc_apk',{})
+    expected=application_id(parse((ROOT/'examples/task_manager_navigation.sdr').read_text()).name)
+    if (value.get('result')!='PASS' or value.get('baseline_sha')!=baseline_sha or
+            old.get('version_name')!=baseline_version or old.get('version_code')!=baseline_code or
+            new.get('version_name')!=VERSION or new.get('version_code')!=ANDROID_VERSION_CODE or
+            ANDROID_VERSION_CODE<=baseline_code or old.get('application_id')!=expected or new.get('application_id')!=expected or
+            not re.fullmatch(r'[0-9a-f]{64}',old.get('signer_certificate_sha256','')) or
+            old.get('signer_certificate_sha256')!=new.get('signer_certificate_sha256') or
+            new.get('sha256')!=sha256(apk) or not re.fullmatch(r'[0-9a-f]{64}',old.get('sha256','')) or
+            value.get('install_method')!='adb install -r' or value.get('cold_restart_preserved') is not True or
+            value.get('emulator',{}).get('ro.build.version.sdk')!='35' or value.get('emulator',{}).get('ro.kernel.qemu')!='1' or
+            value.get('preserved_tasks')!={'next_id':2,'items':[{'id':1,'title':'Upgrade kept','done':False}]}):
+        raise ValueError('Real same-ID/key increasing-version APK update evidence missing or mismatched')
+    if rejected:
+        cases=value.get('rejected_updates',[])
+        if len(cases)!=2 or {c.get('kind') for c in cases}!={'malformed','incompatible'} or any(
+                c.get('install_method')!='adb install -r' or c.get('rejection_visible') is not True or
+                c.get('cold_restart_retained') is not True or not re.fullmatch(r'[0-9a-f]{64}',c.get('original_sha256','')) for c in cases):
+            raise ValueError('Rejected-data rc1 update evidence missing')
+    return value
+
+
+def test_evidence(api,runs,nav,records):
     summary={'python':{},'chromium':None,'jvm_navigation':[],'emulator':[],'physical_device':'unavailable; not tested'}
     ci=[]
     for gate,run in runs.items():
@@ -148,24 +200,22 @@ def test_evidence(api,runs,nav):
                 if job['name']=='chromium':summary['chromium']=count
                 elif m:=re.fullmatch(r'language-package \((3\.(?:10|12|13))\)',job['name']):summary['python'][m[1]]=count
                 else:raise ValueError('Unrecognized alpha test job')
-    if set(summary['python'])!={'3.10','3.12','3.13'} or min(summary['python'].values())<141 or (summary['chromium'] or 0)<23:raise ValueError('Regression coverage missing')
-    unit={};device={}
-    for name,data in nav.items():
-        target=unit if '/test-results/testDebugUnitTest/' in name else device if '/outputs/androidTest-results/' in name else None
-        if target is None or not name.endswith('.xml'):continue
-        if b'<!DOCTYPE' in data or b'<!ENTITY' in data:raise ValueError('Unexpected XML DTD')
-        root=ET.fromstring(data)
-        for case in root.iter('testcase'):
-            if any(case.find(tag) is not None for tag in ('failure','error','skipped')):raise ValueError('Native test did not pass')
-            key=(case.get('classname'),case.get('name'))
-            target[key]={'class':key[0],'name':key[1]}
-    summary['jvm_navigation']=list(unit.values());summary['emulator']=list(device.values())
-    if len(unit)<7 or len(device)<4:raise ValueError('Native test evidence incomplete: JVM='+str(len(unit))+', emulator='+str(len(device)))
-    upgrade=json.loads(nav['rc-upgrade.json'])
-    if upgrade.get('result')!='PASS' or upgrade.get('rc_apk',{}).get('version_name')!=VERSION or upgrade.get('rc_apk',{}).get('version_code')!=ANDROID_VERSION_CODE or upgrade.get('baseline_apk',{}).get('version_code')!=1:
-        raise ValueError('Real APK upgrade evidence missing')
-    if upgrade['baseline_apk']['signer_certificate_sha256']!=upgrade['rc_apk']['signer_certificate_sha256']:raise ValueError('Update signing identity differs')
-    summary['upgrade']=upgrade
+    if set(summary['python'])!={'3.10','3.12','3.13'} or min(summary['python'].values())<165 or (summary['chromium'] or 0)<26:raise ValueError('Regression coverage missing')
+    unit,device=native_cases(nav)
+    summary['jvm_navigation']=unit;summary['emulator']=device
+    if len(unit)<7 or len(device)<6:raise ValueError('Native test evidence incomplete')
+    record_unit,record_device=native_cases(records)
+    if (len(record_unit)<5 or len(record_device)<2 or not any(c['class'].endswith('.StabilityTest') and c['name']=='independentBoundedTrace' for c in record_unit)):
+        raise ValueError('Independent full-state Kotlin corpus or native rejection evidence missing')
+    summary['jvm_records_boundaries']=record_unit;summary['emulator_records']=record_device
+    apk=nav['navigation-android/app/build/outputs/apk/debug/app-debug.apk']
+    summary['upgrade']=validate_upgrade_evidence(json.loads(nav['rc-upgrade.json']),'2ff3994dd503d453c2fc81c133cc1c95a9c3d3b1','0.10.0.dev0',1,apk)
+    summary['rc1_to_rc2_upgrade']=validate_upgrade_evidence(json.loads(nav['rc1-audit-upgrade.json']),RC1_SHA,'0.10.0rc1',10001,apk,rejected=True)
+    cold=json.loads(nav['storage-rejection/result.json'])
+    if cold.get('result')!='PASS' or len(cold.get('cases',[]))!=2 or any(any(c.get(k) is not True for k in ('cold_defaults','rejection_visible','original_retained')) for c in cold['cases']):
+        raise ValueError('Cold-launch rejected storage evidence missing')
+    summary['cold_storage_rejection']=cold
+    summary['emulator_system_dialogs']=[json.loads(data) for name,data in nav.items() if name.startswith('emulator-system-dialogs/') and name.endswith('.json')]
     return summary,ci
 
 
@@ -233,11 +283,13 @@ def main():
     if own_run.get('head_sha')!=args.sha:raise ValueError('Dispatch on a ref whose head is the checked SHA; do not mix workflow and source revisions')
     runs=wait_gates(api,args.sha,args.timeout)
     availability=check_availability(api)
+    rc1_kit=check_rc1_immutable(api)
     dist,dist_info,_=artifact(api,runs['alpha.yml'],'sedrava-alpha-distributions',args.sha)
     nav,nav_info,_=artifact(api,runs['navigation-010.yml'],'sedrava-navigation-apk-web-evidence',args.sha)
     web,web_info,_=artifact(api,runs['alpha.yml'],'sedrava-web-examples',args.sha)
     traces,trace_info,trace_raw=artifact(api,runs['alpha.yml'],'sedrava-browser-traces',args.sha)
-    summary,ci=test_evidence(api,runs,nav)
+    records,records_info,_=artifact(api,runs['records-language-010.yml'],'sedrava-records-task-manager-apk-web-evidence',args.sha)
+    summary,ci=test_evidence(api,runs,nav,records)
     expected_web={}
     for source in sorted((ROOT/'examples').glob('*.sdr')):
         text=source.read_text(encoding='utf-8');program=parse(text)
@@ -248,11 +300,12 @@ def main():
     payload['chromium-traces.zip']=trace_raw
     native_files={name:data for name,data in nav.items() if name.endswith(('.xml','.png','.txt','.json','.html'))}
     payload['native-test-evidence.zip']=deterministic_zip(native_files)
+    payload['records-test-evidence.zip']=deterministic_zip({name:data for name,data in records.items() if name.endswith(('.xml','.png','.txt','.json','.html'))})
     rollback=json.loads(dist['UPGRADE_ROLLBACK.json'])
     if rollback.get('result')!='PASS' or rollback.get('rc_version')!=VERSION:raise ValueError('Upgrade/rollback evidence missing')
     summary['python_upgrade_rollback']=rollback
     payload['checks.json']=encode(summary);payload['availability.json']=encode(availability)
-    payload['toolchains.json']=encode({'python_build':json.loads(dist['BUILD_TOOLS.json']),'android_build':json.loads(nav['rc-android-tools.json']),
+    payload['toolchains.json']=encode({'browser':json.loads(traces['toolchain.json']),'python_build':json.loads(dist['BUILD_TOOLS.json']),'android_build':json.loads(nav['rc-android-tools.json']),
                                       'direct_python_requirements':(ROOT/'requirements-rc.txt').read_text(), 'action_pins':json.loads((ROOT/'.github/action-pins.json').read_text())})
     import tempfile
     apk_results=[]
@@ -268,9 +321,10 @@ def main():
     run_id=os.environ['GITHUB_RUN_ID'];repo=api.repo
     if not run_id.isdigit():raise ValueError('Actual Actions build ID required')
     manifest={'schema':1,'version':VERSION,'package_name':'sedrava','git_sha':args.sha,'status':'GO_FOR_OWNER_REVIEW','publication_authorized':False,
+              'stable_release':{'status':'NOT_ASSESSED','owner_observation_window':'not specified or performed','physical_device':'unavailable; not tested'},
               'created_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
               'build':{'run_id':int(run_id),'attempt':int(os.environ['GITHUB_RUN_ATTEMPT']),'url':'https://github.com/'+repo+'/actions/runs/'+run_id},
-              'ci':ci,'source_artifacts':[dist_info,nav_info,web_info,trace_info],'tests':summary,'apk':apk_results,'availability':availability,
+              'ci':ci,'source_artifacts':[dist_info,nav_info,web_info,trace_info,records_info],'tests':summary,'apk':apk_results,'availability':availability,'rc1_kit':rc1_kit,
               'limits':LIMITS,'commands':['python -m build','python -m twine check dist/*','python scripts/audit_dist.py','python scripts/check_installed_dist.py','python scripts/check_upgrade_rollback.py','python scripts/test_web_browser.py','gradle -p build/navigation-android --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:assembleDebugAndroidTest','python scripts/test_rc_upgrade.py','bash scripts/test_navigation_emulator.sh','bash scripts/test_records_emulator.sh','bash scripts/test_side_by_side.sh']}
     report=['# Sedrava '+VERSION+' — final CI report / Итоговый CI-отчёт','',
             'Final source SHA / Итоговый SHA: `'+args.sha+'`','',
@@ -279,8 +333,11 @@ def main():
             'Python tests: '+json.dumps(summary['python'],sort_keys=True),
             'Chromium scenarios: '+str(summary['chromium']),
             'Main-workflow JVM tests: '+str(len(summary['jvm_navigation'])),
+            'Records and independent-boundary JVM tests: '+str(len(summary['jvm_records_boundaries'])),
             'Emulator scenarios including baseline UI seed/update: '+str(len(summary['emulator'])),
             'Real development code 1 -> RC code '+str(ANDROID_VERSION_CODE)+' same-key update: PASS',
+            'Real rc1 code 10001 -> rc2 code '+str(ANDROID_VERSION_CODE)+' same-ID/key update, cold restart and rejected-data retention: PASS',
+            'Independent boundary JVM corpus and cold corruption protection: PASS',
             'Two installed apps, independent persistence, Back, rotation, Activity recreation and cold launch: PASS',
             'Published 0.9 wheel -> separate RC -> original environment: PASS',
             'Physical Android: UNAVAILABLE / НЕ ПРОВЕРЕНО','',
@@ -288,8 +345,8 @@ def main():
     report += [sha256(data)+'  '+name for name,data in sorted(payload.items())]
     report += ['','## Actual CI / Фактические CI','']+[item['url'] for item in ci]
     report += ['','## Limits and risks / Ограничения и риски','']+['- '+item for item in LIMITS]
-    report += ['','No tag, release, package upload, merge or deployment was performed. Debug APKs are not production-signed releases. See the same-source docs/RC_010_REPORT.md and bilingual notes for implementation and installation details.']
-    payload['RC_010_REPORT.md']=('\n'.join(report)+'\n').encode('utf-8')
+    report += ['','No tag, release, package upload, merge or deployment was performed. Debug APKs are not production-signed releases. See the same-source docs/RC2_010_REPORT.md and bilingual notes for implementation and installation details.']
+    payload['RC2_010_REPORT.md']=('\n'.join(report)+'\n').encode('utf-8')
     write_bundle(args.output,payload,manifest)
     print((args.output/'SHA256SUMS').read_text())
     print('SHA256SUMS SHA-256: '+sha256((args.output/'SHA256SUMS').read_bytes()))

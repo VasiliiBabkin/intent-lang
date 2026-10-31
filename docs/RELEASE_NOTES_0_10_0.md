@@ -1,5 +1,7 @@
 # Sedrava 0.10.0 — заметки о стабильном выпуске / Release notes
 
+**Релиз:** [GitHub v0.10.0](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.10.0) · [PyPI 0.10.0](https://pypi.org/project/sedrava/0.10.0/).
+
 **Описал приложение — получил приложение.** Sedrava позволяет описать небольшое приложение в одном `.sdr` и сгенерировать автономное Web-приложение или проект Android/Jetpack Compose.
 
 ## Возможности / Capabilities

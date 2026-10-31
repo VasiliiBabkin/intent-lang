@@ -9,6 +9,8 @@ from sedrava_records import plain, serialize_state, restore_snapshot
 from sedrava_core import MAX_SOURCE_CHARS, parse, run, resolve, transition
 
 from sedrava_version import VERSION
+from sedrava_frontend import parse_document
+from sedrava_site import Site
 
 def atomic_write_text(path, raw):
     """Replace complete output only after a successful, flushed write."""
@@ -41,7 +43,7 @@ def main(argv=None):
     test = commands.add_parser("test", help="Run embedded Sedrava tests")
     test.add_argument("source", type=Path)
     build = commands.add_parser("build", help="Generate an application")
-    build.add_argument("target", choices=("web", "android"))
+    build.add_argument("target", choices=("web", "android", "site"))
     build.add_argument("source", type=Path)
     build.add_argument("--output", type=Path)
     build.add_argument("--application-id", help="Stable Android package identity (lowercase reverse-domain name)")
@@ -53,8 +55,21 @@ def main(argv=None):
             raise ValueError("Source exceeds size limit")
         with args.source.open(encoding="utf-8") as handle:
             source = handle.read(MAX_SOURCE_CHARS + 1)
+        document = parse_document(source)
+        if isinstance(document, Site):
+            if args.command == 'check':
+                from site_codegen import generate_site
+                generate_site(document,args.source.parent)
+                print(f"OK: {args.source} (site)")
+                return 0
+            if args.command == 'build' and args.target == 'site':
+                from site_codegen import build_site
+                print(build_site(source,args.output or Path('build/site'),args.source))
+                return 0
+            raise ValueError('Site mode is static and Web-only; use check or sedrava build site (no app actions/tests)')
+        if args.command == 'build' and args.target == 'site':
+            raise ValueError('build site requires a site document, not app')
         if args.command == "check":
-            parse(source)
             print(f"OK: {args.source}")
         elif args.command == "run":
             program = parse(source)

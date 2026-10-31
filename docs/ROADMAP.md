@@ -105,3 +105,9 @@ The independent [audit](STABILITY_AUDIT_010.md) fixes rejected-data overwrite, s
 ## RC2 verification / Проверка RC2
 
 Version 0.10.0rc2 / Android 10002 includes the audit fixes. [RC2 contract](RC2_010_PREPARATION.md) and [report](RC2_010_REPORT.md) require real increasing-code rc1 updates, independent corpus evidence and immutable same-SHA artifacts. Technical GO and owner authorization remain separate; stable release requires an owner-defined observation period.
+
+## Web UI 0.11 — Slice A / Срез A
+
+Implemented experimentally in the feature branch: `build site`, 13 static primitives, typed styles, responsive HTML/CSS and checked local assets. Реализовано экспериментально в ветке: генерация сайтов, 13 статических компонентов, типизированные стили, адаптивность и проверка ресурсов. This does not announce a 0.11 release or change the production site. Это не выпуск 0.11 и не замена рабочего сайта.
+
+[English reference](WEB_UI_011.en.md) · [Русская справка](WEB_UI_011.ru.md). Next: semantic navigation/footer, badges/callouts, code blocks and documentation navigation; interactive forms/tabs/dialogs require later contracts and tests. Далее: семантическая навигация/footer, badge/callout, code block; интерактивные компоненты требуют следующих контрактов и тестов.

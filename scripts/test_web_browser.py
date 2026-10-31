@@ -380,10 +380,14 @@ screen main:
         self.assertEqual(self.state('__proto__'), '-2147483647')
 
     def test_all_ui_examples_launch_without_errors(self):
-        from sedrava_core import parse
+        from sedrava_frontend import parse_document
+        from sedrava_site import Site
         for path in sorted((ROOT / 'examples').glob('*.sdr')):
             source = path.read_text()
-            if parse(source).widgets:
+            document=parse_document(source)
+            if isinstance(document,Site):
+                continue # Dedicated site Chromium suite exercises this explicit mode.
+            if document.widgets:
                 self.open(source)
                 self.assertTrue(self.page.locator('body').is_visible())
 

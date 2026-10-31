@@ -96,3 +96,15 @@ Stability / стабильность: [audit](STABILITY_AUDIT_010.md), [compatib
 [Release notes EN](RELEASE_NOTES_0_10_0rc2.en.md) · [RU](RELEASE_NOTES_0_10_0rc2.ru.md) · [Upgrade/rollback EN](UPGRADE_0_10_0rc2.en.md) · [RU](UPGRADE_0_10_0rc2.ru.md) · [RC2 report](RC2_010_REPORT.md).
 Current source version: **0.10.0rc2**, Android versionCode **10002**. This is a separately prepared experimental candidate, not stable 0.10.0 or a publication. The original rc1 kit remains immutable.
 Текущая версия исходников — 0.10.0rc2, код Android — 10002. Публикация требует отдельного решения владельца; физическое устройство не проверено.
+
+## Experimental Web UI 0.11 / Экспериментальный Web UI 0.11
+
+Source-branch feature, separate from published RC2. Режим из этой ветки, отдельно от опубликованного RC2.
+
+```sh
+sedrava check examples/web_ui_011_landing.sdr
+sedrava build site examples/web_ui_011_landing.sdr --output build/site
+python -m http.server 8000 --directory build/site
+```
+
+13 static primitives, responsive layouts and safe assets; no deployment. 13 статических компонентов, адаптивность и безопасные ресурсы; без публикации сайта. [English](WEB_UI_011.en.md) · [Русский](WEB_UI_011.ru.md). Existing application commands are unchanged. Команды приложений не изменены.

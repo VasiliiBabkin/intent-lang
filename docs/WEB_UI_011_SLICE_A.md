@@ -1,12 +1,12 @@
 # Web UI 0.11 — Slice A implementation contract
 
-**Status: implementation contract and example, not yet implemented.** This document complements [the proposal](WEB_UI_011_PROPOSAL.md) in PR #21. No claim that the syntax below works in 0.10.0rc2.
+**Status: implemented experimental source-branch Slice A; not a published 0.11 release.** This document complements [the proposal](WEB_UI_011_PROPOSAL.md) in PR #21. Published 0.10.0rc2 does not include this feature. See the normative [English](WEB_UI_011.en.md) / [Russian](WEB_UI_011.ru.md) references and the [implementation report](WEB_UI_011_REPORT.md).
 
 ## Goal
 
-A single `.sdr` source generates a responsive, accessible, static landing page without hand-written HTML/CSS/JS. The first target is **not** a replacement for the existing interactive `sedrava build web` behavior. Prefer an explicit `sedrava build site` target, introduced only after tests pass. Existing 0.9/0.10 programs must continue to parse and build unchanged.
+A single `.sdr` source generates a responsive, accessible, static landing page without hand-written HTML/CSS/JS. The first target is **not** a replacement for the existing interactive `sedrava build web` behavior. Prefer an explicit `sedrava build site` target, implemented alongside the application targets. Existing 0.9/0.10 programs must continue to parse and build unchanged.
 
-## Proposed authoring syntax (subject to parser review)
+## Authoring syntax
 
 ```text
 site "Sedrava"
@@ -24,7 +24,7 @@ page home at "/":
             heading "Build applications by describing them"
             paragraph "State, actions and rules — one source."
             row gap 16 wrap:
-                link "Get started" to "/docs/"
+                link "Get started" to "https://github.com/VasiliiBabkin/sedrava/tree/main/docs"
                 link "GitHub" to "https://github.com/VasiliiBabkin/sedrava"
             grid columns 3 gap 20:
                 card:
@@ -38,7 +38,7 @@ page home at "/":
                     paragraph "Generate the application."
 ```
 
-This syntax is illustrative until a parser and conformance tests exist. Use one coherent, indentation-based grammar with meaningful diagnostics, not ad hoc regex matching.
+The implementation uses one indentation-based grammar, typed property validation and a registry of components. Strict internal routes must resolve to a declared page. `button` is a navigation anchor with required `to`; spacer and divider are also implemented. See the references for style precedence, breakpoints and resource limits.
 
 ## Acceptance requirements
 

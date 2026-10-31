@@ -1,20 +1,20 @@
-# Sedrava — unreleased 0.10 text, records, collections and navigation
+# Sedrava — preparing stable 0.10.0
 
 **Describe the application; get the application. / Описал — получил.**
 
 **[Dedication / Посвящение](DEDICATION.md):** Геннадию Ивановичу Смирных — учителю информатики, благодаря которому автор Sedrava понял и полюбил программирование.
 
-The published compatibility baseline is [Sedrava 0.9.0a1](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.9.0a1). This branch adds first-class text, typed records bounded collections and multi-screen navigation end-to-end and identifies local development builds as **0.10.0rc2** (experimental RC preparation, not published); no 0.10 release, tag or PyPI publication is created.
+The source now targets **Sedrava 0.10.0** (Android versionCode **10003**). The historical [0.9.0a1 GitHub release](https://github.com/VasiliiBabkin/sedrava/releases/tag/v0.9.0a1) remains available. A tag, GitHub Release and PyPI publication are independent owner-approved steps; changing version metadata does not publish a package.
 
 Start with [Quick Start](docs/QUICKSTART.md), the [text reference](docs/LANGUAGE_0_10_TEXT.md), [text profile example](examples/text_profile.sdr), and [measured report](docs/TEXT_010_REPORT.md). The [task manager](examples/task_manager.sdr) now uses records and lists directly in `.sdr`; the [navigation example](docs/NAVIGATION_QUICKSTART.en.md) adds guarded screens and Back.
 
-## Published 0.9 baseline and common tooling
+## Getting started
 
 **Describe the application; get the application. / Опиши приложение — получи приложение.**
 
 Sedrava is an experimental declarative programming language for small applications: describe text/int32/boolean state, typed record collections, derived values, atomic actions, invariants and a simple UI; generate a standalone Web app or an Android/Compose project from the same source.
 
-**For learning and experimental development, not production.** 0.9.0a1 is published; this checkout is an unreleased 0.10 development increment. No Sedrava package is published on PyPI. Historical Intent 0.7 releases are a separate project history.
+**For learning and experimental development, not production.** Version 0.10.0 is being prepared. PyPI installation must be verified after publication; earlier Intent 0.7 packages belong to a different project history.
 
 [Quick Start / Быстрый старт](docs/QUICKSTART.md) · [Русский](docs/README.ru.md) · [English](docs/README.en.md)
 
@@ -72,7 +72,7 @@ Node.js is needed for differential conformance tests; Chromium tests are a separ
 
 **License:** [Apache 2.0](LICENSE) · [Contributing](CONTRIBUTING.md) · [Code of Conduct](CODE_OF_CONDUCT.md). `sedrava.com` is a proposed domain, not an official website.
 
-## Records and collections / Записи и коллекции (unreleased 0.10)
+## Records and collections / Записи и коллекции (0.10)
 
 The development branch integrates typed records and bounded ordered lists into `.sdr`,
 with stable IDs, atomic actions, strict snapshots and generated Web/Compose UI.
@@ -82,24 +82,24 @@ with stable IDs, atomic actions, strict snapshots and generated Web/Compose UI.
 - [Руководство на русском](docs/RECORDS_QUICKSTART.ru.md)
 - [Measured coverage / Фактические проверки](docs/COLLECTIONS_010_REPORT.md)
 
-## Multi-screen navigation / Многоэкранная навигация (unreleased 0.10)
+## Multi-screen navigation / Многоэкранная навигация (0.10)
 
 Named screens, guarded atomic transitions and a bounded Back stack are implemented
 in the core and both generators. One `.sdr` file generates the two-screen task manager.
-Экраны и переходы — возможность языка; опубликованного выпуска 0.10 нет.
+Экраны и переходы реализованы; публикация на PyPI требует отдельного решения.
 
 - [English guide](docs/NAVIGATION_QUICKSTART.en.md)
 - [Русское руководство](docs/NAVIGATION_QUICKSTART.ru.md)
 - [Syntax and semantics](docs/NAVIGATION_010_CONTRACT.md)
 - [Measured report](docs/NAVIGATION_010_REPORT.md)
 
-## Release readiness / Подготовка к RC (unreleased 0.10)
+## Release readiness / Подготовка к RC (0.10)
 
 Independent deterministic Android IDs and `--application-id` are implemented.
 Независимые Android-приложения собираются с постоянным ID; название отделено от пакета.
 [English identity/build guide](docs/ANDROID_ID.en.md) · [Русская инструкция](docs/ANDROID_ID.ru.md).
 Wheel/sdist include examples, documentation and license under `sys.prefix/share/sedrava`.
-Дистрибутив содержит примеры, документацию и лицензию; публикация 0.10 не выполнялась.
+Дистрибутив содержит примеры, документацию и лицензию; публикация 0.10.0 выполняется отдельно.
 
 Measured RC readiness / Фактическая готовность RC: [report / отчёт](docs/RELEASE_READINESS_010_REPORT.md).
 
@@ -114,5 +114,8 @@ Stability / стабильность: [audit](docs/STABILITY_AUDIT_010.md), [com
 ## 0.10.0rc2 preparation / Подготовка RC2 (not published)
 
 [Release notes EN](docs/RELEASE_NOTES_0_10_0rc2.en.md) · [RU](docs/RELEASE_NOTES_0_10_0rc2.ru.md) · [Upgrade/rollback EN](docs/UPGRADE_0_10_0rc2.en.md) · [RU](docs/UPGRADE_0_10_0rc2.ru.md) · [RC2 report](docs/RC2_010_REPORT.md).
-Current source version: **0.10.0rc2**, Android versionCode **10002**. This is a separately prepared experimental candidate, not stable 0.10.0 or a publication. The original rc1 kit remains immutable.
-Текущая версия исходников — 0.10.0rc2, код Android — 10002. Публикация требует отдельного решения владельца; физическое устройство не проверено.
+Historical rc1/rc2 artifacts remain unchanged.
+
+## Stable 0.10.0 / Подготовка стабильного выпуска
+
+Source **0.10.0**, Android versionCode **10003**. This source state is not proof of publication or passing release gates. See [release notes](docs/RELEASE_NOTES_0_10_0.md), [physical-device checklist](docs/PHYSICAL_DEVICE_010.md), [stable gates](docs/STABLE_RELEASE_GATES_010.md), and [owner's publishing checklist](docs/PUBLISH_0_10_0.md).

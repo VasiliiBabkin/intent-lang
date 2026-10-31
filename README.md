@@ -24,8 +24,10 @@ Python 3.10+ is required; Git is optional for installation from PyPI. In a virtu
 
 ```sh
 python -m pip install sedrava==0.10.0
-# For local examples, clone https://github.com/VasiliiBabkin/sedrava separately
 sedrava --version
+# Clone the source repository for checked-in example files:
+git clone https://github.com/VasiliiBabkin/sedrava.git
+cd sedrava
 sedrava check examples/reference_09.sdr
 sedrava test examples/reference_09.sdr
 sedrava run examples/reference_09.sdr add add

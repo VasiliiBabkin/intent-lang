@@ -14,7 +14,7 @@ python -m pip install sedrava==0.10.0
 sedrava --version
 ```
 
-On Windows, create the environment with `py -3 -m venv .venv`, activate with `.venv\\Scripts\\Activate.ps1`, then run `python -m pip install sedrava==0.10.0`. To work from a repository checkout instead, use `python -m pip install .` after activation. If `python3 -m venv` is unavailable on Ubuntu/Debian, install the distro's `python3-venv` package.
+On Windows, create the environment with `py -3 -m venv .venv`, activate with `.venv\Scripts\Activate.ps1`, then run `python -m pip install sedrava==0.10.0`. To work from a repository checkout instead, use `python -m pip install .` after activation. If `python3 -m venv` is unavailable on Ubuntu/Debian, install the distro's `python3-venv` package.
 
 ## First app / Первое приложение
 

@@ -1,0 +1,29 @@
+# PROPOSED Sedrava 0.11 site syntax — NOT supported by 0.10.0rc2.
+# This fixture is a design target, not an executable 0.10 example.
+site "Sedrava"
+theme:
+    background "#10101A"
+    surface "#1C1A2B"
+    foreground "#F7F4FF"
+    accent "#B59BFF"
+
+page home at "/":
+    title "Sedrava — Describe the app. Get the app."
+    description "Declarative language for Web and Android"
+    container max 1120:
+        column gap 32:
+            heading "Build applications by describing them"
+            paragraph "State, actions and rules — one source."
+            row gap 16 wrap:
+                link "Get started" to "/docs/"
+                link "GitHub" to "https://github.com/VasiliiBabkin/sedrava"
+            grid columns 3 gap 20:
+                card:
+                    heading "State"
+                    paragraph "Describe your data."
+                card:
+                    heading "Rules"
+                    paragraph "Protect valid state."
+                card:
+                    heading "Build"
+                    paragraph "Generate the application."

@@ -7,15 +7,14 @@
 Requires Python **3.10+**. Use a virtual environment:
 
 ```sh
-python -m venv .venv
-# Linux/macOS:
+# Linux: use python3, since some distributions have no 'python' alias.
+python3 -m venv .venv
 . .venv/bin/activate
-# Windows PowerShell: .venv\Scripts\Activate.ps1
 python -m pip install sedrava==0.10.0
 sedrava --version
 ```
 
-To work from a repository checkout instead, use `python -m pip install .`. On Windows `py -3` may be needed.
+On Windows, create the environment with `py -3 -m venv .venv`, activate with `.venv\Scripts\Activate.ps1`, then run `python -m pip install sedrava==0.10.0`. To work from a repository checkout instead, use `python -m pip install .` after activation. If `python3 -m venv` is unavailable on Ubuntu/Debian, install the distro's `python3-venv` package.
 
 ## First app / Первое приложение
 
@@ -58,3 +57,8 @@ sedrava build android examples/task_manager_navigation.sdr --output build/tasks-
 `build android` generates Kotlin/Compose source, **not an APK**. Compile with JDK, Android SDK and Gradle per [BUILD.md](BUILD.md). Data migrations and encrypted persistence are not provided. Final 0.10 APK physical-device acceptance is not recorded.
 
 `sedrava build site` is experimental in [draft PR #22](https://github.com/VasiliiBabkin/sedrava/pull/22), **not** part of the released CLI. [sedrava-site](https://github.com/VasiliiBabkin/sedrava-site) is a separate Astro/Starlight website.
+
+
+## Post-release Linux smoke test / Ручная проверка Linux
+
+Installation from PyPI, CLI `check`/`test`/`run`, HTML generation and tester-confirmed browser interaction passed on 2026-11-01 in a Linux virtual environment using Python 3.13. See the [evidence and scope](MANUAL_LINUX_WEB_SMOKE_0_10_0_2026-11-01.md). Physical Android acceptance is separate.

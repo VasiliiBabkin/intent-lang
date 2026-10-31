@@ -77,6 +77,13 @@ class SiteBrowser(unittest.TestCase):
             self.assertEqual(counts,list(expected))
             self.assertEqual(self.page.locator('.s-card h2').first.evaluate('e=>getComputedStyle(e).fontSize'),'26px')
 
+        source='site "Typography"\npage home at "/":\n    title "Typography"\n    heading "Title"\n    heading "Default section" level 2\n    heading "Display section" level 2 variant display\n'
+        file=self.root/'typography.sdr';file.write_text(source)
+        build_site(source,self.root/'typography',file)
+        self.open('/typography/index.html',1440)
+        sizes=self.page.locator('h2').evaluate_all('els=>els.map(e=>parseFloat(getComputedStyle(e).fontSize))')
+        self.assertGreater(sizes[1],sizes[0])
+
     def test_keyboard_skip_focus_and_enter_navigation(self):
         self.open(width=360)
         self.page.keyboard.press('Tab')

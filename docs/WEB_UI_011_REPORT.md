@@ -12,7 +12,7 @@ Experimental implementation in PR [#22](https://github.com/VasiliiBabkin/sedrava
 
 ## Local evidence / Локальные проверки
 
-- Python 3.12: **182 tests passed**, including **17 new site tests**. Node differential application traces remain enabled; no action test is applied to a static site.
+- Python 3.12: **183 tests passed**, including **18 new site tests**. The legacy candidate packager now selects app documents through the shared frontend rather than feeding static sites into the app parser, with a regression test for mixed examples. Node differential application traces remain enabled; no action test is applied to a static site.
 - Existing application Chromium suite: **26 tests passed**.
 - Site Chromium suite: **7 tests passed**. Both pages photographed at 360/768/1440, no horizontal overflow, actual keyboard navigation and Back/Forward, visible focus, reduced motion, text contrast, long Unicode text, escaped hostile markup, no script/page errors or HTTP failures. Screenshots inspected visually, including mobile rendering.
 - File generation tests cover determinism, typed-property/style errors, unsafe URLs/SVG, symlinks and oversized assets, unknown/edited output protection, and rollback after an injected replacement failure.

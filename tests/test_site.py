@@ -180,3 +180,23 @@ class SiteTests(unittest.TestCase):
             source.write_text('app "Old"\nstate n=0\n')
             with contextlib.redirect_stderr(io.StringIO()):self.assertEqual(main(['build','site',str(source),'--output',str(root/'bad')]),1)
             self.assertFalse((root/'bad').exists())
+
+    def test_legacy_candidate_packager_accepts_mixed_example_modes(self):
+        import sys
+        import zipfile
+        from scripts import prepare_release
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);(root/'examples').mkdir();(root/'dist').mkdir()
+            (root/'examples/site.sdr').write_text(TINY)
+            app='app "Legacy"\nstate n=0\naction add: n=n+1\nscreen main:\n    value n\n'
+            (root/'examples/app.sdr').write_text(app)
+            (root/'dist/package.whl').write_bytes(b'checked wheel')
+            (root/'dist/package.tar.gz').write_bytes(b'checked sdist')
+            apk=root/'checked.apk';apk.write_bytes(b'checked apk')
+            output=root/'kit'
+            with patch.object(prepare_release,'ROOT',root), patch.object(sys,'argv',['prepare_release','--apk',str(apk),'--output',str(output)]), contextlib.redirect_stdout(io.StringIO()):
+                prepare_release.main()
+            with zipfile.ZipFile(output/'web-examples.zip') as archive:
+                self.assertEqual(archive.namelist(),['app.html'])
+                self.assertIn(b'Legacy',archive.read('app.html'))
+            self.assertTrue((output/'SHA256SUMS').is_file())

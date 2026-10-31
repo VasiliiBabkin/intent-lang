@@ -38,6 +38,10 @@ Sedrava should turn concise, declarative descriptions into useful applications w
 
 **Version numbers are planning labels, not promised release dates. / Номера версий — ориентиры, не сроки и не гарантии.**
 
+## Proposed Web UI direction after 0.10 / Предлагаемое направление после 0.10
+
+The next priority under consideration is **0.11 Web UI**, with simple authoring, a flexible and growing component catalog, responsive styling and a real Sedrava website as an acceptance project. Then a Sedrava-based code editor; self-hosting the compiler is optional and later. This **proposal supersedes neither the existing milestone table nor the published 0.10 contract** until reviewed and accepted. See [Web UI 0.11 architecture proposal](WEB_UI_011_PROPOSAL.md). Do not advertise unimplemented components as released.
+
 ## Immediate backlog / Ближайшие задачи
 
 - [x] Android validation errors and preserved editable draft confirmed on physical device; see [acceptance report](ANDROID_09_ACCEPTANCE.md).
